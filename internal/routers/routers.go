@@ -39,20 +39,9 @@ func init() {
 	}
 }
 
-// Register 路由注册
+// Register 路由泣册
 func Register(r *gin.Engine) {
 	api := r.Group(urlPrefix)
-
-	// 首页
-	api.GET("/", func(c *gin.Context) {
-		file, err := statikFS.Open("/index.html")
-		if err != nil {
-			logger.Error("读取首页文件失败: %s", err)
-			c.Status(http.StatusInternalServerError)
-			return
-		}
-		io.Copy(c.Writer, file)
-	})
 
 	// 系统安装
 	installGroup := api.Group("/install")
@@ -138,8 +127,52 @@ func Register(r *gin.Engine) {
 		v1Group.POST("/task/disable/:id", task.Disable)
 	}
 
-	// 404错误处理
+	// 首页路由（根路径）
+	r.GET("/", func(c *gin.Context) {
+		file, err := statikFS.Open("/index.html")
+		if err != nil {
+			logger.Error("读取首页文件失败: %s", err)
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
+		c.Header("Content-Type", "text/html")
+		io.Copy(c.Writer, file)
+	})
+	
+	// 静态文件路由 - 必须放在最后
 	r.NoRoute(func(c *gin.Context) {
+		filepath := c.Request.URL.Path
+		
+		// 移除 /public 前缀（如果存在）
+		filepath = strings.TrimPrefix(filepath, "/public")
+		
+		// 尝试从 statikFS 读取文件
+		file, err := statikFS.Open(filepath)
+		if err == nil {
+			defer file.Close()
+			
+			// 设置正确的Content-Type - 必须在写入数据之前设置
+			if strings.HasSuffix(filepath, ".js") {
+				c.Writer.Header().Set("Content-Type", "application/javascript; charset=utf-8")
+			} else if strings.HasSuffix(filepath, ".css") {
+				c.Writer.Header().Set("Content-Type", "text/css; charset=utf-8")
+			} else if strings.HasSuffix(filepath, ".html") {
+				c.Writer.Header().Set("Content-Type", "text/html; charset=utf-8")
+			} else if strings.HasSuffix(filepath, ".png") {
+				c.Writer.Header().Set("Content-Type", "image/png")
+			} else if strings.HasSuffix(filepath, ".jpg") || strings.HasSuffix(filepath, ".jpeg") {
+				c.Writer.Header().Set("Content-Type", "image/jpeg")
+			} else if strings.HasSuffix(filepath, ".svg") {
+				c.Writer.Header().Set("Content-Type", "image/svg+xml")
+			}
+			
+			c.Status(http.StatusOK)
+			io.Copy(c.Writer, file)
+			return
+		}
+		
+		// 文件不存在，返回404
 		jsonResp := utils.JsonResponse{}
 		c.String(http.StatusNotFound, jsonResp.Failure(utils.NotFound, "您访问的页面不存在"))
 	})
@@ -147,18 +180,6 @@ func Register(r *gin.Engine) {
 
 // 中间件注册
 func RegisterMiddleware(r *gin.Engine) {
-	// 静态文件服务 - 使用自定义处理器
-	r.GET("/"+staticDir+"/*filepath", func(c *gin.Context) {
-		filepath := c.Param("filepath")
-		file, err := statikFS.Open(filepath)
-		if err != nil {
-			c.Status(http.StatusNotFound)
-			return
-		}
-		defer file.Close()
-		io.Copy(c.Writer, file)
-	})
-
 	// 中间件
 	r.Use(checkAppInstall)
 	r.Use(ipAuth)
@@ -174,7 +195,8 @@ func checkAppInstall(c *gin.Context) {
 		c.Next()
 		return
 	}
-	if strings.HasPrefix(c.Request.URL.Path, "/install") || c.Request.URL.Path == "/" {
+	path := c.Request.URL.Path
+	if strings.HasPrefix(path, "/install") || path == "/" || strings.HasPrefix(path, "/static") || strings.HasSuffix(path, ".js") || strings.HasSuffix(path, ".css") {
 		c.Next()
 		return
 	}
@@ -214,19 +236,27 @@ func userAuth(c *gin.Context) {
 		c.Next()
 		return
 	}
+	
+	path := c.Request.URL.Path
+	// 静态文件直接放行
+	if strings.HasSuffix(path, ".js") || strings.HasSuffix(path, ".css") || strings.HasSuffix(path, ".png") || strings.HasSuffix(path, ".jpg") || strings.HasSuffix(path, ".svg") {
+		c.Next()
+		return
+	}
+	
 	user.RestoreToken(c)
 	if user.IsLogin(c) {
 		c.Next()
 		return
 	}
-	uri := strings.TrimRight(c.Request.URL.Path, "/")
+	uri := strings.TrimRight(path, "/")
 	if strings.HasPrefix(uri, "/v1") {
 		c.Next()
 		return
 	}
 	excludePaths := []string{"", "/user/login", "/install/status"}
-	for _, path := range excludePaths {
-		if uri == path {
+	for _, p := range excludePaths {
+		if uri == p {
 			c.Next()
 			return
 		}
@@ -243,11 +273,19 @@ func urlAuth(c *gin.Context) {
 		c.Next()
 		return
 	}
+	
+	path := c.Request.URL.Path
+	// 静态文件直接放行
+	if strings.HasSuffix(path, ".js") || strings.HasSuffix(path, ".css") || strings.HasSuffix(path, ".png") || strings.HasSuffix(path, ".jpg") || strings.HasSuffix(path, ".svg") {
+		c.Next()
+		return
+	}
+	
 	if user.IsAdmin(c) {
 		c.Next()
 		return
 	}
-	uri := strings.TrimRight(c.Request.URL.Path, "/")
+	uri := strings.TrimRight(path, "/")
 	if strings.HasPrefix(uri, "/v1") {
 		c.Next()
 		return
@@ -263,8 +301,8 @@ func urlAuth(c *gin.Context) {
 		"/user/login",
 		"/user/editMyPassword",
 	}
-	for _, path := range allowPaths {
-		if path == uri {
+	for _, p := range allowPaths {
+		if p == uri {
 			c.Next()
 			return
 		}

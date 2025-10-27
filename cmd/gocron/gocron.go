@@ -73,10 +73,13 @@ func getCommands() []cli.Command {
 func runWeb(ctx *cli.Context) {
 	// 设置运行环境
 	setEnvironment(ctx)
+	fmt.Printf("Starting gocron web server...\n")
 	// 初始化应用
 	app.InitEnv(AppVersion)
+	fmt.Printf("Application initialized\n")
 	// 初始化模块 DB、定时任务等
 	initModule()
+	fmt.Printf("Modules initialized\n")
 	// 捕捉信号,配置热更新等
 	go catchSignal()
 	r := gin.Default()
@@ -87,7 +90,12 @@ func runWeb(ctx *cli.Context) {
 	host := parseHost(ctx)
 	port := parsePort(ctx)
 	addr := fmt.Sprintf("%s:%d", host, port)
-	r.Run(addr)
+	fmt.Printf("Starting server on %s\n", addr)
+	err := r.Run(addr)
+	if err != nil {
+		fmt.Printf("Failed to start server: %v\n", err)
+		logger.Fatal("Failed to start server", err)
+	}
 }
 
 func initModule() {
