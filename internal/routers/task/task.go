@@ -17,23 +17,23 @@ import (
 
 type TaskForm struct {
 	Id               int
-	Level            models.TaskLevel `binding:"Required;In(1,2)"`
+	Level            models.TaskLevel `binding:"required,oneof=1 2"`
 	DependencyStatus models.TaskDependencyStatus
 	DependencyTaskId string
-	Name             string `binding:"Required;MaxSize(32)"`
+	Name             string `binding:"required,max=32"`
 	Spec             string
-	Protocol         models.TaskProtocol   `binding:"In(1,2)"`
-	Command          string                `binding:"Required;MaxSize(256)"`
-	HttpMethod       models.TaskHTTPMethod `binding:"In(1,2)"`
-	Timeout          int                   `binding:"Range(0,86400)"`
-	Multi            int8                  `binding:"In(1,2)"`
+	Protocol         models.TaskProtocol   `binding:"oneof=1 2"`
+	Command          string                `binding:"required,max=256"`
+	HttpMethod       models.TaskHTTPMethod `binding:"oneof=1 2"`
+	Timeout          int                   `binding:"min=0,max=86400"`
+	Multi            int8                  `binding:"oneof=1 2"`
 	RetryTimes       int8
 	RetryInterval    int16
 	HostId           string
 	Tag              string
 	Remark           string
-	NotifyStatus     int8 `binding:"In(1,2,3,4)"`
-	NotifyType       int8 `binding:"In(1,2,3,4)"`
+	NotifyStatus     int8 `binding:"oneof=1 2 3 4"`
+	NotifyType       int8 `binding:"oneof=1 2 3 4"`
 	NotifyReceiverId string
 	NotifyKeyword    string
 }

@@ -73,9 +73,9 @@ func Detail(c *gin.Context) {
 
 type HostForm struct {
 	Id     int16
-	Name   string `binding:"Required;MaxSize(64)"`
-	Alias  string `binding:"Required;MaxSize(32)"`
-	Port   int    `binding:"Required;Range(1-65535)"`
+	Name   string `binding:"required,max=64"`
+	Alias  string `binding:"required,max=32"`
+	Port   int    `binding:"required,min=1,max=65535"`
 	Remark string
 }
 

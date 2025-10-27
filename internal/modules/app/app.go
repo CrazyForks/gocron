@@ -5,14 +5,12 @@ import (
 	"path/filepath"
 
 	"fmt"
-	"io/ioutil"
 	"strconv"
 	"strings"
 
 	"github.com/gocronx-team/gocron/internal/modules/logger"
 	"github.com/gocronx-team/gocron/internal/modules/setting"
 	"github.com/gocronx-team/gocron/internal/modules/utils"
-	"github.com/ouqiang/goutil"
 )
 
 var (
@@ -38,34 +36,37 @@ var (
 func InitEnv(versionString string) {
 	logger.InitLogger()
 	var err error
-	AppDir, err = goutil.WorkDir()
+	// 优先使用用户主目录下的.gocron目录
+	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		logger.Fatal(err)
 	}
-	ConfDir = filepath.Join(AppDir, "/conf")
-	LogDir = filepath.Join(AppDir, "/log")
-	AppConfig = filepath.Join(ConfDir, "/app.ini")
-	VersionFile = filepath.Join(ConfDir, "/.version")
-	createDirIfNotExists(ConfDir, LogDir)
+	AppDir = filepath.Join(homeDir, ".gocron")
+	fmt.Printf("AppDir: %s\n", AppDir)
+	ConfDir = filepath.Join(AppDir, "conf")
+	LogDir = filepath.Join(AppDir, "log")
+	AppConfig = filepath.Join(ConfDir, "app.ini")
+	VersionFile = filepath.Join(ConfDir, ".version")
+	fmt.Printf("ConfDir: %s, LogDir: %s\n", ConfDir, LogDir)
+	createDirIfNotExists(AppDir, ConfDir, LogDir)
 	Installed = IsInstalled()
 	VersionId = ToNumberVersion(versionString)
 }
 
 // IsInstalled 判断应用是否已安装
 func IsInstalled() bool {
-	_, err := os.Stat(filepath.Join(ConfDir, "/install.lock"))
-	if os.IsNotExist(err) {
-		return false
-	}
-
-	return true
+	_, err := os.Stat(filepath.Join(ConfDir, "install.lock"))
+	return !os.IsNotExist(err)
 }
 
 // CreateInstallLock 创建安装锁文件
 func CreateInstallLock() error {
-	_, err := os.Create(filepath.Join(ConfDir, "/install.lock"))
+	_, err := os.Create(filepath.Join(ConfDir, "install.lock"))
 	if err != nil {
-		logger.Error("创建安装锁文件conf/install.lock失败")
+		logger.Error("创建安装锁文件conf/install.lock失败", err)
+		fmt.Printf("Error creating install.lock: %v\n", err)
+	} else {
+		fmt.Printf("Successfully created install.lock at %s\n", filepath.Join(ConfDir, "install.lock"))
 	}
 
 	return err
@@ -73,7 +74,7 @@ func CreateInstallLock() error {
 
 // UpdateVersionFile 更新应用版本号文件
 func UpdateVersionFile() {
-	err := ioutil.WriteFile(VersionFile,
+	err := os.WriteFile(VersionFile,
 		[]byte(strconv.Itoa(VersionId)),
 		0644,
 	)
@@ -89,7 +90,7 @@ func GetCurrentVersionId() int {
 		return 0
 	}
 
-	bytes, err := ioutil.ReadFile(VersionFile)
+	bytes, err := os.ReadFile(VersionFile)
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -124,7 +125,7 @@ func createDirIfNotExists(path ...string) {
 		if utils.FileExist(value) {
 			continue
 		}
-		err := os.Mkdir(value, 0755)
+		err := os.MkdirAll(value, 0755)
 		if err != nil {
 			logger.Fatal(fmt.Sprintf("创建目录失败:%s", err.Error()))
 		}

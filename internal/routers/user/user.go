@@ -21,12 +21,25 @@ const tokenDuration = 4 * time.Hour
 // UserForm 用户表单
 type UserForm struct {
 	Id              int
-	Name            string `binding:"Required;MaxSize(32)"` // 用户名
+	Name            string `binding:"required,max=32"` // 用户名
 	Password        string // 密码
 	ConfirmPassword string // 确认密码
-	Email           string `binding:"Required;MaxSize(50)"` // 邮箱
+	Email           string `binding:"required,email,max=50"` // 邮箱
 	IsAdmin         int8   // 是否是管理员 1:管理员 0:普通用户
 	Status          models.Status
+}
+
+// UpdatePasswordForm 更新密码表单
+type UpdatePasswordForm struct {
+	NewPassword        string `json:"new_password" binding:"required,min=6"`
+	ConfirmNewPassword string `json:"confirm_new_password" binding:"required,min=6"`
+}
+
+// UpdateMyPasswordForm 更新我的密码表单
+type UpdateMyPasswordForm struct {
+	OldPassword        string `json:"old_password" binding:"required"`
+	NewPassword        string `json:"new_password" binding:"required,min=6"`
+	ConfirmNewPassword string `json:"confirm_new_password" binding:"required,min=6"`
 }
 
 // Index 用户列表页
@@ -210,22 +223,23 @@ func changeStatus(c *gin.Context, status models.Status) {
 // UpdatePassword 更新密码
 func UpdatePassword(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
-	newPassword := strings.TrimSpace(c.Query("new_password"))
-	confirmNewPassword := strings.TrimSpace(c.Query("confirm_new_password"))
-	json := utils.JsonResponse{}
-	var result string
-	if newPassword == "" || confirmNewPassword == "" {
-		result = json.CommonFailure("请输入密码")
+	var form UpdatePasswordForm
+	if err := c.ShouldBindJSON(&form); err != nil {
+		json := utils.JsonResponse{}
+		result := json.CommonFailure("表单验证失败, 请检测输入")
 		c.String(http.StatusOK, result)
 		return
 	}
-	if newPassword != confirmNewPassword {
+	
+	json := utils.JsonResponse{}
+	var result string
+	if form.NewPassword != form.ConfirmNewPassword {
 		result = json.CommonFailure("两次输入密码不一致")
 		c.String(http.StatusOK, result)
 		return
 	}
 	userModel := new(models.User)
-	_, err := userModel.UpdatePassword(id, newPassword)
+	_, err := userModel.UpdatePassword(id, form.NewPassword)
 	if err != nil {
 		result = json.CommonFailure("修改失败")
 	} else {
@@ -236,33 +250,33 @@ func UpdatePassword(c *gin.Context) {
 
 // UpdateMyPassword 更新我的密码
 func UpdateMyPassword(c *gin.Context) {
-	oldPassword := strings.TrimSpace(c.Query("old_password"))
-	newPassword := strings.TrimSpace(c.Query("new_password"))
-	confirmNewPassword := strings.TrimSpace(c.Query("confirm_new_password"))
-	json := utils.JsonResponse{}
-	var result string
-	if oldPassword == "" || newPassword == "" || confirmNewPassword == "" {
-		result = json.CommonFailure("原密码和新密码均不能为空")
+	var form UpdateMyPasswordForm
+	if err := c.ShouldBindJSON(&form); err != nil {
+		json := utils.JsonResponse{}
+		result := json.CommonFailure("表单验证失败, 请检测输入")
 		c.String(http.StatusOK, result)
 		return
 	}
-	if newPassword != confirmNewPassword {
+	
+	json := utils.JsonResponse{}
+	var result string
+	if form.NewPassword != form.ConfirmNewPassword {
 		result = json.CommonFailure("两次输入密码不一致")
 		c.String(http.StatusOK, result)
 		return
 	}
-	if oldPassword == newPassword {
+	if form.OldPassword == form.NewPassword {
 		result = json.CommonFailure("原密码与新密码不能相同")
 		c.String(http.StatusOK, result)
 		return
 	}
 	userModel := new(models.User)
-	if !userModel.Match(Username(c), oldPassword) {
+	if !userModel.Match(Username(c), form.OldPassword) {
 		result = json.CommonFailure("原密码输入错误")
 		c.String(http.StatusOK, result)
 		return
 	}
-	_, err := userModel.UpdatePassword(Uid(c), newPassword)
+	_, err := userModel.UpdatePassword(Uid(c), form.NewPassword)
 	if err != nil {
 		result = json.CommonFailure("修改失败")
 	} else {

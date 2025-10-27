@@ -67,10 +67,3 @@ require (
 	google.golang.org/protobuf v1.36.9 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 )
-
-require github.com/ouqiang/gocron v1.5.3
-
-require (
-	github.com/go-macaron/inject v0.0.0-20160627170012-d8a0b8677191 // indirect
-	gopkg.in/macaron.v1 v1.3.2 // indirect
-)
