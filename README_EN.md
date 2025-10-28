@@ -99,11 +99,6 @@ gocron-node -enable-tls # Enable TLS
 * `air` - Backend hot reload
 * `npm run dev` - Frontend hot reload
 
-## Documentation
-
-* [2FA Usage Guide](2FA_USAGE.md)
-* [Upgrade Guide](UPGRADE_GUIDE.md)
-
 ## License
 
 MIT

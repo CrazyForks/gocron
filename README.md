@@ -99,11 +99,6 @@ gocron-node -enable-tls # 启用TLS
 * `air` - 后端热更新
 * `npm run dev` - 前端热更新
 
-## 文档
-
-* [2FA使用说明](2FA_USAGE.md)
-* [升级指南](UPGRADE_GUIDE.md)
-
 ## License
 
 MIT
