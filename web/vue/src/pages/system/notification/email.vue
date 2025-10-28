@@ -57,7 +57,7 @@
       </el-form>
       <el-dialog
         title=""
-        :visible.sync="dialogVisible"
+        v-model="dialogVisible"
         width="30%">
         <el-form :model="form">
           <el-form-item label="用户名" >
