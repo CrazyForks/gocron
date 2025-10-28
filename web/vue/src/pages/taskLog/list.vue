@@ -7,7 +7,7 @@
           <el-input v-model.trim="searchParams.task_id"></el-input>
         </el-form-item>
         <el-form-item label="执行方式">
-          <el-select v-model.trim="searchParams.protocol" placeholder="执行方式">
+          <el-select v-model.trim="searchParams.protocol" placeholder="执行方式" style="width: 180px;">
             <el-option label="全部" value=""></el-option>
             <el-option
             v-for="item in protocolList"
@@ -18,7 +18,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model.trim="searchParams.status">
+          <el-select v-model.trim="searchParams.status" style="width: 180px;">
             <el-option label="全部" value=""></el-option>
             <el-option
               v-for="item in statusList"
