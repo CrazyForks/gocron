@@ -1,3 +1,0 @@
--- 为用户表添加2FA字段
-ALTER TABLE user ADD COLUMN two_factor_key VARCHAR(100) DEFAULT '' COMMENT '2FA密钥';
-ALTER TABLE user ADD COLUMN two_factor_on TINYINT NOT NULL DEFAULT 0 COMMENT '2FA开关 1:开启 0:关闭';
