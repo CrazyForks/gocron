@@ -1,94 +1,103 @@
 package models
 
 import (
-	"github.com/go-xorm/xorm"
+	"gorm.io/gorm"
 )
 
 // 主机
 type Host struct {
-	Id        int16  `json:"id" xorm:"smallint pk autoincr"`
-	Name      string `json:"name" xorm:"varchar(64) notnull"`                // 主机名称
-	Alias     string `json:"alias" xorm:"varchar(32) notnull default '' "`   // 主机别名
-	Port      int    `json:"port" xorm:"notnull default 5921"`               // 主机端口
-	Remark    string `json:"remark" xorm:"varchar(100) notnull default '' "` // 备注
-	BaseModel `json:"-" xorm:"-"`
-	Selected  bool `json:"-" xorm:"-"`
+	Id        int16  `json:"id" gorm:"primaryKey;autoIncrement;type:smallint"`
+	Name      string `json:"name" gorm:"type:varchar(64);not null"`
+	Alias     string `json:"alias" gorm:"type:varchar(32);not null;default:''"`
+	Port      int    `json:"port" gorm:"not null;default:5921"`
+	Remark    string `json:"remark" gorm:"type:varchar(100);not null;default:''"`
+	BaseModel `json:"-" gorm:"-"`
+	Selected  bool `json:"-" gorm:"-"`
 }
 
 // 新增
 func (host *Host) Create() (insertId int16, err error) {
-	_, err = Db.Insert(host)
-	if err == nil {
+	result := Db.Create(host)
+	if result.Error == nil {
 		insertId = host.Id
 	}
 
-	return
+	return insertId, result.Error
 }
 
 func (host *Host) UpdateBean(id int16) (int64, error) {
-	return Db.ID(id).Cols("name,alias,port,remark").Update(host)
+	result := Db.Model(&Host{}).Where("id = ?", id).
+		Select("name", "alias", "port", "remark").
+		Updates(host)
+	return result.RowsAffected, result.Error
 }
 
 // 更新
 func (host *Host) Update(id int, data CommonMap) (int64, error) {
-	return Db.Table(host).ID(id).Update(data)
+	updateData := make(map[string]interface{})
+	for k, v := range data {
+		updateData[k] = v
+	}
+	result := Db.Model(&Host{}).Where("id = ?", id).UpdateColumns(updateData)
+	return result.RowsAffected, result.Error
 }
 
 // 删除
 func (host *Host) Delete(id int) (int64, error) {
-	return Db.Id(id).Delete(new(Host))
+	result := Db.Delete(&Host{}, id)
+	return result.RowsAffected, result.Error
 }
 
 func (host *Host) Find(id int) error {
-	_, err := Db.Id(id).Get(host)
-
-	return err
+	return Db.First(host, id).Error
 }
 
 func (host *Host) NameExists(name string, id int16) (bool, error) {
-	if id == 0 {
-		count, err := Db.Where("name = ?", name).Count(host)
-		return count > 0, err
+	var count int64
+	query := Db.Model(&Host{}).Where("name = ?", name)
+	if id != 0 {
+		query = query.Where("id != ?", id)
 	}
-
-	count, err := Db.Where("name = ? AND id != ?", name, id).Count(host)
+	err := query.Count(&count).Error
 	return count > 0, err
 }
 
 func (host *Host) List(params CommonMap) ([]Host, error) {
 	host.parsePageAndPageSize(params)
 	list := make([]Host, 0)
-	session := Db.Desc("id")
-	host.parseWhere(session, params)
-	err := session.Limit(host.PageSize, host.pageLimitOffset()).Find(&list)
+	query := Db.Order("id DESC")
+	host.parseWhere(query, params)
+	err := query.Limit(host.PageSize).Offset(host.pageLimitOffset()).Find(&list).Error
 
 	return list, err
 }
 
 func (host *Host) AllList() ([]Host, error) {
 	list := make([]Host, 0)
-	err := Db.Cols("name,port").Desc("id").Find(&list)
+	err := Db.Select("name", "port").Order("id DESC").Find(&list).Error
 
 	return list, err
 }
 
 func (host *Host) Total(params CommonMap) (int64, error) {
-	session := Db.NewSession()
-	host.parseWhere(session, params)
-	return session.Count(host)
+	var count int64
+	query := Db.Model(&Host{})
+	host.parseWhere(query, params)
+	err := query.Count(&count).Error
+	return count, err
 }
 
 // 解析where
-func (host *Host) parseWhere(session *xorm.Session, params CommonMap) {
+func (host *Host) parseWhere(query *gorm.DB, params CommonMap) {
 	if len(params) == 0 {
 		return
 	}
 	id, ok := params["Id"]
 	if ok && id.(int) > 0 {
-		session.And("id = ?", id)
+		query.Where("id = ?", id)
 	}
 	name, ok := params["Name"]
 	if ok && name.(string) != "" {
-		session.And("name = ?", name)
+		query.Where("name = ?", name)
 	}
 }

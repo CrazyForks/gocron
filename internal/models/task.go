@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-xorm/xorm"
+	"gorm.io/gorm"
 )
 
 type TaskProtocol int8
@@ -38,63 +38,67 @@ const (
 
 // 任务
 type Task struct {
-	Id               int                  `json:"id" xorm:"int pk autoincr"`
-	Name             string               `json:"name" xorm:"varchar(32) notnull"`                            // 任务名称
-	Level            TaskLevel            `json:"level" xorm:"tinyint notnull index default 1"`               // 任务等级 1: 主任务 2: 依赖任务
-	DependencyTaskId string               `json:"dependency_task_id" xorm:"varchar(64) notnull default ''"`   // 依赖任务ID,多个ID逗号分隔
-	DependencyStatus TaskDependencyStatus `json:"dependency_status" xorm:"tinyint notnull default 1"`         // 依赖关系 1:强依赖 主任务执行成功, 依赖任务才会被执行 2:弱依赖
-	Spec             string               `json:"spec" xorm:"varchar(64) notnull"`                            // crontab
-	Protocol         TaskProtocol         `json:"protocol" xorm:"tinyint notnull index"`                      // 协议 1:http 2:系统命令
-	Command          string               `json:"command" xorm:"varchar(256) notnull"`                        // URL地址或shell命令
-	HttpMethod       TaskHTTPMethod       `json:"http_method" xorm:"tinyint notnull default 1"`               // http请求方法
-	Timeout          int                  `json:"timeout" xorm:"mediumint notnull default 0"`                 // 任务执行超时时间(单位秒),0不限制
-	Multi            int8                 `json:"multi" xorm:"tinyint notnull default 1"`                     // 是否允许多实例运行
-	RetryTimes       int8                 `json:"retry_times" xorm:"tinyint notnull default 0"`               // 重试次数
-	RetryInterval    int16                `json:"retry_interval" xorm:"smallint notnull default 0"`           // 重试间隔时间
-	NotifyStatus     int8                 `json:"notify_status" xorm:"tinyint notnull default 1"`             // 任务执行结束是否通知 0: 不通知 1: 失败通知 2: 执行结束通知 3: 任务执行结果关键字匹配通知
-	NotifyType       int8                 `json:"notify_type" xorm:"tinyint notnull default 0"`               // 通知类型 1: 邮件 2: slack 3: webhook
-	NotifyReceiverId string               `json:"notify_receiver_id" xorm:"varchar(256) notnull default '' "` // 通知接受者ID, setting表主键ID，多个ID逗号分隔
-	NotifyKeyword    string               `json:"notify_keyword" xorm:"varchar(128) notnull default '' "`
-	Tag              string               `json:"tag" xorm:"varchar(32) notnull default ''"`
-	Remark           string               `json:"remark" xorm:"varchar(100) notnull default ''"` // 备注
-	Status           Status               `json:"status" xorm:"tinyint notnull index default 0"` // 状态 1:正常 0:停止
-	Created          time.Time            `json:"created" xorm:"datetime notnull created"`       // 创建时间
-	Deleted          time.Time            `json:"deleted" xorm:"datetime deleted"`               // 删除时间
-	BaseModel        `json:"-" xorm:"-"`
-	Hosts            []TaskHostDetail `json:"hosts" xorm:"-"`
-	NextRunTime      time.Time        `json:"next_run_time" xorm:"-"`
-}
-
-func taskHostTableName() []string {
-	return []string{TablePrefix + "task_host", "th"}
+	Id               int                  `json:"id" gorm:"primaryKey;autoIncrement"`
+	Name             string               `json:"name" gorm:"type:varchar(32);not null"`
+	Level            TaskLevel            `json:"level" gorm:"type:tinyint;not null;index;default:1"`
+	DependencyTaskId string               `json:"dependency_task_id" gorm:"type:varchar(64);not null;default:''"`
+	DependencyStatus TaskDependencyStatus `json:"dependency_status" gorm:"type:tinyint;not null;default:1"`
+	Spec             string               `json:"spec" gorm:"type:varchar(64);not null"`
+	Protocol         TaskProtocol         `json:"protocol" gorm:"type:tinyint;not null;index"`
+	Command          string               `json:"command" gorm:"type:varchar(256);not null"`
+	HttpMethod       TaskHTTPMethod       `json:"http_method" gorm:"type:tinyint;not null;default:1"`
+	Timeout          int                  `json:"timeout" gorm:"type:mediumint;not null;default:0"`
+	Multi            int8                 `json:"multi" gorm:"type:tinyint;not null;default:1"`
+	RetryTimes       int8                 `json:"retry_times" gorm:"type:tinyint;not null;default:0"`
+	RetryInterval    int16                `json:"retry_interval" gorm:"type:smallint;not null;default:0"`
+	NotifyStatus     int8                 `json:"notify_status" gorm:"type:tinyint;not null;default:1"`
+	NotifyType       int8                 `json:"notify_type" gorm:"type:tinyint;not null;default:0"`
+	NotifyReceiverId string               `json:"notify_receiver_id" gorm:"type:varchar(256);not null;default:''"`
+	NotifyKeyword    string               `json:"notify_keyword" gorm:"type:varchar(128);not null;default:''"`
+	Tag              string               `json:"tag" gorm:"type:varchar(32);not null;default:''"`
+	Remark           string               `json:"remark" gorm:"type:varchar(100);not null;default:''"`
+	Status           Status               `json:"status" gorm:"type:tinyint;not null;index;default:0"`
+	CreatedAt        time.Time            `json:"created" gorm:"autoCreateTime"`
+	DeletedAt        *time.Time           `json:"deleted" gorm:"index"`
+	BaseModel        `json:"-" gorm:"-"`
+	Hosts            []TaskHostDetail `json:"hosts" gorm:"-"`
+	NextRunTime      time.Time        `json:"next_run_time" gorm:"-"`
 }
 
 // 新增
 func (task *Task) Create() (insertId int, err error) {
-	_, err = Db.Insert(task)
-	if err == nil {
+	result := Db.Create(task)
+	if result.Error == nil {
 		insertId = task.Id
 	}
 
-	return
+	return insertId, result.Error
 }
 
 func (task *Task) UpdateBean(id int) (int64, error) {
-	return Db.ID(id).
-		Cols(`name,spec,protocol,command,timeout,multi,
-			retry_times,retry_interval,remark,notify_status,
-			notify_type,notify_receiver_id, dependency_task_id, dependency_status, tag,http_method, notify_keyword`).
-		Update(task)
+	result := Db.Model(&Task{}).Where("id = ?", id).
+		Select("name", "spec", "protocol", "command", "timeout", "multi",
+			"retry_times", "retry_interval", "remark", "notify_status",
+			"notify_type", "notify_receiver_id", "dependency_task_id",
+			"dependency_status", "tag", "http_method", "notify_keyword").
+		Updates(task)
+	return result.RowsAffected, result.Error
 }
 
 // 更新
 func (task *Task) Update(id int, data CommonMap) (int64, error) {
-	return Db.Table(task).ID(id).Update(data)
+	updateData := make(map[string]interface{})
+	for k, v := range data {
+		updateData[k] = v
+	}
+	result := Db.Model(&Task{}).Where("id = ?", id).UpdateColumns(updateData)
+	return result.RowsAffected, result.Error
 }
 
 // 删除
 func (task *Task) Delete(id int) (int64, error) {
-	return Db.Id(id).Delete(task)
+	result := Db.Delete(&Task{}, id)
+	return result.RowsAffected, result.Error
 }
 
 // 禁用
@@ -112,8 +116,9 @@ func (task *Task) ActiveList(page, pageSize int) ([]Task, error) {
 	params := CommonMap{"Page": page, "PageSize": pageSize}
 	task.parsePageAndPageSize(params)
 	list := make([]Task, 0)
-	err := Db.Where("status = ? AND level = ?", Enabled, TaskLevelParent).Limit(task.PageSize, task.pageLimitOffset()).
-		Find(&list)
+	err := Db.Where("status = ? AND level = ?", Enabled, TaskLevelParent).
+		Limit(task.PageSize).Offset(task.pageLimitOffset()).
+		Find(&list).Error
 
 	if err != nil {
 		return list, err
@@ -133,9 +138,9 @@ func (task *Task) ActiveListByHostId(hostId int16) ([]Task, error) {
 		return nil, nil
 	}
 	list := make([]Task, 0)
-	err = Db.Where("status = ?  AND level = ?", Enabled, TaskLevelParent).
-		In("id", taskIds...).
-		Find(&list)
+	err = Db.Where("status = ? AND level = ?", Enabled, TaskLevelParent).
+		Where("id IN ?", taskIds).
+		Find(&list).Error
 	if err != nil {
 		return list, err
 	}
@@ -159,22 +164,19 @@ func (task *Task) setHostsForTasks(tasks []Task) ([]Task, error) {
 
 // 判断任务名称是否存在
 func (task *Task) NameExist(name string, id int) (bool, error) {
+	var count int64
+	query := Db.Model(&Task{}).Where("name = ? AND status = ?", name, Enabled)
 	if id > 0 {
-		count, err := Db.Where("name = ? AND status = ? AND id != ?", name, Enabled, id).Count(task)
-		return count > 0, err
+		query = query.Where("id != ?", id)
 	}
-	count, err := Db.Where("name = ? AND status = ?", name, Enabled).Count(task)
-
+	err := query.Count(&count).Error
 	return count > 0, err
 }
 
 func (task *Task) GetStatus(id int) (Status, error) {
-	exist, err := Db.Id(id).Get(task)
+	err := Db.First(task, id).Error
 	if err != nil {
 		return 0, err
-	}
-	if !exist {
-		return 0, errors.New("not exist")
 	}
 
 	return task.Status, nil
@@ -182,9 +184,12 @@ func (task *Task) GetStatus(id int) (Status, error) {
 
 func (task *Task) Detail(id int) (Task, error) {
 	t := Task{}
-	_, err := Db.Where("id=?", id).Get(&t)
+	err := Db.Where("id = ?", id).First(&t).Error
 
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return t, nil
+		}
 		return t, err
 	}
 
@@ -197,9 +202,17 @@ func (task *Task) Detail(id int) (Task, error) {
 func (task *Task) List(params CommonMap) ([]Task, error) {
 	task.parsePageAndPageSize(params)
 	list := make([]Task, 0)
-	session := Db.Alias("t").Join("LEFT", taskHostTableName(), "t.id = th.task_id")
-	task.parseWhere(session, params)
-	err := session.GroupBy("t.id").Desc("t.id").Cols("t.*").Limit(task.PageSize, task.pageLimitOffset()).Find(&list)
+
+	query := Db.Table(TablePrefix + "task as t").
+		Joins("LEFT JOIN " + TablePrefix + "task_host as th ON t.id = th.task_id")
+
+	task.parseWhere(query, params)
+
+	err := query.Group("t.id").
+		Order("t.id DESC").
+		Select("t.*").
+		Limit(task.PageSize).Offset(task.pageLimitOffset()).
+		Find(&list).Error
 
 	if err != nil {
 		return nil, err
@@ -215,16 +228,10 @@ func (task *Task) GetDependencyTaskList(ids string) ([]Task, error) {
 		return list, nil
 	}
 	idList := strings.Split(ids, ",")
-	taskIds := make([]interface{}, len(idList))
-	for i, v := range idList {
-		taskIds[i] = v
-	}
-	fields := "t.*"
-	err := Db.Alias("t").
-		Where("t.level = ?", TaskLevelChild).
-		In("t.id", taskIds).
-		Cols(fields).
-		Find(&list)
+
+	err := Db.Where("level = ?", TaskLevelChild).
+		Where("id IN ?", idList).
+		Find(&list).Error
 
 	if err != nil {
 		return list, err
@@ -234,43 +241,49 @@ func (task *Task) GetDependencyTaskList(ids string) ([]Task, error) {
 }
 
 func (task *Task) Total(params CommonMap) (int64, error) {
-	session := Db.Alias("t").Join("LEFT", taskHostTableName(), "t.id = th.task_id")
-	task.parseWhere(session, params)
-	list := make([]Task, 0)
+	type Result struct {
+		Count int64
+	}
+	var result Result
 
-	err := session.GroupBy("t.id").Find(&list)
+	query := Db.Table(TablePrefix + "task as t").
+		Joins("LEFT JOIN " + TablePrefix + "task_host as th ON t.id = th.task_id")
 
-	return int64(len(list)), err
+	task.parseWhere(query, params)
+
+	err := query.Group("t.id").Count(&result.Count).Error
+
+	return result.Count, err
 }
 
 // 解析where
-func (task *Task) parseWhere(session *xorm.Session, params CommonMap) {
+func (task *Task) parseWhere(query *gorm.DB, params CommonMap) {
 	if len(params) == 0 {
 		return
 	}
 	id, ok := params["Id"]
 	if ok && id.(int) > 0 {
-		session.And("t.id = ?", id)
+		query.Where("t.id = ?", id)
 	}
 	hostId, ok := params["HostId"]
 	if ok && hostId.(int) > 0 {
-		session.And("th.host_id = ?", hostId)
+		query.Where("th.host_id = ?", hostId)
 	}
 	name, ok := params["Name"]
 	if ok && name.(string) != "" {
-		session.And("t.name LIKE ?", "%"+name.(string)+"%")
+		query.Where("t.name LIKE ?", "%"+name.(string)+"%")
 	}
 	protocol, ok := params["Protocol"]
 	if ok && protocol.(int) > 0 {
-		session.And("protocol = ?", protocol)
+		query.Where("protocol = ?", protocol)
 	}
 	status, ok := params["Status"]
 	if ok && status.(int) > -1 {
-		session.And("status = ?", status)
+		query.Where("status = ?", status)
 	}
 
 	tag, ok := params["Tag"]
 	if ok && tag.(string) != "" {
-		session.And("tag = ? ", tag)
+		query.Where("tag = ?", tag)
 	}
 }

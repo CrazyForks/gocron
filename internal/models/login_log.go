@@ -5,32 +5,33 @@ import (
 )
 
 // 用户登录日志
-
 type LoginLog struct {
-	Id        int       `json:"id" xorm:"pk autoincr notnull "`
-	Username  string    `json:"username" xorm:"varchar(32) notnull"`
-	Ip        string    `json:"ip" xorm:"varchar(15) not null"`
-	Created   time.Time `json:"created" xorm:"datetime notnull created"`
-	BaseModel `json:"-" xorm:"-"`
+	Id        int       `json:"id" gorm:"primaryKey;autoIncrement"`
+	Username  string    `json:"username" gorm:"type:varchar(32);not null"`
+	Ip        string    `json:"ip" gorm:"type:varchar(15);not null"`
+	CreatedAt time.Time `json:"created" gorm:"autoCreateTime"`
+	BaseModel `json:"-" gorm:"-"`
 }
 
 func (log *LoginLog) Create() (insertId int, err error) {
-	_, err = Db.Insert(log)
-	if err == nil {
+	result := Db.Create(log)
+	if result.Error == nil {
 		insertId = log.Id
 	}
 
-	return
+	return insertId, result.Error
 }
 
 func (log *LoginLog) List(params CommonMap) ([]LoginLog, error) {
 	log.parsePageAndPageSize(params)
 	list := make([]LoginLog, 0)
-	err := Db.Desc("id").Limit(log.PageSize, log.pageLimitOffset()).Find(&list)
+	err := Db.Order("id DESC").Limit(log.PageSize).Offset(log.pageLimitOffset()).Find(&list).Error
 
 	return list, err
 }
 
 func (log *LoginLog) Total() (int64, error) {
-	return Db.Count(log)
+	var count int64
+	err := Db.Model(&LoginLog{}).Count(&count).Error
+	return count, err
 }

@@ -170,8 +170,12 @@ func testDbConnection(form InstallForm) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
-	err = db.Ping()
+	sqlDB, err := db.DB()
+	if err != nil {
+		return err
+	}
+	defer sqlDB.Close()
+	err = sqlDB.Ping()
 	if s.Db.Engine == "postgres" && err != nil {
 		pgError, ok := err.(*pq.Error)
 		if ok && pgError.Code == "3D000" {

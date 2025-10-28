@@ -10,18 +10,18 @@ const PasswordSaltLength = 6
 
 // 用户model
 type User struct {
-	Id           int       `json:"id" xorm:"pk autoincr notnull "`
-	Name         string    `json:"name" xorm:"varchar(32) notnull unique"`              // 用户名
-	Password     string    `json:"-" xorm:"char(32) notnull "`                          // 密码
-	Salt         string    `json:"-" xorm:"char(6) notnull "`                           // 密码盐值
-	Email        string    `json:"email" xorm:"varchar(50) notnull unique default '' "` // 邮箱
-	TwoFactorKey string    `json:"-" xorm:"'two_factor_key' varchar(100) default ''"`                    // 2FA密钥
-	TwoFactorOn  int8      `json:"two_factor_on" xorm:"'two_factor_on' tinyint notnull default 0"`      // 2FA开关 1:开启 0:关闭
-	Created      time.Time `json:"created" xorm:"datetime notnull created"`
-	Updated      time.Time `json:"updated" xorm:"datetime updated"`
-	IsAdmin      int8      `json:"is_admin" xorm:"tinyint notnull default 0"` // 是否是管理员 1:管理员 0:普通用户
-	Status       Status    `json:"status" xorm:"tinyint notnull default 1"`   // 1: 正常 0:禁用
-	BaseModel    `json:"-" xorm:"-"`
+	Id           int       `json:"id" gorm:"primaryKey;autoIncrement"`
+	Name         string    `json:"name" gorm:"type:varchar(32);not null;uniqueIndex"`
+	Password     string    `json:"-" gorm:"type:char(32);not null"`
+	Salt         string    `json:"-" gorm:"type:char(6);not null"`
+	Email        string    `json:"email" gorm:"type:varchar(50);not null;uniqueIndex;default:''"`
+	TwoFactorKey string    `json:"-" gorm:"column:two_factor_key;type:varchar(100);default:''"`
+	TwoFactorOn  int8      `json:"two_factor_on" gorm:"column:two_factor_on;type:tinyint;not null;default:0"`
+	CreatedAt    time.Time `json:"created" gorm:"autoCreateTime"`
+	UpdatedAt    time.Time `json:"updated" gorm:"autoUpdateTime"`
+	IsAdmin      int8      `json:"is_admin" gorm:"type:tinyint;not null;default:0"`
+	Status       Status    `json:"status" gorm:"type:tinyint;not null;default:1"`
+	BaseModel    `json:"-" gorm:"-"`
 }
 
 // 新增
@@ -30,17 +30,22 @@ func (user *User) Create() (insertId int, err error) {
 	user.Salt = user.generateSalt()
 	user.Password = user.encryptPassword(user.Password, user.Salt)
 
-	_, err = Db.Insert(user)
-	if err == nil {
+	result := Db.Create(user)
+	if result.Error == nil {
 		insertId = user.Id
 	}
 
-	return
+	return insertId, result.Error
 }
 
 // 更新
 func (user *User) Update(id int, data CommonMap) (int64, error) {
-	return Db.Table(user).ID(id).Update(data)
+	updateData := make(map[string]interface{})
+	for k, v := range data {
+		updateData[k] = v
+	}
+	result := Db.Model(&User{}).Where("id = ?", id).UpdateColumns(updateData)
+	return result.RowsAffected, result.Error
 }
 
 func (user *User) UpdatePassword(id int, password string) (int64, error) {
@@ -52,7 +57,8 @@ func (user *User) UpdatePassword(id int, password string) (int64, error) {
 
 // 删除
 func (user *User) Delete(id int) (int64, error) {
-	return Db.Id(id).Delete(user)
+	result := Db.Delete(&User{}, id)
+	return result.RowsAffected, result.Error
 }
 
 // 禁用
@@ -67,8 +73,7 @@ func (user *User) Enable(id int) (int64, error) {
 
 // 验证用户名和密码
 func (user *User) Match(username, password string) bool {
-	where := "(name = ? OR email = ?) AND status =? "
-	_, err := Db.Where(where, username, username, Enabled).Get(user)
+	err := Db.Where("(name = ? OR email = ?) AND status = ?", username, username, Enabled).First(user).Error
 	if err != nil {
 		return false
 	}
@@ -79,39 +84,43 @@ func (user *User) Match(username, password string) bool {
 
 // 获取用户详情
 func (user *User) Find(id int) error {
-	_, err := Db.Id(id).Get(user)
-
-	return err
+	return Db.First(user, id).Error
 }
 
 // 用户名是否存在
 func (user *User) UsernameExists(username string, uid int) (int64, error) {
+	var count int64
+	query := Db.Model(&User{}).Where("name = ?", username)
 	if uid > 0 {
-		return Db.Where("name = ? AND id != ?", username, uid).Count(user)
+		query = query.Where("id != ?", uid)
 	}
-
-	return Db.Where("name = ?", username).Count(user)
+	err := query.Count(&count).Error
+	return count, err
 }
 
 // 邮箱地址是否存在
 func (user *User) EmailExists(email string, uid int) (int64, error) {
+	var count int64
+	query := Db.Model(&User{}).Where("email = ?", email)
 	if uid > 0 {
-		return Db.Where("email = ? AND id != ?", email, uid).Count(user)
+		query = query.Where("id != ?", uid)
 	}
-
-	return Db.Where("email = ?", email).Count(user)
+	err := query.Count(&count).Error
+	return count, err
 }
 
 func (user *User) List(params CommonMap) ([]User, error) {
 	user.parsePageAndPageSize(params)
 	list := make([]User, 0)
-	err := Db.Desc("id").Limit(user.PageSize, user.pageLimitOffset()).Find(&list)
+	err := Db.Order("id DESC").Limit(user.PageSize).Offset(user.pageLimitOffset()).Find(&list).Error
 
 	return list, err
 }
 
 func (user *User) Total() (int64, error) {
-	return Db.Count(user)
+	var count int64
+	err := Db.Model(&User{}).Count(&count).Error
+	return count, err
 }
 
 // 密码加密

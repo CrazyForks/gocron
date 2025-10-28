@@ -1,34 +1,27 @@
 package models
 
 type TaskHost struct {
-	Id     int   `json:"id" xorm:"int pk autoincr"`
-	TaskId int   `json:"task_id" xorm:"int not null index"`
-	HostId int16 `json:"host_id" xorm:"smallint not null index"`
+	Id     int   `json:"id" gorm:"primaryKey;autoIncrement"`
+	TaskId int   `json:"task_id" gorm:"not null;index"`
+	HostId int16 `json:"host_id" gorm:"type:smallint;not null;index"`
 }
 
 type TaskHostDetail struct {
-	TaskHost `xorm:"extends"`
-	Name     string `json:"name"`
-	Port     int    `json:"port"`
-	Alias    string `json:"alias"`
+	TaskHost
+	Name  string `json:"name"`
+	Port  int    `json:"port"`
+	Alias string `json:"alias"`
 }
 
 func (TaskHostDetail) TableName() string {
 	return TablePrefix + "task_host"
 }
 
-func hostTableName() []string {
-	return []string{TablePrefix + "host", "h"}
-}
-
 func (th *TaskHost) Remove(taskId int) error {
-	_, err := Db.Where("task_id = ?", taskId).Delete(new(TaskHost))
-
-	return err
+	return Db.Where("task_id = ?", taskId).Delete(&TaskHost{}).Error
 }
 
 func (th *TaskHost) Add(taskId int, hostIds []int) error {
-
 	err := th.Remove(taskId)
 	if err != nil {
 		return err
@@ -40,26 +33,23 @@ func (th *TaskHost) Add(taskId int, hostIds []int) error {
 		taskHosts[i].HostId = int16(value)
 	}
 
-	_, err = Db.Insert(&taskHosts)
-
-	return err
+	return Db.Create(&taskHosts).Error
 }
 
 func (th *TaskHost) GetHostIdsByTaskId(taskId int) ([]TaskHostDetail, error) {
 	list := make([]TaskHostDetail, 0)
-	fields := "th.id,th.host_id,h.alias,h.name,h.port"
-	err := Db.Alias("th").
-		Join("LEFT", hostTableName(), "th.host_id=h.id").
+	err := Db.Table(TablePrefix+"task_host as th").
+		Select("th.id", "th.host_id", "h.alias", "h.name", "h.port").
+		Joins("LEFT JOIN "+TablePrefix+"host as h ON th.host_id = h.id").
 		Where("th.task_id = ?", taskId).
-		Cols(fields).
-		Find(&list)
+		Find(&list).Error
 
 	return list, err
 }
 
 func (th *TaskHost) GetTaskIdsByHostId(hostId int16) ([]interface{}, error) {
 	list := make([]TaskHost, 0)
-	err := Db.Where("host_id = ?", hostId).Cols("task_id").Find(&list)
+	err := Db.Select("task_id").Where("host_id = ?", hostId).Find(&list).Error
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +64,7 @@ func (th *TaskHost) GetTaskIdsByHostId(hostId int16) ([]interface{}, error) {
 
 // 判断主机id是否有引用
 func (th *TaskHost) HostIdExist(hostId int16) (bool, error) {
-	count, err := Db.Where("host_id = ?", hostId).Count(th)
-
+	var count int64
+	err := Db.Model(&TaskHost{}).Where("host_id = ?", hostId).Count(&count).Error
 	return count > 0, err
 }

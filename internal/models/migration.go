@@ -2,11 +2,9 @@ package models
 
 import (
 	"errors"
-	"fmt"
-	"strconv"
 
-	"github.com/go-xorm/xorm"
 	"github.com/gocronx-team/gocron/internal/modules/logger"
+	"gorm.io/gorm"
 )
 
 type Migration struct{}
@@ -14,19 +12,15 @@ type Migration struct{}
 // 首次安装, 创建数据库表
 func (migration *Migration) Install(dbName string) error {
 	setting := new(Setting)
-	task := new(Task)
 	tables := []interface{}{
-		&User{}, task, &TaskLog{}, &Host{}, setting, &LoginLog{}, &TaskHost{},
+		&User{}, &Task{}, &TaskLog{}, &Host{}, setting, &LoginLog{}, &TaskHost{},
 	}
+
 	for _, table := range tables {
-		exist, err := Db.IsTableExist(table)
-		if exist {
+		if Db.Migrator().HasTable(table) {
 			return errors.New("数据表已存在")
 		}
-		if err != nil {
-			return err
-		}
-		err = Db.Sync2(table)
+		err := Db.AutoMigrate(table)
 		if err != nil {
 			return err
 		}
@@ -44,7 +38,7 @@ func (migration *Migration) Upgrade(oldVersionId int) {
 	}
 
 	versionIds := []int{110, 122, 130, 140, 150}
-	upgradeFuncs := []func(*xorm.Session) error{
+	upgradeFuncs := []func(*gorm.DB) error{
 		migration.upgradeFor110,
 		migration.upgradeFor122,
 		migration.upgradeFor130,
@@ -70,66 +64,56 @@ func (migration *Migration) Upgrade(oldVersionId int) {
 		return
 	}
 
-	session := Db.NewSession()
-	err := session.Begin()
-	if err != nil {
-		logger.Fatalf("开启事务失败-%s", err.Error())
-	}
-	for startIndex < length {
-		err = upgradeFuncs[startIndex](session)
-		if err == nil {
+	err := Db.Transaction(func(tx *gorm.DB) error {
+		for startIndex < length {
+			err := upgradeFuncs[startIndex](tx)
+			if err != nil {
+				return err
+			}
 			startIndex++
-			continue
 		}
-		dbErr := session.Rollback()
-		if dbErr != nil {
-			logger.Fatalf("事务回滚失败-%s", dbErr.Error())
-		}
-		logger.Fatal(err)
-	}
-	err = session.Commit()
+		return nil
+	})
+
 	if err != nil {
-		logger.Fatalf("提交事务失败-%s", err.Error())
+		logger.Fatal("数据库升级失败", err)
 	}
 }
 
 // 升级到v1.1版本
-func (migration *Migration) upgradeFor110(session *xorm.Session) error {
+func (migration *Migration) upgradeFor110(tx *gorm.DB) error {
 	logger.Info("开始升级到v1.1")
+
 	// 创建表task_host
-	err := session.Sync2(new(TaskHost))
+	err := tx.AutoMigrate(&TaskHost{})
 	if err != nil {
 		return err
 	}
 
-	tableName := TablePrefix + "task"
 	// 把task对应的host_id写入task_host表
-	sql := fmt.Sprintf("SELECT id, host_id FROM %s WHERE host_id > 0", tableName)
-	results, err := session.Query(sql)
+	type OldTask struct {
+		Id     int
+		HostId int16
+	}
+	var results []OldTask
+	err = tx.Table(TablePrefix+"task").Select("id", "host_id").Where("host_id > ?", 0).Find(&results).Error
 	if err != nil {
 		return err
 	}
 
 	for _, value := range results {
-		taskHostModel := &TaskHost{}
-		taskId, err := strconv.Atoi(string(value["id"]))
-		if err != nil {
-			return err
+		taskHostModel := &TaskHost{
+			TaskId: value.Id,
+			HostId: value.HostId,
 		}
-		hostId, err := strconv.Atoi(string(value["host_id"]))
-		if err != nil {
-			return err
-		}
-		taskHostModel.TaskId = taskId
-		taskHostModel.HostId = int16(hostId)
-		_, err = session.Insert(taskHostModel)
+		err = tx.Create(taskHostModel).Error
 		if err != nil {
 			return err
 		}
 	}
 
 	// 删除task表host_id字段
-	_, err = session.Exec(fmt.Sprintf("ALTER TABLE %s DROP COLUMN host_id", tableName))
+	err = tx.Migrator().DropColumn(&Task{}, "host_id")
 
 	logger.Info("已升级到v1.1\n")
 
@@ -137,78 +121,90 @@ func (migration *Migration) upgradeFor110(session *xorm.Session) error {
 }
 
 // 升级到1.2.2版本
-func (migration *Migration) upgradeFor122(session *xorm.Session) error {
+func (migration *Migration) upgradeFor122(tx *gorm.DB) error {
 	logger.Info("开始升级到v1.2.2")
 
-	tableName := TablePrefix + "task"
 	// task表增加tag字段
-	_, err := session.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN tag VARCHAR(32) NOT NULL DEFAULT '' ", tableName))
+	if !tx.Migrator().HasColumn(&Task{}, "tag") {
+		err := tx.Migrator().AddColumn(&Task{}, "tag")
+		if err != nil {
+			return err
+		}
+	}
 
 	logger.Info("已升级到v1.2.2\n")
 
-	return err
+	return nil
 }
 
 // 升级到v1.3版本
-func (migration *Migration) upgradeFor130(session *xorm.Session) error {
+func (migration *Migration) upgradeFor130(tx *gorm.DB) error {
 	logger.Info("开始升级到v1.3")
 
-	tableName := TablePrefix + "user"
-	// 删除user表deleted字段
-	_, err := session.Exec(fmt.Sprintf("ALTER TABLE %s DROP COLUMN deleted", tableName))
+	// 删除user表deleted字段（如果存在）
+	if tx.Migrator().HasColumn(&User{}, "deleted") {
+		err := tx.Migrator().DropColumn(&User{}, "deleted")
+		if err != nil {
+			return err
+		}
+	}
 
 	logger.Info("已升级到v1.3\n")
 
-	return err
+	return nil
 }
 
 // 升级到v1.4版本
-func (migration *Migration) upgradeFor140(session *xorm.Session) error {
+func (migration *Migration) upgradeFor140(tx *gorm.DB) error {
 	logger.Info("开始升级到v1.4")
 
-	tableName := TablePrefix + "task"
 	// task表增加字段
 	// retry_interval 重试间隔时间(秒)
 	// http_method    http请求方法
-	sql := fmt.Sprintf(
-		"ALTER TABLE %s ADD COLUMN retry_interval SMALLINT NOT NULL DEFAULT 0,ADD COLUMN http_method TINYINT NOT NULL DEFAULT 1", tableName)
-	_, err := session.Exec(sql)
+	if !tx.Migrator().HasColumn(&Task{}, "retry_interval") {
+		err := tx.Migrator().AddColumn(&Task{}, "retry_interval")
+		if err != nil {
+			return err
+		}
+	}
 
-	if err != nil {
-		return err
+	if !tx.Migrator().HasColumn(&Task{}, "http_method") {
+		err := tx.Migrator().AddColumn(&Task{}, "http_method")
+		if err != nil {
+			return err
+		}
 	}
 
 	logger.Info("已升级到v1.4\n")
 
-	return err
+	return nil
 }
 
-func (m *Migration) upgradeFor150(session *xorm.Session) error {
+func (m *Migration) upgradeFor150(tx *gorm.DB) error {
 	logger.Info("开始升级到v1.5")
 
-	tableName := TablePrefix + "task"
 	// task表增加字段 notify_keyword
-	sql := fmt.Sprintf(
-		"ALTER TABLE %s ADD COLUMN notify_keyword VARCHAR(128) NOT NULL DEFAULT '' ", tableName)
-	_, err := session.Exec(sql)
-
-	if err != nil {
-		return err
+	if !tx.Migrator().HasColumn(&Task{}, "notify_keyword") {
+		err := tx.Migrator().AddColumn(&Task{}, "notify_keyword")
+		if err != nil {
+			return err
+		}
 	}
 
 	settingModel := new(Setting)
 	settingModel.Code = MailCode
 	settingModel.Key = MailTemplateKey
 	settingModel.Value = emailTemplate
-	_, err = Db.Insert(settingModel)
+	err := tx.Create(settingModel).Error
 	if err != nil {
 		return err
 	}
+
 	settingModel.Id = 0
 	settingModel.Code = SlackCode
 	settingModel.Key = SlackTemplateKey
 	settingModel.Value = slackTemplate
-	_, err = Db.Insert(settingModel)
+	err = tx.Create(settingModel).Error
 	if err != nil {
 		return err
 	}
@@ -217,7 +213,7 @@ func (m *Migration) upgradeFor150(session *xorm.Session) error {
 	settingModel.Code = WebhookCode
 	settingModel.Key = WebhookUrlKey
 	settingModel.Value = ""
-	_, err = Db.Insert(settingModel)
+	err = tx.Create(settingModel).Error
 	if err != nil {
 		return err
 	}
@@ -226,7 +222,7 @@ func (m *Migration) upgradeFor150(session *xorm.Session) error {
 	settingModel.Code = WebhookCode
 	settingModel.Key = WebhookTemplateKey
 	settingModel.Value = webhookTemplate
-	_, err = Db.Insert(settingModel)
+	err = tx.Create(settingModel).Error
 	if err != nil {
 		return err
 	}

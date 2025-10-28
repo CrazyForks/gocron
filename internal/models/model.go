@@ -6,13 +6,14 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"gorm.io/gorm/schema"
 
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/go-xorm/core"
-	"github.com/go-xorm/xorm"
-	_ "github.com/lib/pq"
 	"github.com/gocronx-team/gocron/internal/modules/app"
-	"github.com/gocronx-team/gocron/internal/modules/logger"
+	glogger "github.com/gocronx-team/gocron/internal/modules/logger"
 	"github.com/gocronx-team/gocron/internal/modules/setting"
 )
 
@@ -20,7 +21,7 @@ type Status int8
 type CommonMap map[string]interface{}
 
 var TablePrefix = ""
-var Db *xorm.Engine
+var Db *gorm.DB
 
 const (
 	Disabled Status = 0 // 禁用
@@ -45,8 +46,8 @@ const (
 )
 
 type BaseModel struct {
-	Page     int `xorm:"-"`
-	PageSize int `xorm:"-"`
+	Page     int `gorm:"-"`
+	PageSize int `gorm:"-"`
 }
 
 func (model *BaseModel) parsePageAndPageSize(params CommonMap) {
@@ -71,47 +72,82 @@ func (model *BaseModel) pageLimitOffset() int {
 }
 
 // 创建Db
-func CreateDb() *xorm.Engine {
+func CreateDb() *gorm.DB {
 	dsn := getDbEngineDSN(app.Setting)
-	engine, err := xorm.NewEngine(app.Setting.Db.Engine, dsn)
-	if err != nil {
-		logger.Fatal("创建xorm引擎失败", err)
+	var dialector gorm.Dialector
+	
+	engine := strings.ToLower(app.Setting.Db.Engine)
+	switch engine {
+	case "mysql":
+		dialector = mysql.Open(dsn)
+	case "postgres":
+		dialector = postgres.Open(dsn)
+	default:
+		glogger.Fatal("不支持的数据库类型", nil)
 	}
-	engine.SetMaxIdleConns(app.Setting.Db.MaxIdleConns)
-	engine.SetMaxOpenConns(app.Setting.Db.MaxOpenConns)
-	engine.SetConnMaxLifetime(dbMaxLiftTime)
+
+	// 配置 gorm
+	config := &gorm.Config{
+		NamingStrategy: schema.NamingStrategy{
+			TablePrefix:   app.Setting.Db.Prefix,
+			SingularTable: true,
+		},
+		Logger: logger.Default.LogMode(logger.Silent),
+	}
+
+	// 开发模式下开启日志
+	if gin.Mode() == gin.DebugMode {
+		config.Logger = logger.Default.LogMode(logger.Info)
+	}
+
+	db, err := gorm.Open(dialector, config)
+	if err != nil {
+		glogger.Fatal("创建gorm引擎失败", err)
+	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		glogger.Fatal("获取数据库连接失败", err)
+	}
+
+	sqlDB.SetMaxIdleConns(app.Setting.Db.MaxIdleConns)
+	sqlDB.SetMaxOpenConns(app.Setting.Db.MaxOpenConns)
+	sqlDB.SetConnMaxLifetime(dbMaxLiftTime)
 
 	if app.Setting.Db.Prefix != "" {
-		// 设置表前缀
 		TablePrefix = app.Setting.Db.Prefix
-		mapper := core.NewPrefixMapper(core.SnakeMapper{}, app.Setting.Db.Prefix)
-		engine.SetTableMapper(mapper)
-	}
-	// 本地环境开启日志
-	if gin.Mode() == gin.DebugMode {
-		engine.ShowSQL(true)
-		engine.Logger().SetLevel(core.LOG_DEBUG)
 	}
 
-	go keepDbAlived(engine)
+	go keepDbAlived(db)
 
-	return engine
+	return db
 }
 
 // 创建临时数据库连接
-func CreateTmpDb(setting *setting.Setting) (*xorm.Engine, error) {
+func CreateTmpDb(setting *setting.Setting) (*gorm.DB, error) {
 	dsn := getDbEngineDSN(setting)
+	var dialector gorm.Dialector
+	
+	engine := strings.ToLower(setting.Db.Engine)
+	switch engine {
+	case "mysql":
+		dialector = mysql.Open(dsn)
+	case "postgres":
+		dialector = postgres.Open(dsn)
+	default:
+		return nil, fmt.Errorf("不支持的数据库类型: %s", engine)
+	}
 
-	return xorm.NewEngine(setting.Db.Engine, dsn)
+	return gorm.Open(dialector, &gorm.Config{})
 }
 
-// 获取数据库引擎DSN  mysql,sqlite,postgres
+// 获取数据库引擎DSN  mysql,postgres
 func getDbEngineDSN(setting *setting.Setting) string {
 	engine := strings.ToLower(setting.Db.Engine)
 	dsn := ""
 	switch engine {
 	case "mysql":
-		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&allowNativePasswords=true",
+		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=Local",
 			setting.Db.User,
 			setting.Db.Password,
 			setting.Db.Host,
@@ -130,14 +166,18 @@ func getDbEngineDSN(setting *setting.Setting) string {
 	return dsn
 }
 
-func keepDbAlived(engine *xorm.Engine) {
+func keepDbAlived(db *gorm.DB) {
 	t := time.Tick(dbPingInterval)
-	var err error
 	for {
 		<-t
-		err = engine.Ping()
+		sqlDB, err := db.DB()
 		if err != nil {
-			logger.Infof("database ping: %s", err)
+			glogger.Infof("database get connection: %s", err)
+			continue
+		}
+		err = sqlDB.Ping()
+		if err != nil {
+			glogger.Infof("database ping: %s", err)
 		}
 	}
 }

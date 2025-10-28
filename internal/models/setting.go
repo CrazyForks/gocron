@@ -5,10 +5,10 @@ import (
 )
 
 type Setting struct {
-	Id    int    `xorm:"int pk autoincr"`
-	Code  string `xorm:"varchar(32) notnull"`
-	Key   string `xorm:"varchar(64) notnull"`
-	Value string `xorm:"varchar(4096) notnull default '' "`
+	Id    int    `gorm:"primaryKey;autoIncrement"`
+	Code  string `gorm:"type:varchar(32);not null"`
+	Key   string `gorm:"type:varchar(64);not null"`
+	Value string `gorm:"type:varchar(4096);not null;default:''"`
 }
 
 const slackTemplate = `
@@ -60,37 +60,37 @@ func (setting *Setting) InitBasicField() {
 	setting.Code = SlackCode
 	setting.Key = SlackUrlKey
 	setting.Value = ""
-	Db.Insert(setting)
+	Db.Create(setting)
 	setting.Id = 0
 
 	setting.Code = SlackCode
 	setting.Key = SlackTemplateKey
 	setting.Value = slackTemplate
-	Db.Insert(setting)
+	Db.Create(setting)
 	setting.Id = 0
 
 	setting.Code = MailCode
 	setting.Key = MailServerKey
 	setting.Value = ""
-	Db.Insert(setting)
+	Db.Create(setting)
 	setting.Id = 0
 
 	setting.Code = MailCode
 	setting.Key = MailTemplateKey
 	setting.Value = emailTemplate
-	Db.Insert(setting)
+	Db.Create(setting)
 	setting.Id = 0
 
 	setting.Code = WebhookCode
 	setting.Key = WebhookTemplateKey
 	setting.Value = webhookTemplate
-	Db.Insert(setting)
+	Db.Create(setting)
 	setting.Id = 0
 
 	setting.Code = WebhookCode
 	setting.Key = WebhookUrlKey
 	setting.Value = ""
-	Db.Insert(setting)
+	Db.Create(setting)
 }
 
 // region slack配置
@@ -108,7 +108,7 @@ type Channel struct {
 
 func (setting *Setting) Slack() (Slack, error) {
 	list := make([]Setting, 0)
-	err := Db.Where("code = ?", SlackCode).Find(&list)
+	err := Db.Where("code = ?", SlackCode).Find(&list).Error
 	slack := Slack{}
 	if err != nil {
 		return slack, err
@@ -136,11 +136,10 @@ func (setting *Setting) formatSlack(list []Setting, slack *Slack) {
 
 func (setting *Setting) UpdateSlack(url, template string) error {
 	setting.Value = url
-
-	Db.Cols("value").Update(setting, Setting{Code: SlackCode, Key: SlackUrlKey})
+	Db.Model(&Setting{}).Where("code = ? AND key = ?", SlackCode, SlackUrlKey).Update("value", url)
 
 	setting.Value = template
-	Db.Cols("value").Update(setting, Setting{Code: SlackCode, Key: SlackTemplateKey})
+	Db.Model(&Setting{}).Where("code = ? AND key = ?", SlackCode, SlackTemplateKey).Update("value", template)
 
 	return nil
 }
@@ -151,25 +150,20 @@ func (setting *Setting) CreateChannel(channel string) (int64, error) {
 	setting.Key = SlackChannelKey
 	setting.Value = channel
 
-	return Db.Insert(setting)
+	result := Db.Create(setting)
+	return result.RowsAffected, result.Error
 }
 
 func (setting *Setting) IsChannelExist(channel string) bool {
-	setting.Code = SlackCode
-	setting.Key = SlackChannelKey
-	setting.Value = channel
-
-	count, _ := Db.Count(setting)
-
+	var count int64
+	Db.Model(&Setting{}).Where("code = ? AND key = ? AND value = ?", SlackCode, SlackChannelKey, channel).Count(&count)
 	return count > 0
 }
 
 // 删除slack渠道
 func (setting *Setting) RemoveChannel(id int) (int64, error) {
-	setting.Code = SlackCode
-	setting.Key = SlackChannelKey
-	setting.Id = id
-	return Db.Delete(setting)
+	result := Db.Where("code = ? AND key = ? AND id = ?", SlackCode, SlackChannelKey, id).Delete(&Setting{})
+	return result.RowsAffected, result.Error
 }
 
 // endregion
@@ -192,7 +186,7 @@ type MailUser struct {
 // region 邮件配置
 func (setting *Setting) Mail() (Mail, error) {
 	list := make([]Setting, 0)
-	err := Db.Where("code = ?", MailCode).Find(&list)
+	err := Db.Where("code = ?", MailCode).Find(&list).Error
 	mail := Mail{MailUsers: make([]MailUser, 0)}
 	if err != nil {
 		return mail, err
@@ -221,11 +215,8 @@ func (setting *Setting) formatMail(list []Setting, mail *Mail) {
 }
 
 func (setting *Setting) UpdateMail(config, template string) error {
-	setting.Value = config
-	Db.Cols("value").Update(setting, Setting{Code: MailCode, Key: MailServerKey})
-
-	setting.Value = template
-	Db.Cols("value").Update(setting, Setting{Code: MailCode, Key: MailTemplateKey})
+	Db.Model(&Setting{}).Where("code = ? AND key = ?", MailCode, MailServerKey).Update("value", config)
+	Db.Model(&Setting{}).Where("code = ? AND key = ?", MailCode, MailTemplateKey).Update("value", template)
 
 	return nil
 }
@@ -240,14 +231,13 @@ func (setting *Setting) CreateMailUser(username, email string) (int64, error) {
 	}
 	setting.Value = string(jsonByte)
 
-	return Db.Insert(setting)
+	result := Db.Create(setting)
+	return result.RowsAffected, result.Error
 }
 
 func (setting *Setting) RemoveMailUser(id int) (int64, error) {
-	setting.Code = MailCode
-	setting.Key = MailUserKey
-	setting.Id = id
-	return Db.Delete(setting)
+	result := Db.Where("code = ? AND key = ? AND id = ?", MailCode, MailUserKey, id).Delete(&Setting{})
+	return result.RowsAffected, result.Error
 }
 
 type WebHook struct {
@@ -257,7 +247,7 @@ type WebHook struct {
 
 func (setting *Setting) Webhook() (WebHook, error) {
 	list := make([]Setting, 0)
-	err := Db.Where("code = ?", WebhookCode).Find(&list)
+	err := Db.Where("code = ?", WebhookCode).Find(&list).Error
 	webHook := WebHook{}
 	if err != nil {
 		return webHook, err
@@ -281,12 +271,8 @@ func (setting *Setting) formatWebhook(list []Setting, webHook *WebHook) {
 }
 
 func (setting *Setting) UpdateWebHook(url, template string) error {
-	setting.Value = url
-
-	Db.Cols("value").Update(setting, Setting{Code: WebhookCode, Key: WebhookUrlKey})
-
-	setting.Value = template
-	Db.Cols("value").Update(setting, Setting{Code: WebhookCode, Key: WebhookTemplateKey})
+	Db.Model(&Setting{}).Where("code = ? AND key = ?", WebhookCode, WebhookUrlKey).Update("value", url)
+	Db.Model(&Setting{}).Where("code = ? AND key = ?", WebhookCode, WebhookTemplateKey).Update("value", template)
 
 	return nil
 }
