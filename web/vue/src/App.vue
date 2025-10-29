@@ -13,14 +13,14 @@
         </router-view>
       </div>
     </el-main>
-    <el-footer>
-      <app-footer></app-footer>
+    <el-footer v-if="!isFooterEmpty">
+      <app-footer ref="footerRef"></app-footer>
     </el-footer>
   </el-container>
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from './stores/user'
 import installService from './api/install'
@@ -30,6 +30,11 @@ import appFooter from './components/common/footer.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
+const footerRef = ref(null)
+
+const isFooterEmpty = computed(() => {
+  return footerRef.value?.isEmpty ?? true
+})
 
 onMounted(() => {
   installService.status((data) => {
@@ -44,8 +49,11 @@ onMounted(() => {
 [v-cloak] {
   display: none !important;
 }
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-x: hidden;
 }
 .el-header {
   padding: 0;
@@ -71,6 +79,7 @@ body {
   height: 100vh;
   margin: 0;
 }
+
 .el-aside .el-menu {
   height: 100%;
 }
