@@ -452,4 +452,7 @@ export default {
     margin-bottom: 0;
     width: 50%;
   }
+  .el-main {
+    min-height: calc(100vh - 60px);
+  }
 </style>
