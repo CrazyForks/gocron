@@ -1,6 +1,6 @@
 FROM golang:1.23-alpine AS builder
 
-RUN apk add --no-cache git make
+RUN apk add --no-cache git
 
 WORKDIR /app
 COPY go.mod go.sum ./
@@ -8,22 +8,13 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o gocron-node ./cmd/node
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -o gocron-node ./cmd/node
 
-FROM alpine:latest
+FROM scratch
 
-RUN apk add --no-cache ca-certificates tzdata && \
-    addgroup -S app && \
-    adduser -S -g app app
-
-WORKDIR /app
-
-COPY --from=builder /app/gocron-node .
-
-RUN chown -R app:app ./
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /app/gocron-node /gocron-node
 
 EXPOSE 5921
 
-USER app
-
-ENTRYPOINT ["/app/gocron-node"]
+ENTRYPOINT ["/gocron-node"]
