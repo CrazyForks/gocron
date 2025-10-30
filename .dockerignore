@@ -1,2 +1,11 @@
 .git
+.github
 web/vue/node_modules
+web/vue/dist
+bin
+gocron-package
+gocron-node-package
+*.md
+.gitignore
+.gitattributes
+.dockerignore
