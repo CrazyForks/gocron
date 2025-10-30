@@ -107,16 +107,34 @@ gocron-node -enable-tls # 启用TLS
 
 ## 开发工具
 
+### 基本构建
 * `make build` - 编译项目（gocron + gocron-node）
 * `make run` - 编译并运行（同时启动后端和节点）
-* `make package` - 构建生产包
+* `make test` - 运行测试
+* `make clean` - 清理构建文件
+
+### 多平台打包
+* `make package` - 构建当前平台包
+* `make package-linux` - 构建 Linux 包（amd64, arm64）
+* `make package-darwin` - 构建 macOS 包（amd64, arm64）
+* `make package-windows` - 构建 Windows 包（amd64, arm64）
+* `make package-all` - 构建所有平台包
+
+### 前端开发
 * `make build-vue` - 构建前端
 * `make install-vue` - 安装前端依赖（yarn）
 * `make run-vue` - 启动前端开发服务器（yarn）
-* `make test` - 运行测试
-* `make clean` - 清理构建文件
+
+### 代码质量
+* `make lint` - 运行代码检查
+* `make fmt` - 格式化代码
+* `make vet` - 运行 go vet
+
+### 开发工具
+* `make dev-deps` - 安装开发依赖
 * `air` - 后端热更新
 * `yarn run dev` - 前端热更新
+* `make help` - 显示所有可用命令
 
 ## 参与贡献
 

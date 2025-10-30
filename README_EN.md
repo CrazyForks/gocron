@@ -108,16 +108,34 @@ gocron-node -enable-tls # Enable TLS
 
 ## Development Tools
 
+### Basic Build
 * `make build` - Build project (gocron + gocron-node)
 * `make run` - Build and run (starts both backend and node)
-* `make package` - Build production package
+* `make test` - Run tests
+* `make clean` - Clean build files
+
+### Multi-Platform Packaging
+* `make package` - Build packages for current platform
+* `make package-linux` - Build packages for Linux (amd64, arm64)
+* `make package-darwin` - Build packages for macOS (amd64, arm64)
+* `make package-windows` - Build packages for Windows (amd64, arm64)
+* `make package-all` - Build packages for all platforms
+
+### Frontend Development
 * `make build-vue` - Build frontend
 * `make install-vue` - Install frontend dependencies (yarn)
 * `make run-vue` - Start frontend dev server (yarn)
-* `make test` - Run tests
-* `make clean` - Clean build files
+
+### Code Quality
+* `make lint` - Run code linter
+* `make fmt` - Format code
+* `make vet` - Run go vet
+
+### Development Tools
+* `make dev-deps` - Install development dependencies
 * `air` - Backend hot reload
 * `yarn run dev` - Frontend hot reload
+* `make help` - Show all available commands
 
 ## Contributing
 
