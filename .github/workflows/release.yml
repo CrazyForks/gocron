@@ -51,7 +51,7 @@ jobs:
     - name: Build packages for all platforms
       run: |
         chmod +x package.sh
-        bash ./package.sh -p "linux,darwin,windows" -a "amd64,arm64"
+        bash ./package.sh -p "linux,darwin,windows" -a "amd64"
 
     - name: Generate release notes
       id: release_notes
@@ -86,19 +86,13 @@ jobs:
         echo "" >> release_notes.md
         echo "### gocron (Web Server)" >> release_notes.md
         echo "- **Linux AMD64**: \`gocron-${CURRENT_TAG}-linux-amd64.tar.gz\`" >> release_notes.md
-        echo "- **Linux ARM64**: \`gocron-${CURRENT_TAG}-linux-arm64.tar.gz\`" >> release_notes.md
         echo "- **macOS AMD64**: \`gocron-${CURRENT_TAG}-darwin-amd64.tar.gz\`" >> release_notes.md
-        echo "- **macOS ARM64**: \`gocron-${CURRENT_TAG}-darwin-arm64.tar.gz\`" >> release_notes.md
         echo "- **Windows AMD64**: \`gocron-${CURRENT_TAG}-windows-amd64.zip\`" >> release_notes.md
-        echo "- **Windows ARM64**: \`gocron-${CURRENT_TAG}-windows-arm64.zip\`" >> release_notes.md
         echo "" >> release_notes.md
         echo "### gocron-node (Task Agent)" >> release_notes.md
         echo "- **Linux AMD64**: \`gocron-node-${CURRENT_TAG}-linux-amd64.tar.gz\`" >> release_notes.md
-        echo "- **Linux ARM64**: \`gocron-node-${CURRENT_TAG}-linux-arm64.tar.gz\`" >> release_notes.md
         echo "- **macOS AMD64**: \`gocron-node-${CURRENT_TAG}-darwin-amd64.tar.gz\`" >> release_notes.md
-        echo "- **macOS ARM64**: \`gocron-node-${CURRENT_TAG}-darwin-arm64.tar.gz\`" >> release_notes.md
         echo "- **Windows AMD64**: \`gocron-node-${CURRENT_TAG}-windows-amd64.zip\`" >> release_notes.md
-        echo "- **Windows ARM64**: \`gocron-node-${CURRENT_TAG}-windows-arm64.zip\`" >> release_notes.md
         echo "" >> release_notes.md
         echo "## 🚀 Quick Start" >> release_notes.md
         echo "" >> release_notes.md
