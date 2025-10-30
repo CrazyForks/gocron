@@ -70,7 +70,6 @@ jobs:
         else
           echo "## 🚀 Release $VERSION" > release_notes.md
           echo "" >> release_notes.md
-          echo "Manual release created on $(date '+%Y-%m-%d %H:%M:%S UTC')" >> release_notes.md
           echo "" >> release_notes.md
         fi
         
