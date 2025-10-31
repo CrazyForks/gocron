@@ -637,3 +637,11 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+:deep(.el-form-item__error) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>

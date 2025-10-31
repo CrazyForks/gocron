@@ -25,6 +25,12 @@ func (migration *Migration) Install(dbName string) error {
 			return err
 		}
 	}
+	
+	// SQLite特殊处理：修复task_log表的自增主键
+	if Db.Dialector.Name() == "sqlite" {
+		migration.fixSQLiteAutoIncrement()
+	}
+	
 	setting.InitBasicField()
 
 	return nil
@@ -283,15 +289,13 @@ func (m *Migration) upgradeFor152(tx *gorm.DB) error {
 
 	// 只对 SQLite 数据库执行修复
 	if tx.Dialector.Name() == "sqlite" {
-		// 检查表结构是否已经正确
 		var tableSQL string
 		err := tx.Raw("SELECT sql FROM sqlite_master WHERE type='table' AND name='host'").Scan(&tableSQL).Error
 		if err != nil {
 			return err
 		}
 
-		// 如果表结构已包含 AUTOINCREMENT，跳过修复
-		if len(tableSQL) > 0 && (tableSQL == "" || !contains(tableSQL, "AUTOINCREMENT")) {
+		if len(tableSQL) > 0 && !contains(tableSQL, "AUTOINCREMENT") {
 			logger.Info("检测到 host 表需要修复")
 
 			// 检查是否有数据
@@ -447,4 +451,55 @@ func containsMiddle(s, substr string) bool {
 		}
 	}
 	return false
+}
+
+// 修复SQLite表的自增主键问题
+func (m *Migration) fixSQLiteAutoIncrement() {
+	logger.Info("检查SQLite表结构...")
+	
+	// 修复task_log表
+	var taskLogSQL string
+	Db.Raw("SELECT sql FROM sqlite_master WHERE type='table' AND name='task_log'").Scan(&taskLogSQL)
+	if len(taskLogSQL) > 0 && !contains(taskLogSQL, "AUTOINCREMENT") {
+		logger.Info("修复task_log表自增主键...")
+		Db.Exec(`
+			CREATE TABLE task_log_new (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				task_id integer NOT NULL DEFAULT 0,
+				name varchar(32) NOT NULL,
+				spec varchar(64) NOT NULL,
+				protocol tinyint NOT NULL,
+				command varchar(256) NOT NULL,
+				timeout mediumint NOT NULL DEFAULT 0,
+				retry_times tinyint NOT NULL DEFAULT 0,
+				hostname varchar(128) NOT NULL DEFAULT '',
+				start_time datetime,
+				end_time datetime,
+				status tinyint NOT NULL DEFAULT 1,
+				result mediumtext NOT NULL
+			);
+		`)
+		Db.Exec(`DROP TABLE task_log;`)
+		Db.Exec(`ALTER TABLE task_log_new RENAME TO task_log;`)
+		logger.Info("修复task_log表完成")
+	}
+	
+	// 修复host表
+	var hostSQL string
+	Db.Raw("SELECT sql FROM sqlite_master WHERE type='table' AND name='host'").Scan(&hostSQL)
+	if len(hostSQL) > 0 && !contains(hostSQL, "AUTOINCREMENT") {
+		logger.Info("修复host表自增主键...")
+		Db.Exec(`
+			CREATE TABLE host_new (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				name varchar(64) NOT NULL,
+				alias varchar(32) NOT NULL DEFAULT '',
+				port integer NOT NULL DEFAULT 5921,
+				remark varchar(100) NOT NULL DEFAULT ''
+			);
+		`)
+		Db.Exec(`DROP TABLE host;`)
+		Db.Exec(`ALTER TABLE host_new RENAME TO host;`)
+		logger.Info("修复host表完成")
+	}
 }

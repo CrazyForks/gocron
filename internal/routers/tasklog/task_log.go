@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gocronx-team/gocron/internal/models"
+	"github.com/gocronx-team/gocron/internal/modules/i18n"
 	"github.com/gocronx-team/gocron/internal/modules/logger"
 	"github.com/gocronx-team/gocron/internal/modules/utils"
 	"github.com/gocronx-team/gocron/internal/routers/base"
@@ -49,34 +50,36 @@ func Clear(c *gin.Context) {
 
 // 停止运行中的任务
 func Stop(c *gin.Context) {
-	var form struct {
-		Id     int64 `form:"id" binding:"required"`
-		TaskId int   `form:"task_id" binding:"required"`
-	}
-	if err := c.ShouldBind(&form); err != nil {
+	id, err := strconv.ParseInt(c.PostForm("id"), 10, 64)
+	if err != nil || id <= 0 {
 		json := utils.JsonResponse{}
-		result := json.CommonFailure("参数错误")
+		result := json.CommonFailure(i18n.T(c, "invalid_log_id"))
 		c.String(http.StatusOK, result)
 		return
 	}
-	id := form.Id
-	taskId := form.TaskId
+	taskId, err := strconv.Atoi(c.PostForm("task_id"))
+	if err != nil || taskId <= 0 {
+		json := utils.JsonResponse{}
+		result := json.CommonFailure(i18n.T(c, "invalid_task_id"))
+		c.String(http.StatusOK, result)
+		return
+	}
 	taskModel := new(models.Task)
 	task, err := taskModel.Detail(taskId)
 	json := utils.JsonResponse{}
 	var result string
 	if err != nil {
-		result = json.CommonFailure("获取任务信息失败#"+err.Error(), err)
+		result = json.CommonFailure(i18n.T(c, "get_task_info_failed")+"#"+err.Error(), err)
 		c.String(http.StatusOK, result)
 		return
 	}
 	if task.Protocol != models.TaskRPC {
-		result = json.CommonFailure("仅支持SHELL任务手动停止")
+		result = json.CommonFailure(i18n.T(c, "only_shell_task_can_stop"))
 		c.String(http.StatusOK, result)
 		return
 	}
 	if len(task.Hosts) == 0 {
-		result = json.CommonFailure("任务节点列表为空")
+		result = json.CommonFailure(i18n.T(c, "task_node_list_empty"))
 		c.String(http.StatusOK, result)
 		return
 	}
@@ -84,7 +87,7 @@ func Stop(c *gin.Context) {
 		service.ServiceTask.Stop(host.Name, host.Port, id)
 	}
 
-	result = json.Success("已执行停止操作, 请等待任务退出", nil)
+	result = json.Success(i18n.T(c, "stop_task_sent"), nil)
 	c.String(http.StatusOK, result)
 }
 
@@ -94,16 +97,16 @@ func Remove(c *gin.Context) {
 	json := utils.JsonResponse{}
 	var result string
 	if month < 1 || month > 12 {
-		result = json.CommonFailure("参数取值范围1-12")
+		result = json.CommonFailure(i18n.T(c, "param_range_1_12"))
 		c.String(http.StatusOK, result)
 		return
 	}
 	taskLogModel := new(models.TaskLog)
 	_, err := taskLogModel.Remove(month)
 	if err != nil {
-		result = json.CommonFailure("删除失败", err)
+		result = json.CommonFailure(i18n.T(c, "delete_failed"), err)
 	} else {
-		result = json.Success("删除成功", nil)
+		result = json.Success(i18n.T(c, "delete_success"), nil)
 	}
 	c.String(http.StatusOK, result)
 }

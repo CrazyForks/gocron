@@ -63,7 +63,7 @@ function validateShortcut(spec) {
 
   return {
     valid: false,
-    message: '不支持的快捷语法，支持：@yearly, @monthly, @weekly, @daily, @midnight, @hourly, @every'
+    message: '快捷语法错误，请点击“示例”查看'
   }
 }
 

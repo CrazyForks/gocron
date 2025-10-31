@@ -417,7 +417,7 @@ func createHandler(taskModel models.Task) Handler {
 func beforeExecJob(taskModel models.Task) (taskLogId int64) {
 	if taskModel.Multi == 0 && runInstance.has(taskModel.Id) {
 		logger.Infof("任务已在运行中，取消本次执行#ID-%d", taskModel.Id)
-		createTaskLog(taskModel, models.Cancel)
+		taskLogId, _ = createTaskLog(taskModel, models.Cancel)
 		return
 	}
 	taskLogId, err := createTaskLog(taskModel, models.Running)

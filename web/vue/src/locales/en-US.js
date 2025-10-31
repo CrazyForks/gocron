@@ -104,7 +104,7 @@ export default {
   },
   host: {
     list: 'Task Nodes',
-    name: 'Name',
+    name: 'Host Name',
     alias: 'Alias',
     port: 'Port',
     remark: 'Remark',

@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gocronx-team/gocron/internal/models"
+	"github.com/gocronx-team/gocron/internal/modules/i18n"
 	"github.com/gocronx-team/gocron/internal/modules/logger"
 	"github.com/gocronx-team/gocron/internal/modules/rpc/client"
 	"github.com/gocronx-team/gocron/internal/modules/rpc/grpcpool"
@@ -86,7 +87,7 @@ func Store(c *gin.Context) {
 	var form HostForm
 	if err := c.ShouldBind(&form); err != nil {
 		json := utils.JsonResponse{}
-		result := json.CommonFailure("表单验证失败, 请检测输入")
+		result := json.CommonFailure(i18n.T(c, "form_validation_failed"))
 		c.String(http.StatusOK, result)
 		return
 	}
@@ -96,12 +97,12 @@ func Store(c *gin.Context) {
 	id := form.Id
 	nameExist, err := hostModel.NameExists(form.Name, form.Id)
 	if err != nil {
-		result := json.CommonFailure("操作失败", err)
+		result := json.CommonFailure(i18n.T(c, "operation_failed"), err)
 		c.String(http.StatusOK, result)
 		return
 	}
 	if nameExist {
-		result := json.CommonFailure("主机名已存在")
+		result := json.CommonFailure(i18n.T(c, "hostname_exists"))
 		c.String(http.StatusOK, result)
 		return
 	}
@@ -116,7 +117,7 @@ func Store(c *gin.Context) {
 	if id > 0 {
 		err = oldHostModel.Find(int(id))
 		if err != nil {
-			result := json.CommonFailure("主机不存在")
+			result := json.CommonFailure(i18n.T(c, "host_not_exist"))
 			c.String(http.StatusOK, result)
 			return
 		}
@@ -126,7 +127,7 @@ func Store(c *gin.Context) {
 		id, err = hostModel.Create()
 	}
 	if err != nil {
-		result := json.CommonFailure("保存失败", err)
+		result := json.CommonFailure(i18n.T(c, "save_failed"), err)
 		c.String(http.StatusOK, result)
 		return
 	}
@@ -141,14 +142,14 @@ func Store(c *gin.Context) {
 		taskModel := new(models.Task)
 		tasks, err := taskModel.ActiveListByHostId(id)
 		if err != nil {
-			result := json.CommonFailure("刷新任务主机信息失败", err)
+			result := json.CommonFailure(i18n.T(c, "refresh_task_host_failed"), err)
 			c.String(http.StatusOK, result)
 			return
 		}
 		service.ServiceTask.BatchAdd(tasks)
 	}
 
-	result := json.Success("保存成功", nil)
+	result := json.Success(i18n.T(c, "save_success"), nil)
 	c.String(http.StatusOK, result)
 }
 
@@ -158,19 +159,19 @@ func Remove(c *gin.Context) {
 	json := utils.JsonResponse{}
 	var result string
 	if err != nil {
-		result = json.CommonFailure("参数错误", err)
+		result = json.CommonFailure(i18n.T(c, "param_error"), err)
 		c.String(http.StatusOK, result)
 		return
 	}
 	taskHostModel := new(models.TaskHost)
 	exist, err := taskHostModel.HostIdExist(int16(id))
 	if err != nil {
-		result = json.CommonFailure("操作失败", err)
+		result = json.CommonFailure(i18n.T(c, "operation_failed"), err)
 		c.String(http.StatusOK, result)
 		return
 	}
 	if exist {
-		result = json.CommonFailure("有任务引用此主机，不能删除")
+		result = json.CommonFailure(i18n.T(c, "host_in_use_cannot_delete"))
 		c.String(http.StatusOK, result)
 		return
 	}
@@ -178,14 +179,14 @@ func Remove(c *gin.Context) {
 	hostModel := new(models.Host)
 	err = hostModel.Find(int(id))
 	if err != nil {
-		result = json.CommonFailure("主机不存在")
+		result = json.CommonFailure(i18n.T(c, "host_not_exist"))
 		c.String(http.StatusOK, result)
 		return
 	}
 
 	_, err = hostModel.Delete(id)
 	if err != nil {
-		result = json.CommonFailure("操作失败", err)
+		result = json.CommonFailure(i18n.T(c, "operation_failed"), err)
 		c.String(http.StatusOK, result)
 		return
 	}
@@ -193,7 +194,7 @@ func Remove(c *gin.Context) {
 	addr := fmt.Sprintf("%s:%d", hostModel.Name, hostModel.Port)
 	grpcpool.Pool.Release(addr)
 
-	result = json.Success("操作成功", nil)
+	result = json.Success(i18n.T(c, "operation_success"), nil)
 	c.String(http.StatusOK, result)
 }
 
@@ -205,7 +206,7 @@ func Ping(c *gin.Context) {
 	json := utils.JsonResponse{}
 	var result string
 	if err != nil || hostModel.Id <= 0 {
-		result = json.CommonFailure("主机不存在", err)
+		result = json.CommonFailure(i18n.T(c, "host_not_exist"), err)
 		c.String(http.StatusOK, result)
 		return
 	}
@@ -215,9 +216,9 @@ func Ping(c *gin.Context) {
 	taskReq.Timeout = testConnectionTimeout
 	output, err := client.Exec(hostModel.Name, hostModel.Port, taskReq)
 	if err != nil {
-		result = json.CommonFailure("连接失败-"+err.Error()+" "+output, err)
+		result = json.CommonFailure(i18n.T(c, "connection_failed")+"-"+err.Error()+" "+output, err)
 	} else {
-		result = json.Success("连接成功", nil)
+		result = json.Success(i18n.T(c, "connection_success"), nil)
 	}
 	c.String(http.StatusOK, result)
 }

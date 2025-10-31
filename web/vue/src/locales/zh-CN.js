@@ -104,7 +104,7 @@ export default {
   },
   host: {
     list: '任务节点',
-    name: '名称',
+    name: '主机名',
     alias: '别名',
     port: '端口',
     remark: '备注',
