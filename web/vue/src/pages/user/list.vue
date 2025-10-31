@@ -92,6 +92,9 @@ export default {
   created () {
     this.search()
   },
+  activated () {
+    this.search()
+  },
   methods: {
     changeStatus (item) {
       if (item.status) {
