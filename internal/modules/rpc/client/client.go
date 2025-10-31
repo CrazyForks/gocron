@@ -8,6 +8,7 @@ import (
 
 	"google.golang.org/grpc/status"
 
+	"github.com/gocronx-team/gocron/internal/models"
 	"github.com/gocronx-team/gocron/internal/modules/logger"
 	"github.com/gocronx-team/gocron/internal/modules/rpc/grpcpool"
 	pb "github.com/gocronx-team/gocron/internal/modules/rpc/proto"
@@ -32,7 +33,9 @@ func Stop(ip string, port int, id int64) {
 	logger.Infof("尝试停止任务#key-%s#taskLogId-%d", key, id)
 	cancel, ok := taskMap.Load(key)
 	if !ok {
-		logger.Warnf("未找到运行中的任务#key-%s", key)
+		logger.Warnf("未找到运行中的任务，可能是历史任务，直接更新数据库状态#key-%s", key)
+		// 对于历史任务（重启后丢失的任务），直接更新数据库状态
+		updateOrphanedTaskLog(id)
 		return
 	}
 	logger.Infof("找到运行中的任务，执行停止#key-%s", key)
@@ -87,4 +90,18 @@ func parseGRPCError(err error) (string, error) {
 		return "", errors.New("手动停止")
 	}
 	return "", err
+}
+
+// 处理孤立的任务日志（重启后丢失的任务）
+func updateOrphanedTaskLog(taskLogId int64) {
+	taskLogModel := new(models.TaskLog)
+	_, err := taskLogModel.Update(taskLogId, models.CommonMap{
+		"status": models.Cancel,
+		"result": "系统重启后手动停止",
+	})
+	if err != nil {
+		logger.Errorf("更新孤立任务日志状态失败#taskLogId-%d#错误-%s", taskLogId, err.Error())
+	} else {
+		logger.Infof("已更新孤立任务日志状态为已取消#taskLogId-%d", taskLogId)
+	}
 }
