@@ -258,16 +258,8 @@ func userAuth(c *gin.Context) {
 		return
 	}
 
-	user.RestoreToken(c)
-	if user.IsLogin(c) {
-		c.Next()
-		return
-	}
 	uri := strings.TrimRight(path, "/")
-	if strings.HasPrefix(uri, "/v1") {
-		c.Next()
-		return
-	}
+	// 登录接口和安装状态接口不需要认证
 	excludePaths := []string{"", "/api/user/login", "/api/install/status"}
 	for _, p := range excludePaths {
 		if uri == p {
@@ -275,10 +267,33 @@ func userAuth(c *gin.Context) {
 			return
 		}
 	}
-	jsonResp := utils.JsonResponse{}
-	data := jsonResp.Failure(utils.AuthError, i18n.T(c, "auth_failed"))
-	c.String(http.StatusOK, data)
-	c.Abort()
+
+	// v1 API接口使用单独的认证
+	if strings.HasPrefix(uri, "/v1") {
+		c.Next()
+		return
+	}
+
+	// 尝试从token恢复用户信息
+	err := user.RestoreToken(c)
+	if err != nil {
+		logger.Warnf("token解析失败: %v, path: %s", err, path)
+		jsonResp := utils.JsonResponse{}
+		data := jsonResp.Failure(utils.AuthError, i18n.T(c, "auth_failed"))
+		c.String(http.StatusOK, data)
+		c.Abort()
+		return
+	}
+
+	if !user.IsLogin(c) {
+		jsonResp := utils.JsonResponse{}
+		data := jsonResp.Failure(utils.AuthError, i18n.T(c, "auth_failed"))
+		c.String(http.StatusOK, data)
+		c.Abort()
+		return
+	}
+
+	c.Next()
 }
 
 // URL权限验证

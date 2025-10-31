@@ -426,6 +426,10 @@ func RestoreToken(c *gin.Context) error {
 		return err
 	}
 
+	if !token.Valid {
+		return errors.New("token is invalid")
+	}
+
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return errors.New("invalid claims")
