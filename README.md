@@ -1,10 +1,10 @@
-# gocron - 定时任务管理系统
+# gocron - 分布式定时任务管理系统
 
 [![Release](https://img.shields.io/github/release/gocronx-team/gocron.svg?label=Release)](https://github.com/gocronx-team/gocron/releases) [![Downloads](https://img.shields.io/github/downloads/gocronx-team/gocron/total.svg)](https://github.com/gocronx-team/gocron/releases) [![License](https://img.shields.io/github/license/gocronx-team/gocron.svg)](https://github.com/gocronx-team/gocron/blob/master/LICENSE)
 
 [English](README_EN.md) | 简体中文
 
-使用Go语言开发的轻量级定时任务集中调度和管理系统，用于替代Linux-crontab。
+使用Go语言开发的轻量级分布式定时任务集中调度和管理系统，用于替代Linux-crontab。
 
 ## 功能特性
 

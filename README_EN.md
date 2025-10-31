@@ -1,8 +1,8 @@
-# gocron - Cron Task Management System
+# gocron - Comprehensive scheduled task management system
 [![Release](https://img.shields.io/github/release/gocronx-team/gocron.svg?label=Release)](https://github.com/gocronx-team/gocron/releases) [![Downloads](https://img.shields.io/github/downloads/gocronx-team/gocron/total.svg)](https://github.com/gocronx-team/gocron/releases) [![License](https://img.shields.io/github/license/gocronx-team/gocron.svg)](https://github.com/gocronx-team/gocron/blob/master/LICENSE)
 English | [简体中文](README.md)
 
-A lightweight cron task management system developed in Go, designed to replace Linux-crontab.
+A lightweight comprehensive scheduled task management system developed in Go, designed to replace Linux-crontab.
 
 ## Features
 
