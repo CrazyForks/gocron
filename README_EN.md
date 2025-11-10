@@ -22,6 +22,7 @@ A lightweight distributed scheduled task management system developed in Go, desi
 * Task execution log viewing
 * Automatic log cleanup (scheduled cleanup of database logs and log files)
 * Task execution notifications (Email, Slack, Webhook)
+* Prometheus monitoring metrics (task execution statistics, performance monitoring)
 
 ## Screenshots
 
@@ -160,6 +161,72 @@ iwr -useb http://your-server:5920/api/agent/install.ps1?token=<token> | iex
 * ✅ Automatic creation of systemd service on Linux
 * ✅ Automatic creation of Windows service on Windows
 * ✅ Secure one-way communication (Agent only accesses gocron during registration)
+
+## Prometheus Monitoring
+
+gocron has a built-in Prometheus metrics endpoint that provides rich monitoring metrics.
+
+### Access Method
+
+```bash
+curl http://localhost:9090/metrics
+```
+
+**Note**: The metrics endpoint only listens on `127.0.0.1`, allowing only local access for security.
+
+### Monitoring Metrics
+
+#### Business Metrics
+
+| Metric Name | Type | Description | Labels |
+|-------------|------|-------------|--------|
+| `gocron_task_execution_total` | Counter | Total number of task executions | `task_id`, `task_name`, `status` |
+| `gocron_task_execution_duration_seconds` | Histogram | Task execution duration (seconds) | `task_id`, `task_name` |
+| `gocron_active_tasks` | Gauge | Number of currently active tasks | - |
+| `gocron_task_nodes` | Gauge | Number of registered task nodes | - |
+
+#### Go Runtime Metrics
+
+- `go_goroutines` - Number of goroutines
+- `go_threads` - Number of threads
+- `go_memstats_alloc_bytes` - Heap memory usage
+- `go_memstats_heap_objects` - Number of heap objects
+- `go_gc_duration_seconds` - GC duration
+
+#### Process Metrics
+
+- `process_cpu_seconds_total` - CPU usage time
+- `process_resident_memory_bytes` - Resident memory
+- `process_open_fds` - Number of open file descriptors
+
+### Prometheus Configuration Example
+
+```yaml
+scrape_configs:
+  - job_name: 'gocron'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 15s
+```
+
+### Grafana Dashboard Examples
+
+**Task Success Rate**:
+```promql
+sum(rate(gocron_task_execution_total{status="success"}[5m])) / 
+sum(rate(gocron_task_execution_total[5m])) * 100
+```
+
+**Average Task Execution Time**:
+```promql
+rate(gocron_task_execution_duration_seconds_sum[5m]) / 
+rate(gocron_task_execution_duration_seconds_count[5m])
+```
+
+**Current Active Tasks**:
+```promql
+gocron_active_tasks
+```
 
 ## Commands
 

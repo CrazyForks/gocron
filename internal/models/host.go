@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/gocronx-team/gocron/internal/modules/metrics"
 	"gorm.io/gorm"
 )
 
@@ -20,6 +21,7 @@ func (host *Host) Create() (insertId int16, err error) {
 	result := Db.Create(host)
 	if result.Error == nil {
 		insertId = host.Id
+		metrics.TaskNodes.Inc()
 	}
 
 	return insertId, result.Error
@@ -45,6 +47,9 @@ func (host *Host) Update(id int, data CommonMap) (int64, error) {
 // 删除
 func (host *Host) Delete(id int) (int64, error) {
 	result := Db.Delete(&Host{}, id)
+	if result.RowsAffected > 0 {
+		metrics.TaskNodes.Dec()
+	}
 	return result.RowsAffected, result.Error
 }
 

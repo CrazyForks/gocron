@@ -24,6 +24,7 @@
 * 任务执行日志查看
 * 日志自动清理（数据库日志和文件日志定时清理）
 * 任务执行结果通知（邮件、Slack、Webhook）
+* Prometheus监控指标（任务执行统计、性能监控）
 
 ## 界面截图
 
@@ -164,6 +165,72 @@ iwr -useb http://your-server:5920/api/agent/install.ps1?token=<token> | iex
 * ✅ Linux自动创建systemd服务
 * ✅ Windows自动创建Windows服务
 * ✅ 安全的单向通信（Agent仅在注册时访问gocron）
+
+## Prometheus监控
+
+gocron 内置 Prometheus metrics 端点，提供丰富的监控指标。
+
+### 访问方式
+
+```bash
+curl http://localhost:9090/metrics
+```
+
+**注意**：metrics 端点仅监听 `127.0.0.1`，仅允许本地访问，保证安全性。
+
+### 监控指标
+
+#### 业务指标
+
+| 指标名称 | 类型 | 说明 | 标签 |
+|---------|------|------|------|
+| `gocron_task_execution_total` | Counter | 任务执行总次数 | `task_id`, `task_name`, `status` |
+| `gocron_task_execution_duration_seconds` | Histogram | 任务执行耗时（秒） | `task_id`, `task_name` |
+| `gocron_active_tasks` | Gauge | 当前正在执行的任务数 | - |
+| `gocron_task_nodes` | Gauge | 已注册的任务节点数 | - |
+
+#### Go 运行时指标
+
+- `go_goroutines` - Goroutine 数量
+- `go_threads` - 线程数量
+- `go_memstats_alloc_bytes` - 堆内存使用量
+- `go_memstats_heap_objects` - 堆对象数量
+- `go_gc_duration_seconds` - GC 耗时
+
+#### 进程指标
+
+- `process_cpu_seconds_total` - CPU 使用时间
+- `process_resident_memory_bytes` - 常驻内存
+- `process_open_fds` - 打开的文件描述符数
+
+### Prometheus 配置示例
+
+```yaml
+scrape_configs:
+  - job_name: 'gocron'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 15s
+```
+
+### Grafana 仪表盘示例
+
+**任务执行成功率**：
+```promql
+sum(rate(gocron_task_execution_total{status="success"}[5m])) / 
+sum(rate(gocron_task_execution_total[5m])) * 100
+```
+
+**任务平均执行时间**：
+```promql
+rate(gocron_task_execution_duration_seconds_sum[5m]) / 
+rate(gocron_task_execution_duration_seconds_count[5m])
+```
+
+**当前活跃任务数**：
+```promql
+gocron_active_tasks
+```
 
 ## 命令说明
 

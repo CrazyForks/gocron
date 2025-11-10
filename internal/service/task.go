@@ -14,6 +14,7 @@ import (
 	"github.com/gocronx-team/gocron/internal/modules/app"
 	"github.com/gocronx-team/gocron/internal/modules/httpclient"
 	"github.com/gocronx-team/gocron/internal/modules/logger"
+	"github.com/gocronx-team/gocron/internal/modules/metrics"
 	"github.com/gocronx-team/gocron/internal/modules/notify"
 	rpcClient "github.com/gocronx-team/gocron/internal/modules/rpc/client"
 	pb "github.com/gocronx-team/gocron/internal/modules/rpc/proto"
@@ -397,9 +398,25 @@ func createJob(taskModel models.Task) cron.FuncJob {
 		concurrencyQueue.Add()
 		defer concurrencyQueue.Done()
 
+		// 增加活跃任务计数
+		metrics.ActiveTasks.Inc()
+		defer metrics.ActiveTasks.Dec()
+
 		logger.Infof("开始执行任务#%s#命令-%s", taskModel.Name, taskModel.Command)
+		startTime := time.Now()
 		taskResult := execJob(handler, taskModel, taskLogId)
+		duration := time.Since(startTime).Seconds()
 		logger.Infof("任务完成#%s#命令-%s", taskModel.Name, taskModel.Command)
+		
+		// 记录任务执行指标
+		taskIdStr := strconv.Itoa(taskModel.Id)
+		status := "success"
+		if taskResult.Err != nil {
+			status = "failure"
+		}
+		metrics.TaskExecutionTotal.WithLabelValues(taskIdStr, taskModel.Name, status).Inc()
+		metrics.TaskExecutionDuration.WithLabelValues(taskIdStr, taskModel.Name).Observe(duration)
+		
 		afterExecJob(taskModel, taskResult, taskLogId)
 	}
 

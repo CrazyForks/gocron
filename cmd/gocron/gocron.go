@@ -14,6 +14,7 @@ import (
 	"github.com/gocronx-team/gocron/internal/models"
 	"github.com/gocronx-team/gocron/internal/modules/app"
 	"github.com/gocronx-team/gocron/internal/modules/logger"
+	"github.com/gocronx-team/gocron/internal/modules/metrics"
 	"github.com/gocronx-team/gocron/internal/modules/setting"
 	"github.com/gocronx-team/gocron/internal/modules/utils"
 	"github.com/gocronx-team/gocron/internal/routers"
@@ -80,6 +81,8 @@ func runWeb(ctx *cli.Context) {
 	// 初始化模块 DB、定时任务等
 	initModule()
 	fmt.Printf("Modules initialized\n")
+	// 启动Prometheus metrics服务器
+	startMetricsServer()
 	// 捕捉信号,配置热更新等
 	go catchSignal()
 	r := gin.Default()
@@ -96,6 +99,14 @@ func runWeb(ctx *cli.Context) {
 		fmt.Printf("Failed to start server: %v\n", err)
 		logger.Fatal("Failed to start server", err)
 	}
+}
+
+func startMetricsServer() {
+	if !app.Installed {
+		return
+	}
+	// 启动metrics服务器，监听9090端口，仅localhost访问
+	metrics.StartMetricsServer(9090)
 }
 
 func initModule() {
@@ -125,6 +136,17 @@ func initModule() {
 
 	// 初始化定时任务
 	service.ServiceTask.Initialize()
+
+	// 初始化metrics指标
+	initMetrics()
+}
+
+func initMetrics() {
+	// 统计任务节点数
+	var count int64
+	if err := models.Db.Model(&models.Host{}).Count(&count).Error; err == nil {
+		metrics.TaskNodes.Set(float64(count))
+	}
 }
 
 // 解析端口
