@@ -116,7 +116,16 @@ export default {
     nameRequired: '请输入主机名',
     portRequired: '请输入端口',
     aliasRequired: '请输入节点名称',
-    portInvalid: '端口无效'
+    portInvalid: '端口无效',
+    autoRegister: '自动注册',
+    agentInstall: 'Agent安装',
+    installCommand: '安装命令',
+    installTip: '在目标服务器上执行对应的命令，将自动安装并注册Agent节点（支持Linux/macOS/Windows）',
+    tokenExpires: 'Token有效期',
+    tokenUsage: '使用说明',
+    tokenReusable: '此Token可在有效期内重复使用，适用于批量安装',
+    bashCommand: '在终端执行以下命令：',
+    powershellCommand: '在PowerShell（管理员权限）中执行：'
   },
   user: {
     list: '用户管理',
@@ -332,6 +341,8 @@ export default {
     confirmDeleteNode: '确定删除此节点?',
     confirmDeleteUser: '确定删除此用户?',
     connectionSuccess: '连接成功',
+    copySuccess: '复制成功',
+    copyFailed: '复制失败',
     all: '全部',
     clearLog: '清空日志',
     confirmClearLog: '确定清空所有日志?',

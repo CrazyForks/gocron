@@ -14,13 +14,10 @@
           </el-form-item>
         </el-row>
       </el-form>
-      <el-row type="flex" justify="end">
-        <el-col :span="2">
-          <el-button type="primary" v-if="isAdmin"  @click="toEdit(null)">{{ t('common.add') }}</el-button>
-        </el-col>
-        <el-col :span="2">
-          <el-button type="info" @click="refresh">{{ t('common.refresh') }}</el-button>
-        </el-col>
+      <el-row type="flex" justify="end" style="gap: 10px; margin-bottom: 15px;">
+        <el-button type="success" v-if="isAdmin" @click="showAgentInstall" icon="Download">{{ t('host.autoRegister') }}</el-button>
+        <el-button type="primary" v-if="isAdmin" @click="toEdit(null)">{{ t('common.add') }}</el-button>
+        <el-button type="info" @click="refresh" icon="Refresh">{{ t('common.refresh') }}</el-button>
       </el-row>
       <el-pagination
         background
@@ -69,6 +66,69 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <el-dialog v-model="agentDialogVisible" :title="t('host.agentInstall')" width="750px">
+        <div v-if="installCommand">
+          <el-alert :title="t('host.installTip')" type="info" :closable="false" style="margin-bottom: 20px" show-icon />
+          
+          <el-tabs v-model="activeTab" type="card">
+            <el-tab-pane label="Linux / macOS" name="linux">
+              <div style="padding: 15px; background: #f5f7fa; border-radius: 4px;">
+                <div style="margin-bottom: 10px; color: #606266; font-size: 14px;">
+                  <el-icon style="vertical-align: middle;"><Monitor /></el-icon>
+                  {{ t('host.bashCommand') }}
+                </div>
+                <el-input
+                  v-model="installCommand"
+                  type="textarea"
+                  :rows="3"
+                  readonly
+                  style="font-family: monospace; font-size: 13px;"
+                />
+                <div style="margin-top: 10px; text-align: right;">
+                  <el-button type="primary" @click="copyCommand('linux')" icon="DocumentCopy">Copy</el-button>
+                </div>
+              </div>
+            </el-tab-pane>
+            
+            <el-tab-pane label="Windows" name="windows">
+              <div style="padding: 15px; background: #f5f7fa; border-radius: 4px;">
+                <div style="margin-bottom: 10px; color: #606266; font-size: 14px;">
+                  <el-icon style="vertical-align: middle;"><Monitor /></el-icon>
+                  {{ t('host.powershellCommand') }}
+                </div>
+                <el-input
+                  v-model="installCommandWindows"
+                  type="textarea"
+                  :rows="3"
+                  readonly
+                  style="font-family: monospace; font-size: 13px;"
+                />
+                <div style="margin-top: 10px; text-align: right;">
+                  <el-button type="primary" @click="copyCommand('windows')" icon="DocumentCopy">Copy</el-button>
+                </div>
+              </div>
+            </el-tab-pane>
+          </el-tabs>
+          
+          <el-divider />
+          
+          <div style="padding: 10px 0;">
+            <el-descriptions :column="1" border>
+              <el-descriptions-item :label="t('host.tokenExpires')">
+                <el-tag type="warning" effect="plain">{{ expiresAt }}</el-tag>
+              </el-descriptions-item>
+              <el-descriptions-item :label="t('host.tokenUsage')">
+                <span style="color: #67c23a;">{{ t('host.tokenReusable') }}</span>
+              </el-descriptions-item>
+            </el-descriptions>
+          </div>
+        </div>
+        <div v-else style="text-align: center; padding: 20px">
+          <el-icon class="is-loading" :size="30"><Loading /></el-icon>
+          <p>{{ t('common.loading') }}</p>
+        </div>
+      </el-dialog>
     </el-main>
   </el-container>
 </template>
@@ -76,7 +136,9 @@
 <script>
 import { useI18n } from 'vue-i18n'
 import { ElMessageBox } from 'element-plus'
+import { Loading } from '@element-plus/icons-vue'
 import hostService from '../../api/host'
+import agentService from '../../api/agent'
 import { useUserStore } from '../../stores/user'
 
 export default {
@@ -97,8 +159,18 @@ export default {
         name: '',
         alias: ''
       },
-      isAdmin: userStore.isAdmin
+      isAdmin: userStore.isAdmin,
+      agentDialogVisible: false,
+      installCommand: '',
+      installCommandWindows: '',
+      expiresAt: '',
+      activeTab: 'linux',
+      cachedToken: null,
+      cachedTokenExpires: null
     }
+  },
+  components: {
+    Loading
   },
   created () {
     this.search()
@@ -169,6 +241,42 @@ export default {
             host_id: item.id
           }
         })
+    },
+    showAgentInstall () {
+      this.agentDialogVisible = true
+      
+      // 检查是否有缓存的token且未过期
+      const now = new Date()
+      if (this.cachedToken && this.cachedTokenExpires && now < this.cachedTokenExpires) {
+        // 使用缓存的token
+        this.installCommand = this.cachedToken.install_cmd
+        this.installCommandWindows = this.cachedToken.install_cmd_windows
+        this.expiresAt = this.cachedTokenExpires.toLocaleString()
+        return
+      }
+      
+      // 生成新token
+      this.installCommand = ''
+      this.installCommandWindows = ''
+      this.expiresAt = ''
+      agentService.generateToken((data) => {
+        this.installCommand = data.install_cmd
+        this.installCommandWindows = data.install_cmd_windows
+        const expiresDate = new Date(data.expires_at)
+        this.expiresAt = expiresDate.toLocaleString()
+        
+        // 缓存token信息
+        this.cachedToken = data
+        this.cachedTokenExpires = expiresDate
+      })
+    },
+    copyCommand (type) {
+      const cmd = type === 'windows' ? this.installCommandWindows : this.installCommand
+      navigator.clipboard.writeText(cmd).then(() => {
+        this.$message.success(this.t('message.copySuccess'))
+      }).catch(() => {
+        this.$message.error(this.t('message.copyFailed'))
+      })
     }
   }
 }

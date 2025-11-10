@@ -13,7 +13,7 @@ type Migration struct{}
 func (migration *Migration) Install(dbName string) error {
 	setting := new(Setting)
 	tables := []interface{}{
-		&User{}, &Task{}, &TaskLog{}, &Host{}, setting, &LoginLog{}, &TaskHost{},
+		&User{}, &Task{}, &TaskLog{}, &Host{}, setting, &LoginLog{}, &TaskHost{}, &AgentToken{},
 	}
 
 	for _, table := range tables {
@@ -43,7 +43,7 @@ func (migration *Migration) Upgrade(oldVersionId int) {
 		return
 	}
 
-	versionIds := []int{110, 122, 130, 140, 150, 151, 152, 153}
+	versionIds := []int{110, 122, 130, 140, 150, 151, 152, 153, 154}
 	upgradeFuncs := []func(*gorm.DB) error{
 		migration.upgradeFor110,
 		migration.upgradeFor122,
@@ -53,6 +53,7 @@ func (migration *Migration) Upgrade(oldVersionId int) {
 		migration.upgradeFor151,
 		migration.upgradeFor152,
 		migration.upgradeFor153,
+		migration.upgradeFor154,
 	}
 
 	startIndex := -1
@@ -435,6 +436,22 @@ func (m *Migration) upgradeFor153(tx *gorm.DB) error {
 	}
 
 	logger.Info("已升级到v1.5.3\n")
+
+	return nil
+}
+
+// 升级到v1.5.4版本 - 添加agent_token表
+func (m *Migration) upgradeFor154(tx *gorm.DB) error {
+	logger.Info("开始升级到v1.5.4 - 添加agent自动注册支持")
+
+	if !tx.Migrator().HasTable(&AgentToken{}) {
+		err := tx.AutoMigrate(&AgentToken{})
+		if err != nil {
+			return err
+		}
+	}
+
+	logger.Info("已升级到v1.5.4\n")
 
 	return nil
 }

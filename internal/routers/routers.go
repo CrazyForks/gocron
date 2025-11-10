@@ -13,6 +13,7 @@ import (
 	"github.com/gocronx-team/gocron/internal/modules/i18n"
 	"github.com/gocronx-team/gocron/internal/modules/logger"
 	"github.com/gocronx-team/gocron/internal/modules/utils"
+	"github.com/gocronx-team/gocron/internal/routers/agent"
 	"github.com/gocronx-team/gocron/internal/routers/host"
 	"github.com/gocronx-team/gocron/internal/routers/install"
 	"github.com/gocronx-team/gocron/internal/routers/loginlog"
@@ -100,6 +101,16 @@ func Register(r *gin.Engine) {
 		hostGroup.GET("/all", host.All)
 		hostGroup.GET("/ping/:id", host.Ping)
 		hostGroup.POST("/remove/:id", host.Remove)
+	}
+
+	// Agent注册
+	agentGroup := api.Group("/agent")
+	{
+		agentGroup.POST("/generate-token", agent.GenerateToken)
+		agentGroup.GET("/install.sh", agent.InstallScript)
+		agentGroup.GET("/install.ps1", agent.InstallScriptWindows)
+		agentGroup.POST("/register", agent.Register)
+		agentGroup.GET("/download", agent.Download)
 	}
 
 	// 管理
@@ -257,7 +268,7 @@ func userAuth(c *gin.Context) {
 
 	uri := strings.TrimRight(path, "/")
 	// 登录接口和安装状态接口不需要认证
-	excludePaths := []string{"", "/api/user/login", "/api/install/status"}
+	excludePaths := []string{"", "/api/user/login", "/api/install/status", "/api/agent/install.sh", "/api/agent/install.ps1", "/api/agent/register", "/api/agent/download"}
 	for _, p := range excludePaths {
 		if uri == p {
 			c.Next()
@@ -330,6 +341,10 @@ func urlAuth(c *gin.Context) {
 		"/api/user/2fa/setup",
 		"/api/user/2fa/enable",
 		"/api/user/2fa/disable",
+		"/api/agent/install.sh",
+		"/api/agent/install.ps1",
+		"/api/agent/register",
+		"/api/agent/download",
 	}
 	for _, p := range allowPaths {
 		if p == uri {

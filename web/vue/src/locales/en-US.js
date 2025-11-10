@@ -116,7 +116,16 @@ export default {
     nameRequired: 'Please enter host name',
     portRequired: 'Please enter port',
     aliasRequired: 'Please enter node name',
-    portInvalid: 'Invalid port'
+    portInvalid: 'Invalid port',
+    autoRegister: 'Auto Register',
+    agentInstall: 'Agent Installation',
+    installCommand: 'Install Command',
+    installTip: 'Run the corresponding command on the target server to automatically install and register the Agent node (Linux/macOS/Windows supported)',
+    tokenExpires: 'Token Expires',
+    tokenUsage: 'Usage',
+    tokenReusable: 'This token can be reused within the validity period for batch installation',
+    bashCommand: 'Run the following command in terminal:',
+    powershellCommand: 'Run in PowerShell (Administrator):'
   },
   user: {
     list: 'User Management',
@@ -332,6 +341,8 @@ export default {
     confirmDeleteNode: 'Are you sure you want to delete this node?',
     confirmDeleteUser: 'Are you sure you want to delete this user?',
     connectionSuccess: 'Connection successful',
+    copySuccess: 'Copied successfully',
+    copyFailed: 'Copy failed',
     all: 'All',
     clearLog: 'Clear Log',
     confirmClearLog: 'Are you sure you want to clear all logs?',

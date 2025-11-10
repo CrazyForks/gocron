@@ -115,6 +115,9 @@ func initModule() {
 	// 版本升级
 	upgradeIfNeed()
 
+	// 自动创建缺失的表
+	ensureTables()
+
 	// 修复缺失的配置记录
 	if err := models.RepairSettings(); err != nil {
 		logger.Error("修复配置记录失败", err)
@@ -211,4 +214,16 @@ func upgradeIfNeed() {
 	app.UpdateVersionFile()
 
 	logger.Infof("已升级到最新版本%d", app.VersionId)
+}
+
+// 确保所有表都存在
+func ensureTables() {
+	if !models.Db.Migrator().HasTable(&models.AgentToken{}) {
+		logger.Info("检测到agent_token表不存在，开始创建...")
+		if err := models.Db.AutoMigrate(&models.AgentToken{}); err != nil {
+			logger.Error("创建agent_token表失败", err)
+		} else {
+			logger.Info("agent_token表创建成功")
+		}
+	}
 }
