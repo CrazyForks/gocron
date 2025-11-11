@@ -35,8 +35,8 @@ func GenerateToken(c *gin.Context) {
 	}
 
 	serverURL := getServerURL(c)
-	installCmdLinux := fmt.Sprintf("curl -fsSL %s/api/agent/install.sh | bash -s -- %s", serverURL, token)
-	installCmdWindows := fmt.Sprintf("iwr -useb %s/api/agent/install.ps1?token=%s | iex", serverURL, token)
+	installCmdLinux := fmt.Sprintf("curl -fsSL '%s/api/agent/install.sh?token=%s' | bash", serverURL, token)
+	installCmdWindows := fmt.Sprintf("iwr -useb '%s/api/agent/install.ps1?token=%s' | iex", serverURL, token)
 
 	json := utils.JsonResponse{}
 	c.String(http.StatusOK, json.Success(i18n.T(c, "operation_success"), map[string]interface{}{
@@ -49,10 +49,30 @@ func GenerateToken(c *gin.Context) {
 
 // InstallScript 返回安装脚本
 func InstallScript(c *gin.Context) {
+	// 验证token
+	token := c.Query("token")
+	if token == "" {
+		c.String(http.StatusBadRequest, "Token is required")
+		return
+	}
+
+	// 验证token有效性
+	agentToken := &models.AgentToken{}
+	if err := agentToken.FindByToken(token); err != nil {
+		c.String(http.StatusUnauthorized, "Invalid token")
+		return
+	}
+
+	if time.Now().After(agentToken.ExpiresAt) {
+		c.String(http.StatusUnauthorized, "Token expired")
+		return
+	}
+
 	script := `#!/bin/bash
 set -e
 
-TOKEN="$1"
+# Token is embedded in the script URL, extract it here
+TOKEN="` + token + `"
 if [ -z "$TOKEN" ]; then
     echo "Error: Token is required"
     exit 1
@@ -192,6 +212,18 @@ func InstallScriptWindows(c *gin.Context) {
 	token := c.Query("token")
 	if token == "" {
 		c.String(http.StatusBadRequest, "Token is required")
+		return
+	}
+
+	// 验证token有效性
+	agentToken := &models.AgentToken{}
+	if err := agentToken.FindByToken(token); err != nil {
+		c.String(http.StatusUnauthorized, "Invalid token")
+		return
+	}
+
+	if time.Now().After(agentToken.ExpiresAt) {
+		c.String(http.StatusUnauthorized, "Token expired")
 		return
 	}
 
