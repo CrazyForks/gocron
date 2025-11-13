@@ -148,10 +148,87 @@ dev-deps:
 	go install github.com/rakyll/statik@latest
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
+# 版本管理
+.PHONY: version
+version:
+	@echo "Current version: $(VERSION)"
+	@echo "Recent releases:"
+	@git tag -l "v*.*.*" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$$' | sort -V | tail -5
+
+.PHONY: release
+release:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Error: VERSION is required. Usage: make release VERSION=v1.3.18"; \
+		exit 1; \
+	fi
+	@echo "Creating release $(VERSION)..."
+	@if git rev-parse $(VERSION) >/dev/null 2>&1; then \
+		echo "Error: Tag $(VERSION) already exists!"; \
+		exit 1; \
+	fi
+	@git tag -a $(VERSION) -m "Release $(VERSION)"
+	@git push origin $(VERSION)
+	@echo "✅ Release $(VERSION) created and pushed successfully!"
+
+.PHONY: release-patch
+release-patch:
+	@echo "Creating patch release..."
+	@$(MAKE) release VERSION=$$($(MAKE) next-patch)
+
+.PHONY: release-minor
+release-minor:
+	@echo "Creating minor release..."
+	@$(MAKE) release VERSION=$$($(MAKE) next-minor)
+
+.PHONY: release-major
+release-major:
+	@echo "Creating major release..."
+	@$(MAKE) release VERSION=$$($(MAKE) next-major)
+
+.PHONY: next-patch
+next-patch:
+	@latest=$$(git tag -l "v*.*.*" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$$' | sort -V | tail -1); \
+	if [ -z "$$latest" ]; then \
+		echo "v1.0.0"; \
+	else \
+		echo $$latest | sed 's/^v//' | awk -F. '{printf "v%d.%d.%d", $$1, $$2, $$3+1}'; \
+	fi
+
+.PHONY: next-minor
+next-minor:
+	@latest=$$(git tag -l "v*.*.*" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$$' | sort -V | tail -1); \
+	if [ -z "$$latest" ]; then \
+		echo "v1.0.0"; \
+	else \
+		echo $$latest | sed 's/^v//' | awk -F. '{printf "v%d.%d.0", $$1, $$2+1}'; \
+	fi
+
+.PHONY: next-major
+next-major:
+	@latest=$$(git tag -l "v*.*.*" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$$' | sort -V | tail -1); \
+	if [ -z "$$latest" ]; then \
+		echo "v1.0.0"; \
+	else \
+		echo $$latest | sed 's/^v//' | awk -F. '{printf "v%d.0.0", $$1+1}'; \
+	fi
+
+.PHONY: delete-tag
+delete-tag:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Error: VERSION is required. Usage: make delete-tag VERSION=v1.3.18"; \
+		exit 1; \
+	fi
+	@echo "Deleting tag $(VERSION)..."
+	@git tag -d $(VERSION)
+	@git push origin :refs/tags/$(VERSION)
+	@echo "✅ Tag $(VERSION) deleted locally and remotely"
+
 # 帮助信息
 .PHONY: help
 help:
 	@echo "Available targets:"
+	@echo ""
+	@echo "Build:"
 	@echo "  build          - Build gocron and gocron-node for current platform"
 	@echo "  run            - Build and run in development mode"
 	@echo "  test           - Run tests"
@@ -160,11 +237,25 @@ help:
 	@echo "  package-darwin - Build packages for macOS (amd64, arm64)"
 	@echo "  package-windows- Build packages for Windows (amd64, arm64)"
 	@echo "  package-all    - Build packages for all platforms"
+	@echo ""
+	@echo "Frontend:"
 	@echo "  build-vue      - Build Vue frontend"
 	@echo "  install-vue    - Install Vue dependencies"
 	@echo "  run-vue        - Start Vue dev server"
+	@echo ""
+	@echo "Code Quality:"
 	@echo "  lint           - Run linter"
 	@echo "  fmt            - Format code"
 	@echo "  clean          - Clean build artifacts"
+	@echo ""
+	@echo "Version Management:"
+	@echo "  version        - Show current version and recent tags"
+	@echo "  release        - Create and push a new release tag (VERSION=v1.3.18)"
+	@echo "  release-patch  - Auto increment patch version (v1.3.17 -> v1.3.18)"
+	@echo "  release-minor  - Auto increment minor version (v1.3.17 -> v1.4.0)"
+	@echo "  release-major  - Auto increment major version (v1.3.17 -> v2.0.0)"
+	@echo "  delete-tag     - Delete a tag locally and remotely (VERSION=v1.3.18)"
+	@echo ""
+	@echo "Development:"
 	@echo "  dev-deps       - Install development dependencies"
 	@echo "  help           - Show this help message"
