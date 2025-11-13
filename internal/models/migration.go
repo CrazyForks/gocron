@@ -31,7 +31,10 @@ func (migration *Migration) Install(dbName string) error {
 		migration.fixSQLiteAutoIncrement()
 	}
 
-	setting.InitBasicField()
+	// 初始化配置
+	if err := RepairSettings(); err != nil {
+		return err
+	}
 
 	return nil
 }

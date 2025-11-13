@@ -60,40 +60,6 @@ const (
 	LogFileSizeLimitKey = "log_file_size_limit"
 )
 
-// 初始化基本字段 邮件、slack等
-func (setting *Setting) InitBasicField() {
-	// 定义所有需要初始化的配置
-	configs := []struct {
-		Code  string
-		Key   string
-		Value string
-	}{
-		{SlackCode, SlackUrlKey, ""},
-		{SlackCode, SlackTemplateKey, slackTemplate},
-		{MailCode, MailServerKey, ""},
-		{MailCode, MailTemplateKey, emailTemplate},
-		{WebhookCode, WebhookUrlKey, ""},
-		{WebhookCode, WebhookTemplateKey, webhookTemplate},
-		{SystemCode, LogRetentionDaysKey, "0"},
-		{SystemCode, LogCleanupTimeKey, "03:00"},
-		{SystemCode, LogFileSizeLimitKey, "0"},
-	}
-
-	// 检查并创建不存在的配置
-	for _, cfg := range configs {
-		var count int64
-		Db.Model(&Setting{}).Where("code = ? AND key = ?", cfg.Code, cfg.Key).Count(&count)
-		if count == 0 {
-			s := &Setting{
-				Code:  cfg.Code,
-				Key:   cfg.Key,
-				Value: cfg.Value,
-			}
-			Db.Create(s)
-		}
-	}
-}
-
 // region slack配置
 
 type Slack struct {
@@ -137,10 +103,10 @@ func (setting *Setting) formatSlack(list []Setting, slack *Slack) {
 
 func (setting *Setting) UpdateSlack(url, template string) error {
 	setting.Value = url
-	Db.Model(&Setting{}).Where("code = ? AND key = ?", SlackCode, SlackUrlKey).Update("value", url)
+	Db.Model(&Setting{}).Where("code = ? AND `key` = ?", SlackCode, SlackUrlKey).Update("value", url)
 
 	setting.Value = template
-	Db.Model(&Setting{}).Where("code = ? AND key = ?", SlackCode, SlackTemplateKey).Update("value", template)
+	Db.Model(&Setting{}).Where("code = ? AND `key` = ?", SlackCode, SlackTemplateKey).Update("value", template)
 
 	return nil
 }
@@ -157,13 +123,13 @@ func (setting *Setting) CreateChannel(channel string) (int64, error) {
 
 func (setting *Setting) IsChannelExist(channel string) bool {
 	var count int64
-	Db.Model(&Setting{}).Where("code = ? AND key = ? AND value = ?", SlackCode, SlackChannelKey, channel).Count(&count)
+	Db.Model(&Setting{}).Where("code = ? AND `key` = ? AND value = ?", SlackCode, SlackChannelKey, channel).Count(&count)
 	return count > 0
 }
 
 // 删除slack渠道
 func (setting *Setting) RemoveChannel(id int) (int64, error) {
-	result := Db.Where("code = ? AND key = ? AND id = ?", SlackCode, SlackChannelKey, id).Delete(&Setting{})
+	result := Db.Where("code = ? AND `key` = ? AND id = ?", SlackCode, SlackChannelKey, id).Delete(&Setting{})
 	return result.RowsAffected, result.Error
 }
 
@@ -216,8 +182,8 @@ func (setting *Setting) formatMail(list []Setting, mail *Mail) {
 }
 
 func (setting *Setting) UpdateMail(config, template string) error {
-	Db.Model(&Setting{}).Where("code = ? AND key = ?", MailCode, MailServerKey).Update("value", config)
-	Db.Model(&Setting{}).Where("code = ? AND key = ?", MailCode, MailTemplateKey).Update("value", template)
+	Db.Model(&Setting{}).Where("code = ? AND `key` = ?", MailCode, MailServerKey).Update("value", config)
+	Db.Model(&Setting{}).Where("code = ? AND `key` = ?", MailCode, MailTemplateKey).Update("value", template)
 
 	return nil
 }
@@ -237,7 +203,7 @@ func (setting *Setting) CreateMailUser(username, email string) (int64, error) {
 }
 
 func (setting *Setting) RemoveMailUser(id int) (int64, error) {
-	result := Db.Where("code = ? AND key = ? AND id = ?", MailCode, MailUserKey, id).Delete(&Setting{})
+	result := Db.Where("code = ? AND `key` = ? AND id = ?", MailCode, MailUserKey, id).Delete(&Setting{})
 	return result.RowsAffected, result.Error
 }
 
@@ -272,8 +238,8 @@ func (setting *Setting) formatWebhook(list []Setting, webHook *WebHook) {
 }
 
 func (setting *Setting) UpdateWebHook(url, template string) error {
-	Db.Model(&Setting{}).Where("code = ? AND key = ?", WebhookCode, WebhookUrlKey).Update("value", url)
-	Db.Model(&Setting{}).Where("code = ? AND key = ?", WebhookCode, WebhookTemplateKey).Update("value", template)
+	Db.Model(&Setting{}).Where("code = ? AND `key` = ?", WebhookCode, WebhookUrlKey).Update("value", url)
+	Db.Model(&Setting{}).Where("code = ? AND `key` = ?", WebhookCode, WebhookTemplateKey).Update("value", template)
 
 	return nil
 }
@@ -283,7 +249,7 @@ func (setting *Setting) UpdateWebHook(url, template string) error {
 // region 系统配置
 func (setting *Setting) GetLogRetentionDays() int {
 	var s Setting
-	err := Db.Where("code = ? AND key = ?", SystemCode, LogRetentionDaysKey).First(&s).Error
+	err := Db.Where("code = ? AND `key` = ?", SystemCode, LogRetentionDaysKey).First(&s).Error
 	if err != nil {
 		return 0
 	}
@@ -299,7 +265,7 @@ func (setting *Setting) GetLogRetentionDays() int {
 
 func (setting *Setting) UpdateLogRetentionDays(days int) error {
 	var s Setting
-	err := Db.Where("code = ? AND key = ?", SystemCode, LogRetentionDaysKey).First(&s).Error
+	err := Db.Where("code = ? AND `key` = ?", SystemCode, LogRetentionDaysKey).First(&s).Error
 	if err != nil {
 		// 记录不存在，创建新记录
 		s.Code = SystemCode
@@ -309,13 +275,13 @@ func (setting *Setting) UpdateLogRetentionDays(days int) error {
 		return result.Error
 	}
 	// 记录存在，更新
-	result := Db.Model(&Setting{}).Where("code = ? AND key = ?", SystemCode, LogRetentionDaysKey).Update("value", strconv.Itoa(days))
+	result := Db.Model(&Setting{}).Where("code = ? AND `key` = ?", SystemCode, LogRetentionDaysKey).Update("value", strconv.Itoa(days))
 	return result.Error
 }
 
 func (setting *Setting) GetLogCleanupTime() string {
 	var s Setting
-	err := Db.Where("code = ? AND key = ?", SystemCode, LogCleanupTimeKey).First(&s).Error
+	err := Db.Where("code = ? AND `key` = ?", SystemCode, LogCleanupTimeKey).First(&s).Error
 	if err != nil {
 		return "03:00"
 	}
@@ -327,7 +293,7 @@ func (setting *Setting) GetLogCleanupTime() string {
 
 func (setting *Setting) UpdateLogCleanupTime(cleanupTime string) error {
 	var s Setting
-	err := Db.Where("code = ? AND key = ?", SystemCode, LogCleanupTimeKey).First(&s).Error
+	err := Db.Where("code = ? AND `key` = ?", SystemCode, LogCleanupTimeKey).First(&s).Error
 	if err != nil {
 		s.Code = SystemCode
 		s.Key = LogCleanupTimeKey
@@ -335,13 +301,13 @@ func (setting *Setting) UpdateLogCleanupTime(cleanupTime string) error {
 		result := Db.Create(&s)
 		return result.Error
 	}
-	result := Db.Model(&Setting{}).Where("code = ? AND key = ?", SystemCode, LogCleanupTimeKey).Update("value", cleanupTime)
+	result := Db.Model(&Setting{}).Where("code = ? AND `key` = ?", SystemCode, LogCleanupTimeKey).Update("value", cleanupTime)
 	return result.Error
 }
 
 func (setting *Setting) GetLogFileSizeLimit() int {
 	var s Setting
-	err := Db.Where("code = ? AND key = ?", SystemCode, LogFileSizeLimitKey).First(&s).Error
+	err := Db.Where("code = ? AND `key` = ?", SystemCode, LogFileSizeLimitKey).First(&s).Error
 	if err != nil {
 		return 0
 	}
@@ -357,7 +323,7 @@ func (setting *Setting) GetLogFileSizeLimit() int {
 
 func (setting *Setting) UpdateLogFileSizeLimit(size int) error {
 	var s Setting
-	err := Db.Where("code = ? AND key = ?", SystemCode, LogFileSizeLimitKey).First(&s).Error
+	err := Db.Where("code = ? AND `key` = ?", SystemCode, LogFileSizeLimitKey).First(&s).Error
 	if err != nil {
 		s.Code = SystemCode
 		s.Key = LogFileSizeLimitKey
@@ -365,7 +331,7 @@ func (setting *Setting) UpdateLogFileSizeLimit(size int) error {
 		result := Db.Create(&s)
 		return result.Error
 	}
-	result := Db.Model(&Setting{}).Where("code = ? AND key = ?", SystemCode, LogFileSizeLimitKey).Update("value", strconv.Itoa(size))
+	result := Db.Model(&Setting{}).Where("code = ? AND `key` = ?", SystemCode, LogFileSizeLimitKey).Update("value", strconv.Itoa(size))
 	return result.Error
 }
 
