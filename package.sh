@@ -165,10 +165,19 @@ package_binary() {
     for OS in "${INPUT_OS[@]}";do
         for ARCH in "${INPUT_ARCH[@]}";do
         package_file ${BINARY_NAME}-${OS}-${ARCH}
-        if [[ "${OS}" = "windows" ]];then
-            zip -rq ../${PACKAGE_DIR}/${BINARY_NAME}-${VERSION}-${OS}-${ARCH}.zip ${BINARY_NAME}-${OS}-${ARCH}
+        # 如果 VERSION 为空，不带版本号
+        if [[ -z "${VERSION}" ]]; then
+            if [[ "${OS}" = "windows" ]];then
+                zip -rq ../${PACKAGE_DIR}/${BINARY_NAME}-${OS}-${ARCH}.zip ${BINARY_NAME}-${OS}-${ARCH}
+            else
+                tar czf ../${PACKAGE_DIR}/${BINARY_NAME}-${OS}-${ARCH}.tar.gz ${BINARY_NAME}-${OS}-${ARCH}
+            fi
         else
-            tar czf ../${PACKAGE_DIR}/${BINARY_NAME}-${VERSION}-${OS}-${ARCH}.tar.gz ${BINARY_NAME}-${OS}-${ARCH}
+            if [[ "${OS}" = "windows" ]];then
+                zip -rq ../${PACKAGE_DIR}/${BINARY_NAME}-${VERSION}-${OS}-${ARCH}.zip ${BINARY_NAME}-${OS}-${ARCH}
+            else
+                tar czf ../${PACKAGE_DIR}/${BINARY_NAME}-${VERSION}-${OS}-${ARCH}.tar.gz ${BINARY_NAME}-${OS}-${ARCH}
+            fi
         fi
         done
     done
@@ -215,11 +224,37 @@ package_gocron() {
 }
 
 package_gocron_node() {
+    # 保存原始 VERSION
+    local SAVED_VERSION="$VERSION"
+    
     BINARY_NAME='gocron-node'
     MAIN_FILE="./cmd/node/node.go"
     INCLUDE_FILE=()
-
-    run
+    
+    # gocron-node 不带版本号，方便 GitHub Release latest 下载
+    VERSION=""
+    
+    # 重新初始化（使用空 VERSION）
+    PACKAGE_DIR=${BINARY_NAME}-package
+    BUILD_DIR=${BINARY_NAME}-build
+    
+    if [[ -d ${BUILD_DIR} ]];then
+        rm -rf ${BUILD_DIR}
+    fi
+    if [[ -d ${PACKAGE_DIR} ]];then
+        rm -rf ${PACKAGE_DIR}
+    fi
+    
+    mkdir -p ${BUILD_DIR}
+    mkdir -p ${PACKAGE_DIR}
+    
+    # 构建和打包
+    build
+    package_binary
+    clean
+    
+    # 恢复 VERSION
+    VERSION="$SAVED_VERSION"
 }
  
 # p 平台 linux darwin windows
