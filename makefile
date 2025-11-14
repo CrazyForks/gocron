@@ -25,6 +25,11 @@ run: build kill
 	./$(BIN_DIR)/gocron-node &
 	./$(BIN_DIR)/gocron web -e dev
 
+.PHONY: run-with-packages
+run-with-packages: build-web package-all kill
+	./$(BIN_DIR)/gocron-node &
+	./$(BIN_DIR)/gocron web -e dev
+
 .PHONY: run-race
 run-race: enable-race run
 
@@ -243,6 +248,7 @@ help:
 	@echo "Build:"
 	@echo "  build          - Build gocron and gocron-node for current platform"
 	@echo "  run            - Build and run in development mode"
+	@echo "  run-with-packages - Build all platform packages and run (for agent auto-install)"
 	@echo "  test           - Run tests"
 	@echo "  package        - Build packages for current platform"
 	@echo "  package-linux  - Build packages for Linux (amd64, arm64)"
