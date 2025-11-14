@@ -290,7 +290,15 @@ if (Get-Service -Name $SERVICE_NAME -ErrorAction SilentlyContinue) {
 
 sc.exe create $SERVICE_NAME binPath= $servicePath start= auto
 sc.exe description $SERVICE_NAME "Gocron Node Agent"
-Start-Service -Name $SERVICE_NAME
+
+try {
+    Start-Service -Name $SERVICE_NAME
+    Write-Host "Service started successfully"
+} catch {
+    Write-Host "Warning: Failed to start service automatically: $($_.Exception.Message)"
+    Write-Host "You can start it manually with: Start-Service -Name $SERVICE_NAME"
+    Write-Host "Or check service status with: Get-Service -Name $SERVICE_NAME"
+}
 
 Set-Location $env:TEMP
 Remove-Item -Path $TMP_DIR -Recurse -Force
@@ -305,6 +313,7 @@ Write-Host "  Start:   Start-Service -Name $SERVICE_NAME"
 Write-Host "  Stop:    Stop-Service -Name $SERVICE_NAME"
 Write-Host "  Restart: Restart-Service -Name $SERVICE_NAME"
 Write-Host "  Status:  Get-Service -Name $SERVICE_NAME"
+Write-Host "  Logs:    Get-EventLog -LogName Application -Source $SERVICE_NAME -Newest 10"
 Write-Host ""
 Write-Host "Uninstall:"
 Write-Host "  Stop-Service -Name $SERVICE_NAME -Force"
