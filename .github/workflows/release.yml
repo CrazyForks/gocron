@@ -57,7 +57,7 @@ jobs:
           - os: windows-latest
             goos: windows
             goarch: amd64
-          - os: windows-latest
+          - os: ubuntu-latest
             goos: windows
             goarch: arm64
     runs-on: ${{ matrix.os }}

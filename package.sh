@@ -133,12 +133,12 @@ build() {
             
             if [[ "${OS}" != "${GOHOSTOS}" ]] || [[ "${ARCH}" != "${GOHOSTARCH}" ]]; then
                 # 检查是否安装了交叉编译工具链
-                if [[ "${OS}" = "windows" ]] && command -v x86_64-w64-mingw32-gcc &> /dev/null; then
-                    # macOS/Linux 交叉编译 Windows，使用 MinGW
+                if [[ "${OS}" = "windows" ]] && [[ "${ARCH}" = "amd64" ]] && command -v x86_64-w64-mingw32-gcc &> /dev/null; then
+                    # macOS/Linux 交叉编译 Windows amd64，使用 MinGW
                     CC_COMPILER='x86_64-w64-mingw32-gcc'
-                    print_message "使用 MinGW 交叉编译 Windows 版本（支持 SQLite）"
+                    print_message "使用 MinGW 交叉编译 Windows amd64 版本（支持 SQLite）"
                 else
-                    # 没有交叉编译工具链，禁用 CGO
+                    # 没有交叉编译工具链或不支持的架构，禁用 CGO
                     CGO_ENABLED_VALUE='0'
                 fi
             fi
