@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -368,40 +369,53 @@ func Register(c *gin.Context) {
 
 // Download 下载agent二进制文件
 func Download(c *gin.Context) {
-	os := c.Query("os")
+	osName := c.Query("os")
 	arch := c.Query("arch")
 
-	if os == "" || arch == "" {
+	if osName == "" || arch == "" {
 		c.String(http.StatusBadRequest, "os and arch are required")
 		return
 	}
 
 	// 根据操作系统选择文件扩展名
 	ext := ".tar.gz"
-	filename := fmt.Sprintf("gocron-node-%s-%s.tar.gz", os, arch)
-	if os == "windows" {
+	filename := fmt.Sprintf("gocron-node-%s-%s.tar.gz", osName, arch)
+	if osName == "windows" {
 		ext = ".zip"
-		filename = fmt.Sprintf("gocron-node-%s-%s.zip", os, arch)
+		filename = fmt.Sprintf("gocron-node-%s-%s.zip", osName, arch)
 	}
 
+	// 获取可执行文件所在目录
+	exePath, err := os.Executable()
+	var exeDir string
+	if err == nil {
+		exeDir = filepath.Dir(exePath)
+	} else {
+		logger.Warn("Failed to get executable path:", err)
+		exeDir = "."
+	}
+	
 	// 查找匹配的包文件（支持多个路径）
 	searchPaths := []string{
-		fmt.Sprintf("./gocron-node-package/gocron-node-*-%s-%s%s", os, arch, ext),
-		fmt.Sprintf("gocron-node-package/gocron-node-*-%s-%s%s", os, arch, ext),
+		// 相对于可执行文件的路径
+		fmt.Sprintf("%s/gocron-node-package/gocron-node-*-%s-%s%s", exeDir, osName, arch, ext),
+		// 相对于当前工作目录的路径
+		fmt.Sprintf("./gocron-node-package/gocron-node-*-%s-%s%s", osName, arch, ext),
+		fmt.Sprintf("gocron-node-package/gocron-node-*-%s-%s%s", osName, arch, ext),
 	}
 	
 	var matches []string
-	var err error
 	for _, pattern := range searchPaths {
 		matches, err = filepath.Glob(pattern)
 		if err == nil && len(matches) > 0 {
+			logger.Infof("Found gocron-node package: %s", matches[0])
 			break
 		}
 	}
 	
 	if err != nil || len(matches) == 0 {
-		logger.Warnf("Package not found for %s-%s, run 'make package-all' to build all platforms", os, arch)
-		c.String(http.StatusNotFound, fmt.Sprintf("Package not found for %s-%s. Please run 'make package-all' to build packages for all platforms.", os, arch))
+		logger.Warnf("Package not found for %s-%s in paths: %v", osName, arch, searchPaths)
+		c.String(http.StatusNotFound, fmt.Sprintf("Package not found for %s-%s. Please ensure gocron-node-package directory exists in the same directory as gocron executable.", osName, arch))
 		return
 	}
 
