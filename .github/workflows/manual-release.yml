@@ -66,9 +66,19 @@ jobs:
         GIT_COMMIT_ID=$(git rev-parse --short HEAD)
         LDFLAGS="-w -X 'main.AppVersion=${VERSION}' -X 'main.BuildDate=$(date '+%Y-%m-%d %H:%M:%S')' -X 'main.GitCommit=${GIT_COMMIT_ID}'"
         
+        # 检查 gocron-node-package 是否存在
+        if [ ! -d gocron-node-package ] || [ -z "$(ls -A gocron-node-package)" ]; then
+          echo "Error: gocron-node-package is empty or does not exist"
+          exit 1
+        fi
+        
+        echo "Available gocron-node packages:"
+        ls -la gocron-node-package/
+        
         # 为每个平台构建 gocron
         for OS in linux darwin windows; do
           for ARCH in amd64 arm64; do
+            echo "Building gocron for ${OS}-${ARCH}..."
             mkdir -p gocron-build/gocron-${OS}-${ARCH}
             
             if [ "${OS}" = "windows" ]; then
@@ -79,6 +89,7 @@ jobs:
             
             # 将所有 gocron-node 包复制到每个 gocron 构建目录
             cp -r gocron-node-package gocron-build/gocron-${OS}-${ARCH}/
+            echo "Copied gocron-node packages to gocron-${OS}-${ARCH}"
           done
         done
         
@@ -87,6 +98,7 @@ jobs:
         cd gocron-build
         for OS in linux darwin windows; do
           for ARCH in amd64 arm64; do
+            echo "Packaging gocron-${VERSION}-${OS}-${ARCH}..."
             if [ "${OS}" = "windows" ]; then
               zip -rq ../gocron-package/gocron-${VERSION}-${OS}-${ARCH}.zip gocron-${OS}-${ARCH}
             else
@@ -94,6 +106,10 @@ jobs:
             fi
           done
         done
+        cd ..
+        
+        echo "Build completed. Packages:"
+        ls -la gocron-package/
 
     - name: Generate release notes
       id: release_notes

@@ -139,8 +139,13 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         pattern: gocron-node-*
-        path: gocron-node-package/
-        merge-multiple: true
+        path: gocron-node-artifacts/
+
+    - name: Organize gocron-node packages
+      run: |
+        mkdir -p gocron-node-package
+        find gocron-node-artifacts -name '*.tar.gz' -o -name '*.zip' | xargs -I {} cp {} gocron-node-package/
+        ls -la gocron-node-package/
 
     - name: Generate static assets
       run: |
@@ -151,16 +156,28 @@ jobs:
       if: runner.os != 'Windows'
       run: |
         chmod +x package.sh
-        # 只构建 gocron，不构建 gocron-node（已经下载）
         VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
-        BINARY_NAME='gocron'
-        MAIN_FILE="./cmd/gocron/gocron.go"
         GIT_COMMIT_ID=$(git rev-parse --short HEAD)
         LDFLAGS="-w -X 'main.AppVersion=${VERSION}' -X 'main.BuildDate=$(date '+%Y-%m-%d %H:%M:%S')' -X 'main.GitCommit=${GIT_COMMIT_ID}'"
+        
+        # 根据是否跨平台编译决定 CGO 设置
+        if [ "${{ matrix.goos }}" = "$(go env GOHOSTOS)" ] && [ "${{ matrix.goarch }}" = "$(go env GOHOSTARCH)" ]; then
+          CGO_ENABLED=1
+        else
+          CGO_ENABLED=0
+        fi
+        
         mkdir -p gocron-build/gocron-${{ matrix.goos }}-${{ matrix.goarch }}
-        env CGO_ENABLED=1 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags "${LDFLAGS}" -o gocron-build/gocron-${{ matrix.goos }}-${{ matrix.goarch }}/gocron ./cmd/gocron/gocron.go
+        env CGO_ENABLED=${CGO_ENABLED} GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags "${LDFLAGS}" -o gocron-build/gocron-${{ matrix.goos }}-${{ matrix.goarch }}/gocron ./cmd/gocron/gocron.go
+        
         # 将所有 gocron-node 包复制到 gocron 构建目录
-        cp -r gocron-node-package gocron-build/gocron-${{ matrix.goos }}-${{ matrix.goarch }}/
+        if [ -d gocron-node-package ] && [ "$(ls -A gocron-node-package)" ]; then
+          cp -r gocron-node-package gocron-build/gocron-${{ matrix.goos }}-${{ matrix.goarch }}/
+        else
+          echo "Warning: gocron-node-package is empty or does not exist"
+          mkdir -p gocron-build/gocron-${{ matrix.goos }}-${{ matrix.goarch }}/gocron-node-package
+        fi
+        
         mkdir -p gocron-package
         cd gocron-build
         tar czf ../gocron-package/gocron-${VERSION}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz gocron-${{ matrix.goos }}-${{ matrix.goarch }}
@@ -170,14 +187,20 @@ jobs:
       shell: bash
       run: |
         VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
-        BINARY_NAME='gocron'
-        MAIN_FILE="./cmd/gocron/gocron.go"
         GIT_COMMIT_ID=$(git rev-parse --short HEAD)
         LDFLAGS="-w -X 'main.AppVersion=${VERSION}' -X 'main.BuildDate=$(date '+%Y-%m-%d %H:%M:%S')' -X 'main.GitCommit=${GIT_COMMIT_ID}'"
+        
         mkdir -p gocron-build/gocron-${{ matrix.goos }}-${{ matrix.goarch }}
         env CGO_ENABLED=1 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags "${LDFLAGS}" -o gocron-build/gocron-${{ matrix.goos }}-${{ matrix.goarch }}/gocron.exe ./cmd/gocron/gocron.go
+        
         # 将所有 gocron-node 包复制到 gocron 构建目录
-        cp -r gocron-node-package gocron-build/gocron-${{ matrix.goos }}-${{ matrix.goarch }}/
+        if [ -d gocron-node-package ] && [ "$(ls -A gocron-node-package)" ]; then
+          cp -r gocron-node-package gocron-build/gocron-${{ matrix.goos }}-${{ matrix.goarch }}/
+        else
+          echo "Warning: gocron-node-package is empty or does not exist"
+          mkdir -p gocron-build/gocron-${{ matrix.goos }}-${{ matrix.goarch }}/gocron-node-package
+        fi
+        
         mkdir -p gocron-package
         cd gocron-build
         zip -rq ../gocron-package/gocron-${VERSION}-${{ matrix.goos }}-${{ matrix.goarch }}.zip gocron-${{ matrix.goos }}-${{ matrix.goarch }}
