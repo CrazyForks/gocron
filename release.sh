@@ -40,10 +40,20 @@ echo "Version: $VERSION"
 echo "Prerelease: $PRERELEASE"
 echo ""
 
-# 1. 清理旧的构建
-echo "1. Cleaning old builds..."
-rm -rf gocron-package gocron-node-package gocron-build gocron-node-build
-echo "✓ Cleaned"
+# 1. 检查是否需要清理
+echo "1. Checking existing builds..."
+if [ -d "gocron-package" ] && [ -n "$(ls -A gocron-package 2>/dev/null)" ]; then
+    echo "Found existing packages. Clean and rebuild? (y/N): "
+    read -r CLEAN_RESPONSE
+    if [[ $CLEAN_RESPONSE =~ ^[Yy]$ ]]; then
+        rm -rf gocron-package gocron-node-package gocron-build gocron-node-build
+        echo "✓ Cleaned"
+    else
+        echo "✓ Keeping existing packages"
+    fi
+else
+    echo "✓ No existing packages"
+fi
 echo ""
 
 # 2. 构建前端
@@ -64,8 +74,35 @@ echo ""
 
 # 4. 构建所有平台的包
 echo "4. Building packages for all platforms..."
-./package.sh -p "linux,darwin" -a "amd64,arm64" -v "$VERSION"
-./package.sh -p "windows" -a "amd64" -v "$VERSION"
+# 检查 gocron 和 gocron-node 是否已有打包文件
+MISSING_PACKAGES=false
+
+# 检查 Linux/macOS gocron 包
+for os in linux darwin; do
+    for arch in amd64 arm64; do
+        if [ ! -f "gocron-package/gocron-${VERSION}-${os}-${arch}.tar.gz" ] || \
+           [ ! -f "gocron-node-package/gocron-node-${os}-${arch}.tar.gz" ]; then
+            MISSING_PACKAGES=true
+            break 2
+        fi
+    done
+done
+
+if [ "$MISSING_PACKAGES" = true ]; then
+    echo "Building Linux and macOS packages..."
+    ./package.sh -p "linux,darwin" -a "amd64,arm64" -v "$VERSION"
+else
+    echo "Linux/macOS packages already exist, skipping..."
+fi
+
+# 检查 Windows 包
+if [ ! -f "gocron-package/gocron-${VERSION}-windows-amd64.zip" ] || \
+   [ ! -f "gocron-node-package/gocron-node-windows-amd64.zip" ]; then
+    echo "Building Windows packages..."
+    ./package.sh -p "windows" -a "amd64" -v "$VERSION"
+else
+    echo "Windows packages already exist, skipping..."
+fi
 echo "✓ All packages built"
 echo ""
 
@@ -135,6 +172,11 @@ cat > /tmp/release_notes.md <<EOF
 ### Features
 - Cross-platform agent auto-registration support
 - Each gocron package includes gocron-node for all platforms
+- Security: force gocron-node to run as a non-root user
+- gocron config file path changed to .gocron/conf/app.ini
+
+### Fixes
+- cgo: fix gocron/gocron-node build on windows 
 
 EOF
 

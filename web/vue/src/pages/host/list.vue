@@ -160,7 +160,6 @@ export default {
       isAdmin: userStore.isAdmin,
       agentDialogVisible: false,
       installCommand: '',
-      installCommandWindows: '',
       expiresAt: '',
       activeTab: 'linux',
       cachedToken: null,
@@ -248,18 +247,15 @@ export default {
       if (this.cachedToken && this.cachedTokenExpires && now < this.cachedTokenExpires) {
         // 使用缓存的token
         this.installCommand = this.cachedToken.install_cmd
-        this.installCommandWindows = this.cachedToken.install_cmd_windows
         this.expiresAt = this.cachedTokenExpires.toLocaleString()
         return
       }
       
       // 生成新token
       this.installCommand = ''
-      this.installCommandWindows = ''
       this.expiresAt = ''
       agentService.generateToken((data) => {
         this.installCommand = data.install_cmd
-        this.installCommandWindows = data.install_cmd_windows
         const expiresDate = new Date(data.expires_at)
         this.expiresAt = expiresDate.toLocaleString()
         

@@ -110,11 +110,9 @@ init() {
     PACKAGE_DIR=${BINARY_NAME}-package
     BUILD_DIR=${BINARY_NAME}-build
  
+    # 只清理 BUILD_DIR，保留 PACKAGE_DIR 以支持增量构建
     if [[ -d ${BUILD_DIR} ]];then
         rm -rf ${BUILD_DIR}
-    fi
-    if [[ -d ${PACKAGE_DIR} ]];then
-        rm -rf ${PACKAGE_DIR}
     fi
  
     mkdir -p ${BUILD_DIR}
@@ -224,37 +222,15 @@ package_gocron() {
 }
 
 package_gocron_node() {
-    # 保存原始 VERSION
-    local SAVED_VERSION="$VERSION"
-    
     BINARY_NAME='gocron-node'
     MAIN_FILE="./cmd/node/node.go"
     INCLUDE_FILE=()
-    
-    # gocron-node 不带版本号，方便 GitHub Release latest 下载
-    VERSION=""
-    
-    # 重新初始化（使用空 VERSION）
-    PACKAGE_DIR=${BINARY_NAME}-package
-    BUILD_DIR=${BINARY_NAME}-build
-    
-    if [[ -d ${BUILD_DIR} ]];then
-        rm -rf ${BUILD_DIR}
-    fi
-    if [[ -d ${PACKAGE_DIR} ]];then
-        rm -rf ${PACKAGE_DIR}
-    fi
-    
-    mkdir -p ${BUILD_DIR}
-    mkdir -p ${PACKAGE_DIR}
-    
-    # 构建和打包
+
+    init
+    VERSION=""  # gocron-node 不使用版本号
     build
     package_binary
     clean
-    
-    # 恢复 VERSION
-    VERSION="$SAVED_VERSION"
 }
  
 # p 平台 linux darwin windows
@@ -278,6 +254,11 @@ do
     esac
 done
  
+# 默认构建所有
+if [[ -z "${BUILD_TYPE}" ]]; then
+    BUILD_TYPE="all"
+fi
+
 if [[ "${BUILD_TYPE}" = "all" ]] || [[ "${BUILD_TYPE}" = "gocron" ]]; then
     package_gocron
 fi

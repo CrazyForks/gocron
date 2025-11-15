@@ -35,14 +35,12 @@ func GenerateToken(c *gin.Context) {
 
 	serverURL := getServerURL(c)
 	installCmdLinux := fmt.Sprintf("curl -fsSL '%s/api/agent/install.sh?token=%s' | bash", serverURL, token)
-	installCmdWindows := fmt.Sprintf("iwr -useb '%s/api/agent/install.ps1?token=%s' | iex", serverURL, token)
 
 	json := utils.JsonResponse{}
 	c.String(http.StatusOK, json.Success(i18n.T(c, "operation_success"), map[string]interface{}{
-		"token":              token,
-		"expires_at":         expiresAt,
-		"install_cmd":        installCmdLinux,
-		"install_cmd_windows": installCmdWindows,
+		"token":       token,
+		"expires_at":  expiresAt,
+		"install_cmd": installCmdLinux,
 	}))
 }
 
@@ -224,8 +222,11 @@ echo "========================================"
 	c.Data(http.StatusOK, "text/plain; charset=utf-8", []byte(script))
 }
 
-// InstallScriptWindows 返回Windows PowerShell安装脚本
+// InstallScriptWindows Windows不支持自动安装
 func InstallScriptWindows(c *gin.Context) {
+	c.String(http.StatusNotFound, "Windows auto-installation is not supported for security reasons. Please install manually.")
+	return
+	/*
 	token := c.Query("token")
 	if token == "" {
 		c.String(http.StatusBadRequest, "Token is required")
@@ -351,6 +352,7 @@ Write-Host "========================================"
 `
 
 	c.Data(http.StatusOK, "text/plain; charset=utf-8", []byte(script))
+	*/
 }
 
 // Register agent注册
