@@ -325,3 +325,5 @@ refactor(api): 重构任务调度逻辑
 * 更好的用户体验和界面设计
 
 感谢原项目作者的付出，也希望大家多给项目点star、多提issue，鼓励项目的发展，让我们一起完善这个项目！
+
+[![Star History Chart](https://api.star-history.com/svg?repos=gocronx-team/gocron&type=Date)](https://www.star-history.com/#gocronx-team/gocron&Date)

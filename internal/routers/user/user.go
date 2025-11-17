@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/gin-gonic/gin"
 	"github.com/gocronx-team/gocron/internal/models"
 	"github.com/gocronx-team/gocron/internal/modules/app"
@@ -399,15 +399,15 @@ func IsAdmin(c *gin.Context) bool {
 
 // 生成jwt
 func generateToken(user *models.User) (string, error) {
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := make(jwt.MapClaims)
-	claims["exp"] = time.Now().Add(tokenDuration).Unix()
-	claims["uid"] = user.Id
-	claims["iat"] = time.Now().Unix()
-	claims["issuer"] = "gocron"
-	claims["username"] = user.Name
-	claims["is_admin"] = user.IsAdmin
-	token.Claims = claims
+	claims := jwt.MapClaims{
+		"exp":      time.Now().Add(tokenDuration).Unix(),
+		"uid":      user.Id,
+		"iat":      time.Now().Unix(),
+		"issuer":   "gocron",
+		"username": user.Name,
+		"is_admin": user.IsAdmin,
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString([]byte(app.Setting.AuthSecret))
 }
@@ -418,7 +418,10 @@ func RestoreToken(c *gin.Context) error {
 	if authToken == "" {
 		return nil
 	}
-	token, err := jwt.Parse(authToken, func(*jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(authToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
 		return []byte(app.Setting.AuthSecret), nil
 	})
 	if err != nil {

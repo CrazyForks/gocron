@@ -321,3 +321,4 @@ This project is developed and refactored based on [gocron](https://github.com/ou
 * Better user experience and interface design
 
 Thanks to the original project author for their contribution. I also hope everyone will give the project more stars and submit more issues to encourage the project's development. Let's improve this project together!
+[![Star History Chart](https://api.star-history.com/svg?repos=gocronx-team/gocron&type=Date)](https://www.star-history.com/#gocronx-team/gocron&Date)

@@ -5,6 +5,7 @@ package utils
 
 import (
 	"errors"
+	"os"
 	"os/exec"
 	"strconv"
 	"syscall"
@@ -23,6 +24,12 @@ func ExecShell(ctx context.Context, command string) (string, error) {
 	// 隐藏cmd窗口
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		HideWindow: true,
+	}
+	// 设置工作目录为用户家目录，避免目录不存在错误
+	if homeDir, err := os.UserHomeDir(); err == nil {
+		cmd.Dir = homeDir
+	} else {
+		cmd.Dir = os.TempDir()
 	}
 	var resultChan chan Result = make(chan Result)
 	go func() {

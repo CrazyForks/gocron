@@ -51,7 +51,7 @@ func Index(c *gin.Context) {
 		logger.Error(err)
 	}
 	for i, item := range tasks {
-		tasks[i].NextRunTime = service.ServiceTask.NextRunTime(item)
+		tasks[i].NextRunTime = models.NextRunTime(service.ServiceTask.NextRunTime(item))
 	}
 	jsonResp := utils.JsonResponse{}
 	result := jsonResp.Success(utils.SuccessContent, map[string]interface{}{

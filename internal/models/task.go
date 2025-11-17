@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	"strings"
 	"time"
@@ -37,6 +38,34 @@ const (
 	TaskHttpMethodPost TaskHTTPMethod = 2
 )
 
+// NextRunTime 自定义时间类型，零值时序列化为空字符串
+type NextRunTime time.Time
+
+func (t NextRunTime) MarshalJSON() ([]byte, error) {
+	tt := time.Time(t)
+	if tt.IsZero() {
+		return json.Marshal("")
+	}
+	return json.Marshal(tt.Format(DefaultTimeFormat))
+}
+
+func (t *NextRunTime) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	if s == "" {
+		*t = NextRunTime(time.Time{})
+		return nil
+	}
+	tt, err := time.Parse(DefaultTimeFormat, s)
+	if err != nil {
+		return err
+	}
+	*t = NextRunTime(tt)
+	return nil
+}
+
 // 任务
 type Task struct {
 	Id               int                  `json:"id" gorm:"primaryKey;autoIncrement"`
@@ -63,7 +92,7 @@ type Task struct {
 	DeletedAt        *time.Time           `json:"deleted" gorm:"column:deleted;index"`
 	BaseModel        `json:"-" gorm:"-"`
 	Hosts            []TaskHostDetail `json:"hosts" gorm:"-"`
-	NextRunTime      time.Time        `json:"next_run_time" gorm:"-"`
+	NextRunTime      NextRunTime      `json:"next_run_time" gorm:"-"`
 }
 
 // 新增

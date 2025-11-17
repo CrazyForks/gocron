@@ -7,11 +7,11 @@ toolchain go1.24.3
 require (
 	github.com/Tang-RoseChild/mahonia v0.0.0-20131226213531-0eef680515cc
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/gocronx-team/cron v0.0.0-20251030173627-9a49493abdf5
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golang/protobuf v1.5.3
 	github.com/lib/pq v1.10.9
 	github.com/pquerna/otp v1.5.0

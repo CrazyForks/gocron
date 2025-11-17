@@ -5,6 +5,7 @@ package utils
 
 import (
 	"errors"
+	"os"
 	"os/exec"
 	"syscall"
 
@@ -21,6 +22,12 @@ func ExecShell(ctx context.Context, command string) (string, error) {
 	cmd := exec.Command("/bin/bash", "-c", command)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Setpgid: true,
+	}
+	// 设置工作目录为用户家目录，避免 getcwd 错误
+	if homeDir, err := os.UserHomeDir(); err == nil {
+		cmd.Dir = homeDir
+	} else {
+		cmd.Dir = "/tmp"
 	}
 	resultChan := make(chan Result)
 	go func() {
