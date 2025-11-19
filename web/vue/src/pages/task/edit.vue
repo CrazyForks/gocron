@@ -626,7 +626,7 @@ export default {
       
       // 如果当前选中的通知类型不再可用，重置为默认值
       if (this.form.notify_type && !this.notifyTypes.find(t => t.value === this.form.notify_type)) {
-        this.form.notify_type = this.notifyTypes.length > 0 ? this.notifyTypes[0].value : 2
+        this.form.notify_type = this.notifyTypes.length > 0 ? this.notifyTypes[0].value : null
       }
     },
     submit () {
