@@ -76,4 +76,6 @@ var enUS = map[string]string{
 	"task_started_check_log":                 "Task started, please check task log for results",
 	"password_min_length_8":                  "Password must be at least 8 characters",
 	"password_must_contain_letter_and_digit": "Password must contain both letters and digits",
+	"account_locked":                         "Account locked, please try again in %d minutes",
+	"login_failed_with_attempts":             "Username or password is incorrect, %d attempts remaining",
 }

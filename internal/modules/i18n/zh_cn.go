@@ -76,4 +76,6 @@ var zhCN = map[string]string{
 	"task_started_check_log":                 "任务已开始运行, 请到任务日志中查看结果",
 	"password_min_length_8":                  "密码长度至少8位",
 	"password_must_contain_letter_and_digit": "密码必须包含字母和数字",
+	"account_locked":                         "账户已被锁定，请在%d分钟后重试",
+	"login_failed_with_attempts":             "用户名或密码错误，还剩%d次尝试机会",
 }

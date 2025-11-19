@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -312,14 +313,38 @@ func ValidateLogin(c *gin.Context) {
 	twoFactorCode := strings.TrimSpace(c.PostForm("two_factor_code"))
 	json := utils.JsonResponse{}
 	var result string
+	
 	if username == "" || password == "" {
 		result = json.CommonFailure(i18n.T(c, "username_password_empty"))
 		c.String(http.StatusOK, result)
 		return
 	}
+
+	// 获取登录限制器
+	limiter := utils.GetLoginLimiter()
+	
+	// 检查账户是否被锁定
+	if locked, lockTime := limiter.IsLocked(username); locked {
+		remainingTime := int(time.Until(lockTime).Minutes())
+		if remainingTime < 1 {
+			remainingTime = 1
+		}
+		result = json.CommonFailure(fmt.Sprintf(i18n.T(c, "account_locked"), remainingTime))
+		c.String(http.StatusOK, result)
+		return
+	}
+
 	userModel := new(models.User)
 	if !userModel.Match(username, password) {
-		result = json.CommonFailure(i18n.T(c, "username_password_error"))
+		// 记录登录失败
+		limiter.RecordFailure(username)
+		remaining := limiter.GetRemainingAttempts(username)
+		
+		if remaining > 0 {
+			result = json.CommonFailure(fmt.Sprintf(i18n.T(c, "login_failed_with_attempts"), remaining))
+		} else {
+			result = json.CommonFailure(i18n.T(c, "username_password_error"))
+		}
 		c.String(http.StatusOK, result)
 		return
 	}
@@ -336,11 +361,16 @@ func ValidateLogin(c *gin.Context) {
 		// 验证TOTP码
 		valid := totp.Validate(twoFactorCode, userModel.TwoFactorKey)
 		if !valid {
+			// 2FA验证失败也记录失败次数
+			limiter.RecordFailure(username)
 			result = json.CommonFailure(i18n.T(c, "2fa_code_error"))
 			c.String(http.StatusOK, result)
 			return
 		}
 	}
+
+	// 登录成功，清除失败记录
+	limiter.RecordSuccess(username)
 
 	loginLogModel := new(models.LoginLog)
 	loginLogModel.Username = userModel.Name
