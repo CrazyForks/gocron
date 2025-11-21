@@ -24,7 +24,7 @@ Full documentation is available at: **[document](https://gocron-docs.pages.dev/e
 * **Task Dependency**: Supports task dependency configuration
 * **Access Control**: Comprehensive user and permission management
 * **2FA Security**: Two-Factor Authentication support
-* **Agent Auto-Registration**: One-click installation for Linux/macOS/Windows
+* **Agent Auto-Registration**: One-click installation for Linux/macOS
 * **Multi-Database**: MySQL / PostgreSQL / SQLite support
 * **Log Management**: Complete execution logs with auto-cleanup
 * **Notifications**: Email, Slack, Webhook support
