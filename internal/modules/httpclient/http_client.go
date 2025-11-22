@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"time"
 )
@@ -20,12 +21,30 @@ type httpDoer interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
+// 优化：使用全局 HTTP 客户端，复用连接池
+var defaultClient = &http.Client{
+	Timeout: 300 * time.Second,
+	Transport: &http.Transport{
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: 10,
+		IdleConnTimeout:     90 * time.Second,
+		DialContext: (&net.Dialer{
+			Timeout:   5 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+	},
+}
+
 var clientFactory = func(timeout int) httpDoer {
-	client := &http.Client{}
-	if timeout > 0 {
-		client.Timeout = time.Duration(timeout) * time.Second
+	// 使用默认超时（300秒）或未设置超时时，直接返回全局客户端
+	if timeout <= 0 || timeout == 300 {
+		return defaultClient
 	}
-	return client
+	// 其他超时值：创建新客户端但复用 Transport（连接池）
+	return &http.Client{
+		Timeout:   time.Duration(timeout) * time.Second,
+		Transport: defaultClient.Transport,
+	}
 }
 
 func Get(url string, timeout int) ResponseWrapper {
