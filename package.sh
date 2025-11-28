@@ -238,12 +238,7 @@ run() {
 package_gocron() {
     BINARY_NAME='gocron'
     MAIN_FILE="./cmd/gocron/gocron.go"
-    # 如果 gocron-node-package 目录存在，将其包含到 gocron 包中
-    if [[ -d "gocron-node-package" ]] && [[ -n "$(ls -A gocron-node-package)" ]]; then
-        INCLUDE_FILE=("gocron-node-package")
-    else
-        INCLUDE_FILE=()
-    fi
+    INCLUDE_FILE=()
 
     run
 }

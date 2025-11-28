@@ -165,14 +165,14 @@ echo "6. Verifying package contents..."
 SAMPLE_PACKAGE=$(ls gocron-package/*.tar.gz 2>/dev/null | head -1)
 if [ -n "$SAMPLE_PACKAGE" ]; then
     echo "Checking: $SAMPLE_PACKAGE"
-    tar tzf "$SAMPLE_PACKAGE" | grep gocron-node-package | head -5
-    echo "✓ Packages contain gocron-node-package"
+    tar tzf "$SAMPLE_PACKAGE" | head -5
+    echo "✓ Package verified"
 else
     SAMPLE_PACKAGE=$(ls gocron-package/*.zip 2>/dev/null | head -1)
     if [ -n "$SAMPLE_PACKAGE" ]; then
         echo "Checking: $SAMPLE_PACKAGE"
-        unzip -l "$SAMPLE_PACKAGE" | grep gocron-node-package | head -5
-        echo "✓ Packages contain gocron-node-package"
+        unzip -l "$SAMPLE_PACKAGE" | head -5
+        echo "✓ Package verified"
     fi
 fi
 echo ""
