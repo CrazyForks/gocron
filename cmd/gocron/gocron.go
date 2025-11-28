@@ -18,7 +18,7 @@ import (
 	"github.com/gocronx-team/gocron/internal/modules/utils"
 	"github.com/gocronx-team/gocron/internal/routers"
 	"github.com/gocronx-team/gocron/internal/service"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 var (
@@ -49,34 +49,36 @@ func main() {
 }
 
 // getCommands
-func getCommands() []cli.Command {
-	command := cli.Command{
+func getCommands() []*cli.Command {
+	command := &cli.Command{
 		Name:   "web",
 		Usage:  "run web server",
 		Action: runWeb,
 		Flags: []cli.Flag{
-			cli.StringFlag{
+			&cli.StringFlag{
 				Name:  "host",
 				Value: "0.0.0.0",
 				Usage: "bind host",
 			},
-			cli.IntFlag{
-				Name:  "port,p",
+			&cli.IntFlag{
+				Name:  "port",
+				Aliases: []string{"p"},
 				Value: DefaultPort,
 				Usage: "bind port",
 			},
-			cli.StringFlag{
-				Name:  "env,e",
+			&cli.StringFlag{
+				Name:  "env",
+				Aliases: []string{"e"},
 				Value: "prod",
 				Usage: "runtime environment, dev|test|prod",
 			},
 		},
 	}
 
-	return []cli.Command{command}
+	return []*cli.Command{command}
 }
 
-func runWeb(ctx *cli.Context) {
+func runWeb(ctx *cli.Context) error {
 	// 设置运行环境
 	setEnvironment(ctx)
 	fmt.Printf("Starting gocron web server...\n")
@@ -102,6 +104,7 @@ func runWeb(ctx *cli.Context) {
 		fmt.Printf("Failed to start server: %v\n", err)
 		logger.Fatal("Failed to start server", err)
 	}
+	return nil
 }
 
 func initModule() {
