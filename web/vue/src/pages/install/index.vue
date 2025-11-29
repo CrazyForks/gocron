@@ -1,7 +1,7 @@
 <template>
   <el-container>
     <el-main>
-      <el-form ref="form" :model="form" :rules="formRules" label-width="100px" style="width: 700px;">
+      <el-form ref="form" :model="form" :rules="formRules" label-width="auto" style="width: 700px;">
         <h3>数据库配置</h3>
         <el-form-item label="数据库选择" prop="db_type">
           <el-select v-model.trim="form.db_type" @change="update_port">

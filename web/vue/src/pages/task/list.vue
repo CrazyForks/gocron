@@ -2,7 +2,7 @@
 <el-container>
   <task-sidebar></task-sidebar>
   <el-main>
-    <el-form :inline="true">
+    <el-form :inline="true" label-width="auto">
       <el-form-item :label="t('task.id')">
         <el-input v-model.trim="searchParams.id" style="width: 180px;"></el-input>
       </el-form-item>
@@ -11,6 +11,9 @@
       </el-form-item>
       <el-form-item :label="t('task.tag')">
         <el-input v-model.trim="searchParams.tag" style="width: 180px;"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="search()">{{ t('common.search') }}</el-button>
       </el-form-item>
       <br>
       <el-form-item :label="t('task.protocol')">
@@ -46,9 +49,6 @@
           </el-option>
         </el-select>
       </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="search()">{{ t('common.search') }}</el-button>
-      </el-form-item>
     </el-form>
     <el-row type="flex" justify="end" style="margin-bottom: 10px;">
       <el-col :span="24" style="text-align: right;">
@@ -78,7 +78,7 @@
       <el-table-column type="selection" width="55" v-if="isAdmin"></el-table-column>
       <el-table-column type="expand">
         <template #default="scope">
-          <el-form label-position="left" inline class="demo-table-expand">
+          <el-form label-position="left" inline class="demo-table-expand" label-width="auto">
             <el-form-item :label="t('message.taskCreatedTime') + ':'">
               {{ $filters.formatTime(scope.row.created) }} <br>
             </el-form-item>
@@ -444,7 +444,6 @@ export default {
     font-size: 0;
   }
   .demo-table-expand label {
-    width: 90px;
     color: #99a9bf;
   }
   .demo-table-expand .el-form-item {
@@ -452,7 +451,5 @@ export default {
     margin-bottom: 0;
     width: 50%;
   }
-  .el-main {
-    min-height: calc(100vh - 60px);
-  }
+
 </style>

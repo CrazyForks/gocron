@@ -3,7 +3,7 @@
     <system-sidebar></system-sidebar>
     <el-main>
       <h3>{{ t('system.logRetentionSettings') }}</h3>
-      <el-form :model="form" :label-width="locale === 'zh-CN' ? '180px' : '220px'" style="width: 600px;">
+      <el-form :model="form" label-width="auto" style="width: 600px;">
         <el-form-item :label="t('system.dbLogRetentionDays')">
           <el-input-number v-model="form.days" :min="0" :max="3650" style="width: 200px;"></el-input-number>
           <div style="color: #909399; font-size: 12px; margin-top: 5px;">

@@ -3,7 +3,7 @@
     <system-sidebar></system-sidebar>
     <el-main>
       <notification-tab></notification-tab>
-      <el-form ref="form" :model="form" :rules="formRules" :label-width="locale === 'zh-CN' ? '180px' : '220px'" style="width: 700px;">
+      <el-form ref="form" :model="form" :rules="formRules" label-width="auto" style="width: 700px;">
         <el-form-item :label="t('system.slackUrl')" prop="url">
           <el-input v-model="form.url"></el-input>
         </el-form-item>

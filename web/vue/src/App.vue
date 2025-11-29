@@ -1,10 +1,10 @@
 <template>
-   <el-container>
+   <el-container style="height: 100vh;">
     <el-header v-if="userStore.isLogin">
       <app-header></app-header>
       <app-nav-menu></app-nav-menu>
     </el-header>
-    <el-main>
+    <el-main style="padding: 0; display: flex; flex-direction: column; overflow: hidden;">
       <div id="main-container" v-cloak>
         <router-view v-slot="{ Component }">
           <keep-alive>
@@ -13,28 +13,19 @@
         </router-view>
       </div>
     </el-main>
-    <el-footer v-if="!isFooterEmpty">
-      <app-footer ref="footerRef"></app-footer>
-    </el-footer>
   </el-container>
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from './stores/user'
 import installService from './api/install'
 import appHeader from './components/common/header.vue'
 import appNavMenu from './components/common/navMenu.vue'
-import appFooter from './components/common/footer.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
-const footerRef = ref(null)
-
-const isFooterEmpty = computed(() => {
-  return footerRef.value?.isEmpty ?? true
-})
 
 onMounted(() => {
   installService.status((data) => {
@@ -68,16 +59,22 @@ html, body {
   padding: 0;
   margin: 0;
 }
+#main-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#main-container .el-container {
+  height: 100%;
+}
+
 #main-container .el-main {
-  height: calc(100vh - 116px);
-  margin: 20px 20px 0 20px;
-}
-.el-header + .el-main #main-container .el-main {
-  height: calc(100vh - 116px);
-}
-.el-main:first-child #main-container .el-main {
-  height: 100vh;
-  margin: 0;
+  height: auto;
+  flex: 1;
+  overflow-y: auto;
+  margin: 20px;
 }
 
 .el-aside .el-menu {

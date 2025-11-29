@@ -1,7 +1,7 @@
 <template>
   <el-container>
     <el-main>
-      <el-form ref="form" :model="form" :rules="formRules" :label-width="locale === 'zh-CN' ? '100px' : '150px'" style="width: 500px;">
+      <el-form ref="form" :model="form" :rules="formRules" label-width="auto" style="width: 500px;">
         <el-form-item>
           <el-input v-model="form.id" type="hidden"></el-input>
         </el-form-item>

@@ -1,7 +1,7 @@
 <template>
   <el-container>
     <el-main>
-      <el-form ref="form" :model="form" :rules="formRules" label-width="100px" style="width: 500px;">
+      <el-form ref="form" :model="form" :rules="formRules" label-width="auto" style="width: 500px;">
         <el-form-item label="原密码" prop="old_password">
           <el-input v-model="form.old_password" type="password"></el-input>
         </el-form-item>

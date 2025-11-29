@@ -3,7 +3,7 @@
     <system-sidebar></system-sidebar>
     <el-main>
       <notification-tab></notification-tab>
-      <el-form ref="form" :model="form" :rules="formRules" :label-width="locale === 'zh-CN' ? '150px' : '180px'" style="width: 800px;">
+      <el-form ref="form" :model="form" :rules="formRules" label-width="auto" style="width: 800px;">
         <h3>{{ t('system.emailServerConfig') }}</h3>
         <el-row>
           <el-col :span="12">

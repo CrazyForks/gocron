@@ -12,7 +12,7 @@
         :closable="false"
         style="margin-bottom: 20px;"
       />
-      <el-form ref="formRef" :model="form" label-width="120px" :rules="formRules">
+      <el-form ref="formRef" :model="form" label-width="100px" :rules="formRules">
         <el-form-item :label="t('login.username')" prop="username">
           <el-input v-model.trim="form.username" :placeholder="t('login.usernamePlaceholder')" size="large" />
         </el-form-item>
@@ -182,8 +182,7 @@ const submit = async () => {
 }
 
 .login-button {
-  width: calc(100% + 120px);
-  margin-left: -90px;
-  margin-right: -20px;
+  width: calc(100% + 60px);
+  margin-left: -60px;
 }
 </style>

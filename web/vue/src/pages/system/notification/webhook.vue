@@ -3,7 +3,7 @@
     <system-sidebar></system-sidebar>
     <el-main>
       <notification-tab></notification-tab>
-      <el-form ref="form" :model="form" :rules="formRules" :label-width="locale === 'zh-CN' ? '100px' : '120px'" style="width: 700px;">
+      <el-form ref="form" :model="form" :rules="formRules" label-width="auto" style="width: 700px;">
         <el-form-item label="URL" prop="url">
           <el-input v-model.trim="form.url"></el-input>
         </el-form-item>

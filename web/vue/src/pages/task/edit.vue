@@ -2,7 +2,7 @@
   <el-container >
     <task-sidebar></task-sidebar>
     <el-main>
-      <el-form ref="form" :model="form" :rules="formRules" :label-width="locale === 'zh-CN' ? '180px' : '220px'">
+      <el-form ref="form" :model="form" :rules="formRules" label-width="auto">
         <el-input v-model="form.id" type="hidden"></el-input>
         <el-row>
           <el-col :span="12">
