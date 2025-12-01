@@ -367,6 +367,8 @@ func Download(c *gin.Context) {
 	packageDir := filepath.Join(execDir, "gocron-node-package")
 	localPath := filepath.Join(packageDir, filename)
 
+	logger.Infof("下载请求: os=%s, arch=%s, 查找路径: %s", osName, arch, localPath)
+
 	// 安全检查: 确保最终路径在 packageDir 内,防止路径遍历
 	cleanPath := filepath.Clean(localPath)
 	cleanPackageDir := filepath.Clean(packageDir)

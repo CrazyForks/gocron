@@ -463,12 +463,40 @@ func (m *Migration) upgradeFor154(tx *gorm.DB) error {
 
 // 升级到v1.5.5版本 - 修改 host.id 和 task_host.host_id 字段类型从 smallint 到 int
 func (m *Migration) upgradeFor155(tx *gorm.DB) error {
-	logger.Info("开始升级到v1.5.5 - 扩展主机ID字段类型")
+	logger.Info("开始升级到v1.5.5 - 扩展主机ID字段类型和性能优化")
 
-	// 使用 GORM AutoMigrate 自动调整字段类型
+	// 1. 使用 GORM AutoMigrate 自动调整字段类型
 	// GORM 会根据模型定义自动修改字段类型
 	if err := tx.AutoMigrate(&Host{}, &TaskHost{}); err != nil {
 		return err
+	}
+	logger.Info("✓ 主机ID字段类型已升级")
+
+	// 2. 性能优化: 添加 task_log.start_time 索引 (用于日志清理和时间范围查询)
+	if !tx.Migrator().HasIndex(&TaskLog{}, "idx_task_log_start_time") {
+		if err := tx.Migrator().CreateIndex(&TaskLog{}, "StartTime"); err != nil {
+			logger.Warn("创建 task_log.start_time 索引失败", err)
+		} else {
+			logger.Info("✓ 创建 task_log.start_time 索引")
+		}
+	}
+
+	// 3. 性能优化: 添加 task_log 复合索引 (task_id, status) - 用于查询特定任务的执行状态
+	if !tx.Migrator().HasIndex(&TaskLog{}, "idx_task_log_task_status") {
+		if err := tx.Exec("CREATE INDEX idx_task_log_task_status ON " + TablePrefix + "task_log(task_id, status)").Error; err != nil {
+			logger.Warn("创建 task_log 复合索引失败", err)
+		} else {
+			logger.Info("✓ 创建 task_log(task_id, status) 复合索引")
+		}
+	}
+
+	// 4. 性能优化: 添加 task 复合索引 (status, level) - 用于 ActiveList 查询
+	if !tx.Migrator().HasIndex(&Task{}, "idx_task_status_level") {
+		if err := tx.Exec("CREATE INDEX idx_task_status_level ON " + TablePrefix + "task(status, level)").Error; err != nil {
+			logger.Warn("创建 task 复合索引失败", err)
+		} else {
+			logger.Info("✓ 创建 task(status, level) 复合索引")
+		}
 	}
 
 	logger.Info("已升级到v1.5.5\n")
