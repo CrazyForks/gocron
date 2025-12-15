@@ -3,10 +3,8 @@
     <system-sidebar></system-sidebar>
     <el-main>
       <notification-tab></notification-tab>
-      <el-form ref="form" :model="form" :rules="formRules" label-width="auto" style="width: 700px;">
-        <el-form-item label="URL" prop="url">
-          <el-input v-model.trim="form.url"></el-input>
-        </el-form-item>
+      <el-form ref="form" :model="form" :rules="formRules" label-width="auto" style="width: 800px;">
+        <h3>{{ t('system.webhook') }}</h3>
         <el-alert
           :title="t('system.webhookTip')"
           type="info"
@@ -24,7 +22,32 @@
         <el-form-item>
           <el-button type="primary" @click="submit()">{{ t('common.save') }}</el-button>
         </el-form-item>
+        <el-button type="primary" @click="createUrl">{{ t('system.addWebhookUrl') }}</el-button> <br><br>
+        <h3>{{ t('system.webhookUrls') }}</h3>
+        <el-tag
+          v-for="item in webhookUrls"
+          :key="item.id"
+          closable
+          @close="deleteUrl(item)">
+          {{item.name}} - {{item.url}}
+        </el-tag>
       </el-form>
+      <el-dialog
+        :title="t('system.addWebhookUrl')"
+        v-model="dialogVisible"
+        width="30%">
+        <el-form :model="form">
+          <el-form-item :label="t('system.webhookName')" >
+            <el-input v-model.trim="name"></el-input>
+          </el-form-item>
+          <el-form-item label="URL" >
+            <el-input v-model.trim="url"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="saveUrl">{{ t('common.confirm') }}</el-button>
+          </el-form-item>
+        </el-form>
+      </el-dialog>
     </el-main>
   </el-container>
 </template>
@@ -43,10 +66,13 @@ export default {
   data () {
     return {
       form: {
-        url: '',
         template: ''
       },
-      formRules: {}
+      formRules: {},
+      webhookUrls: [],
+      name: '',
+      url: '',
+      dialogVisible: false
     }
   },
   computed: {
@@ -55,9 +81,6 @@ export default {
     },
     computedFormRules() {
       return {
-        url: [
-          {type: 'url', required: true, message: this.t('system.pleaseEnterValidUrl'), trigger: 'blur'}
-        ],
         template: [
           {required: true, message: this.t('system.pleaseEnterTemplate'), trigger: 'blur'}
         ]
@@ -77,6 +100,27 @@ export default {
     this.init()
   },
   methods: {
+    createUrl () {
+      this.dialogVisible = true
+    },
+    saveUrl () {
+      if (this.name === '' || this.url === '') {
+        this.$message.error(this.t('system.incompleteParameters'))
+        return
+      }
+      notificationService.createWebhookUrl({
+        name: this.name,
+        url: this.url
+      }, () => {
+        this.dialogVisible = false
+        this.init()
+      })
+    },
+    deleteUrl (item) {
+      notificationService.removeWebhookUrl(item.id, () => {
+        this.init()
+      })
+    },
     submit () {
       this.$refs['form'].validate((valid) => {
         if (!valid) {
@@ -92,11 +136,19 @@ export default {
       })
     },
     init () {
+      this.name = ''
+      this.url = ''
       notificationService.webhook((data) => {
-        this.form.url = data.url
-        this.form.template = data.template
+        this.form.template = data.template || ''
+        this.webhookUrls = data.webhook_urls || []
       })
     }
   }
 }
 </script>
+
+<style scoped>
+  .el-tag + .el-tag {
+    margin-left: 10px;
+  }
+</style>

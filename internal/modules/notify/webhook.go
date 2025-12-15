@@ -2,6 +2,8 @@ package notify
 
 import (
 	"html"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gocronx-team/gocron/internal/models"
@@ -19,8 +21,8 @@ func (webHook *WebHook) Send(msg Message) {
 		logger.Error("#webHook#从数据库获取webHook配置失败", err)
 		return
 	}
-	if webHookSetting.Url == "" {
-		logger.Error("#webHook#webhook-url为空")
+	if len(webHookSetting.WebhookUrls) == 0 {
+		logger.Error("#webHook#webhook地址列表为空")
 		return
 	}
 	logger.Debugf("%+v", webHookSetting)
@@ -28,7 +30,25 @@ func (webHook *WebHook) Send(msg Message) {
 	msg["output"] = utils.EscapeJson(msg["output"].(string))
 	msg["content"] = parseNotifyTemplate(webHookSetting.Template, msg)
 	msg["content"] = html.UnescapeString(msg["content"].(string))
-	webHook.send(msg, webHookSetting.Url)
+
+	// 获取任务配置的接收者ID列表
+	activeUrls := webHook.getActiveWebhookUrls(webHookSetting, msg)
+
+	// 向所有激活的webhook地址发送
+	for _, webhookUrl := range activeUrls {
+		go webHook.send(msg, webhookUrl.Url)
+	}
+}
+
+func (webHook *WebHook) getActiveWebhookUrls(webHookSetting models.WebHook, msg Message) []models.WebhookUrl {
+	taskReceiverIds := strings.Split(msg["task_receiver_id"].(string), ",")
+	urls := []models.WebhookUrl{}
+	for _, v := range webHookSetting.WebhookUrls {
+		if utils.InStringSlice(taskReceiverIds, strconv.Itoa(v.Id)) {
+			urls = append(urls, v)
+		}
+	}
+	return urls
 }
 
 func (webHook *WebHook) send(msg Message, url string) {

@@ -212,14 +212,20 @@ func (setting *Setting) RemoveMailUser(id int) (int64, error) {
 }
 
 type WebHook struct {
-	Url      string `json:"url"`
-	Template string `json:"template"`
+	WebhookUrls []WebhookUrl `json:"webhook_urls"`
+	Template    string       `json:"template"`
+}
+
+type WebhookUrl struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+	Url  string `json:"url"`
 }
 
 func (setting *Setting) Webhook() (WebHook, error) {
 	list := make([]Setting, 0)
 	err := Db.Where("code = ?", WebhookCode).Find(&list).Error
-	webHook := WebHook{}
+	webHook := WebHook{WebhookUrls: make([]WebhookUrl, 0)}
 	if err != nil {
 		return webHook, err
 	}
@@ -230,22 +236,46 @@ func (setting *Setting) Webhook() (WebHook, error) {
 }
 
 func (setting *Setting) formatWebhook(list []Setting, webHook *WebHook) {
+	webhookUrl := WebhookUrl{}
 	for _, v := range list {
 		switch v.Key {
 		case WebhookUrlKey:
-			webHook.Url = v.Value
+			if v.Value != "" {
+				_ = json.Unmarshal([]byte(v.Value), &webhookUrl)
+				webhookUrl.Id = v.Id
+				webHook.WebhookUrls = append(webHook.WebhookUrls, webhookUrl)
+			}
 		case WebhookTemplateKey:
 			webHook.Template = v.Value
 		}
-
 	}
 }
 
-func (setting *Setting) UpdateWebHook(url, template string) error {
-	Db.Model(&Setting{}).Where("code = ? AND `key` = ?", WebhookCode, WebhookUrlKey).Update("value", url)
+func (setting *Setting) UpdateWebHook(template string) error {
 	Db.Model(&Setting{}).Where("code = ? AND `key` = ?", WebhookCode, WebhookTemplateKey).Update("value", template)
-
 	return nil
+}
+
+func (setting *Setting) CreateWebhookUrl(name, url string) (int64, error) {
+	webhookUrl := WebhookUrl{0, name, url}
+	jsonByte, err := json.Marshal(webhookUrl)
+	if err != nil {
+		return 0, err
+	}
+
+	newSetting := Setting{
+		Code:  WebhookCode,
+		Key:   WebhookUrlKey,
+		Value: string(jsonByte),
+	}
+
+	result := Db.Create(&newSetting)
+	return result.RowsAffected, result.Error
+}
+
+func (setting *Setting) RemoveWebhookUrl(id int) (int64, error) {
+	result := Db.Where("code = ? AND `key` = ? AND id = ?", WebhookCode, WebhookUrlKey, id).Delete(&Setting{})
+	return result.RowsAffected, result.Error
 }
 
 // endregion

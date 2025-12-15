@@ -112,8 +112,13 @@ type UpdateSlackForm struct {
 
 // UpdateWebHookForm 更新WebHook配置表单
 type UpdateWebHookForm struct {
-	Url      string `form:"url" json:"url" binding:"required,url,max=200"`
 	Template string `form:"template" json:"template" binding:"required"`
+}
+
+// CreateWebhookUrlForm 创建Webhook地址表单
+type CreateWebhookUrlForm struct {
+	Name string `form:"name" json:"name" binding:"required,max=50"`
+	Url  string `form:"url" json:"url" binding:"required,url,max=200"`
 }
 
 // CreateSlackChannelForm 创建Slack频道表单
@@ -216,7 +221,31 @@ func UpdateWebHook(c *gin.Context) {
 	}
 
 	settingModel := new(models.Setting)
-	err := settingModel.UpdateWebHook(form.Url, form.Template)
+	err := settingModel.UpdateWebHook(form.Template)
+	result := utils.JsonResponseByErr(err)
+	c.String(http.StatusOK, result)
+}
+
+func CreateWebhookUrl(c *gin.Context) {
+	var form CreateWebhookUrlForm
+	if err := c.ShouldBind(&form); err != nil {
+		logger.Errorf("创建Webhook地址表单验证失败: %v", err)
+		json := utils.JsonResponse{}
+		result := json.CommonFailure("表单验证失败, 请检测输入")
+		c.String(http.StatusOK, result)
+		return
+	}
+
+	settingModel := new(models.Setting)
+	_, err := settingModel.CreateWebhookUrl(form.Name, form.Url)
+	result := utils.JsonResponseByErr(err)
+	c.String(http.StatusOK, result)
+}
+
+func RemoveWebhookUrl(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	settingModel := new(models.Setting)
+	_, err := settingModel.RemoveWebhookUrl(id)
 	result := utils.JsonResponseByErr(err)
 	c.String(http.StatusOK, result)
 }

@@ -133,6 +133,8 @@ func Register(r *gin.Engine) {
 		{
 			webhookGroup.GET("", manage.WebHook)
 			webhookGroup.POST("/update", manage.UpdateWebHook)
+			webhookGroup.POST("/url", manage.CreateWebhookUrl)
+			webhookGroup.POST("/url/remove/:id", manage.RemoveWebhookUrl)
 		}
 		systemGroup.GET("/login-log", loginlog.Index)
 		systemGroup.GET("/log-retention", manage.GetLogRetentionDays)

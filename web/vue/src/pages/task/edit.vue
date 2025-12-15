@@ -254,6 +254,20 @@
               </el-select>
             </el-form-item>
           </el-col>
+
+          <el-col :span="8"
+                  v-if="form.notify_status !== 1 && form.notify_type === 4">
+            <el-form-item :label="t('task.notifyReceiver')">
+              <el-select key="notify-webhook" v-model="selectedWebhookNotifyIds" filterable multiple :placeholder="t('task.notifyReceiverPlaceholder')">
+                <el-option
+                  v-for="item in webhookUrls"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id">
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
         </el-row>
         <el-row v-if="form.notify_status === 4">
           <el-col :span="12">
@@ -353,8 +367,10 @@ export default {
       hosts: [],
       mailUsers: [],
       slackChannels: [],
+      webhookUrls: [],
       selectedMailNotifyIds: [],
-      selectedSlackNotifyIds: []
+      selectedSlackNotifyIds: [],
+      selectedWebhookNotifyIds: []
     }
   },
   computed: {
@@ -518,6 +534,7 @@ export default {
       Object.assign(this.form, defaults)
       this.selectedMailNotifyIds = []
       this.selectedSlackNotifyIds = []
+      this.selectedWebhookNotifyIds = []
       this.handleProtocolChange(this.form.protocol, true)
       this.updateNotifyKeywordRule()
       this.updateSpecRule()
@@ -572,14 +589,18 @@ export default {
       this.updateNotifyKeywordRule()
       this.updateSpecRule()
 
+
       this.selectedMailNotifyIds = []
       this.selectedSlackNotifyIds = []
+      this.selectedWebhookNotifyIds = []
       if (this.form.notify_status > 1 && this.form.notify_receiver_id) {
         const notifyReceiverIds = this.form.notify_receiver_id.split(',').filter(Boolean)
         if (this.form.notify_type === 2) {
           this.selectedMailNotifyIds = notifyReceiverIds.map(v => parseInt(v))
         } else if (this.form.notify_type === 3) {
           this.selectedSlackNotifyIds = notifyReceiverIds.map(v => parseInt(v))
+        } else if (this.form.notify_type === 4) {
+          this.selectedWebhookNotifyIds = notifyReceiverIds.map(v => parseInt(v))
         }
       }
     },
@@ -589,6 +610,9 @@ export default {
       })
       notificationService.slack((data) => {
         this.slackChannels = data.channels || []
+      })
+      notificationService.webhook((data) => {
+        this.webhookUrls = data.webhook_urls || []
       })
     },
     submit () {
@@ -603,6 +627,10 @@ export default {
           }
           if (this.form.notify_type === 3 && this.selectedSlackNotifyIds.length === 0) {
             this.$message.error(this.t('message.selectSlackChannel'))
+            return false
+          }
+          if (this.form.notify_type === 4 && this.selectedWebhookNotifyIds.length === 0) {
+            this.$message.error(this.t('message.selectWebhookUrl'))
             return false
           }
         }
@@ -622,6 +650,9 @@ export default {
       }
       if (this.form.notify_status > 1 && this.form.notify_type === 3) {
         this.form.notify_receiver_id = this.selectedSlackNotifyIds.join(',')
+      }
+      if (this.form.notify_status > 1 && this.form.notify_type === 4) {
+        this.form.notify_receiver_id = this.selectedWebhookNotifyIds.join(',')
       }
       taskService.update(this.form, () => {
         this.$router.push('/task')
