@@ -212,10 +212,8 @@ fi
 # 生成 release notes
 cat > /tmp/release_notes.md <<EOF
 
-perf: add db indexes to optimize query performance
-style: improve UI layout spacing
-chore: upgrade outdated dependencies
-fix: upgrade host ID fields from int16 to int to prevent overflow and add migration v1.5.5
+feat: support for multiple webhook URLs #36
+fix: resolve Windows command execution failure with quoted paths and HTML entities #40
 
 EOF
 
