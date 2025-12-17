@@ -133,7 +133,7 @@
         </el-table-column>
         <el-table-column
           :label="t('taskLog.result')"
-          :width="locale === 'zh-CN' ? 120 : 140"
+          :width="locale === availableLanguages.zhCN.value ? 120 : 140"
           v-else
         >
           <template #default="scope">
