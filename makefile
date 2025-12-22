@@ -109,14 +109,8 @@ run-vue:
 	@echo "Starting Vue dev server..."
 	cd web/vue && yarn run dev
 
-.PHONY: statik
-statik:
-	@echo "Generating static assets..."
-	go install github.com/rakyll/statik@latest
-	go generate ./...
-
 .PHONY: build-web
-build-web: build-vue statik
+build-web: build-vue
 	@echo "Web build complete!"
 
 # 代码质量检查
@@ -137,12 +131,12 @@ lint:
 .PHONY: fmt
 fmt:
 	@echo "Formatting code..."
-	@find . -name '*.go' -not -path './internal/statik/statik.go' -exec gofmt -w {} \;
+	@find . -name '*.go' -exec gofmt -w {} \;
 
 .PHONY: fmt-check
 fmt-check:
 	@echo "Checking code formatting..."
-	@unformatted=$$(gofmt -l . | grep -v 'internal/statik/statik.go'); \
+	@unformatted=$$(gofmt -l .); \
 	if [ -n "$$unformatted" ]; then \
 		echo "❌ Code not formatted:" && echo "$$unformatted" && echo "Run 'make fmt' to fix" && exit 1; \
 	fi
@@ -213,7 +207,6 @@ clean-web:
 dev-deps:
 	@echo "Installing development dependencies..."
 	go install github.com/cosmtrek/air@latest
-	go install github.com/rakyll/statik@latest
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	go install github.com/securego/gosec/v2/cmd/gosec@latest
 

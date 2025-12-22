@@ -21,12 +21,6 @@ COPY . .
 # Copy frontend build files to public directory
 COPY --from=frontend /app/web/vue/dist ./web/public
 
-# Install statik
-RUN go install github.com/rakyll/statik@latest
-
-# Generate static files (statik will pack web/public)
-RUN go generate ./...
-
 # Build without CGO (SQLite not supported in Docker, use MySQL/PostgreSQL)
 # Use -p=1 to reduce memory usage during compilation
 RUN CGO_ENABLED=0 go build -p=1 -ldflags="-s -w" -trimpath -o gocron ./cmd/gocron
