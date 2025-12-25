@@ -4,11 +4,14 @@
 package utils
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"os"
 	"os/exec"
+	"sync"
 	"syscall"
+	"time"
 )
 
 type Result struct {
@@ -17,7 +20,11 @@ type Result struct {
 }
 
 // 执行shell命令，可设置执行超时时间
+// 改进：即使超时或被取消，也会返回已产生的输出
 func ExecShell(ctx context.Context, command string) (string, error) {
+	// 清理可能存在的 HTML 实体编码
+	command = CleanHTMLEntities(command)
+	
 	cmd := exec.Command("/bin/bash", "-c", command)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Setpgid: true,
@@ -28,18 +35,100 @@ func ExecShell(ctx context.Context, command string) (string, error) {
 	} else {
 		cmd.Dir = "/tmp"
 	}
-	resultChan := make(chan Result)
+
+	// 使用管道实时捕获输出
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", err
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return "", err
+	}
+
+	// 用于收集输出
+	var outputBuffer bytes.Buffer
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+
+	// 启动命令
+	if err := cmd.Start(); err != nil {
+		return "", err
+	}
+
+	// 实时读取 stdout 和 stderr
+	wg.Add(2)
 	go func() {
-		output, err := cmd.CombinedOutput()
-		resultChan <- Result{string(output), err}
+		defer wg.Done()
+		buf := make([]byte, 1024)
+		for {
+			n, err := stdout.Read(buf)
+			if n > 0 {
+				mu.Lock()
+				outputBuffer.Write(buf[:n])
+				mu.Unlock()
+			}
+			if err != nil {
+				break
+			}
+		}
 	}()
+	go func() {
+		defer wg.Done()
+		buf := make([]byte, 1024)
+		for {
+			n, err := stderr.Read(buf)
+			if n > 0 {
+				mu.Lock()
+				outputBuffer.Write(buf[:n])
+				mu.Unlock()
+			}
+			if err != nil {
+				break
+			}
+		}
+	}()
+
+	// 等待命令完成或超时
+	done := make(chan error, 1)
+	go func() {
+		done <- cmd.Wait()
+	}()
+
 	select {
 	case <-ctx.Done():
-		if cmd.Process.Pid > 0 {
-			_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+		// 超时或被取消，尝试优雅终止
+		if cmd.Process != nil && cmd.Process.Pid > 0 {
+			// 先发送 SIGTERM，给进程清理的机会
+			_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGTERM)
+			
+			// 等待 2 秒，看进程是否自行退出
+			timer := time.NewTimer(2 * time.Second)
+			select {
+			case <-done:
+				timer.Stop()
+			case <-timer.C:
+				// 进程仍未退出，强制杀死
+				_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+				<-done // 等待 Wait() 返回
+			}
 		}
-		return "", errors.New("timeout killed")
-	case result := <-resultChan:
-		return result.output, result.err
+		
+		// 等待 IO 读取完成
+		wg.Wait()
+		
+		// 返回已捕获的输出和错误信息
+		mu.Lock()
+		output := outputBuffer.String()
+		mu.Unlock()
+		return output, errors.New("timeout killed")
+		
+	case err := <-done:
+		// 命令正常完成
+		wg.Wait()
+		mu.Lock()
+		output := outputBuffer.String()
+		mu.Unlock()
+		return output, err
 	}
 }

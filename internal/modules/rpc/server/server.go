@@ -37,17 +37,33 @@ func (s Server) Run(ctx context.Context, req *pb.TaskRequest) (*pb.TaskResponse,
 		}
 	}()
 
-	log.Infof("execute cmd start: [id: %d cmd: %s]", req.Id, req.Command)
+	// 清理 HTML 实体
+	cleanedCmd := utils.CleanHTMLEntities(req.Command)
+	log.Infof("execute cmd start: [id: %d]", req.Id)
 
-	output, err := utils.ExecShell(ctx, req.Command)
+	// 使用任务超时创建独立的 context，而不是直接使用客户端传来的 ctx
+	timeout := time.Duration(req.Timeout) * time.Second
+	taskCtx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	
+	// 监听客户端取消，如果客户端取消了，也取消任务
+	go func() {
+		<-ctx.Done()
+		cancel()
+	}()
+
+	// 直接调用 ExecShell，它会处理 context 取消并返回已有输出
+	output, execErr := utils.ExecShell(taskCtx, cleanedCmd)
+	
+	log.Infof("[Output Length: %d bytes]", len(output))
 	resp := new(pb.TaskResponse)
 	resp.Output = output
-	if err != nil {
-		resp.Error = err.Error()
+	if execErr != nil {
+		resp.Error = execErr.Error()
 	} else {
 		resp.Error = ""
 	}
-	log.Infof("execute cmd end: [id: %d cmd: %s err: %s]", req.Id, req.Command, resp.Error)
+	log.Infof("execute cmd end: [id: %d err: %s]", req.Id, resp.Error)
 
 	return resp, nil
 }

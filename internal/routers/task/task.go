@@ -110,7 +110,13 @@ func Store(c *gin.Context) {
 
 	taskModel.Name = form.Name
 	taskModel.Protocol = form.Protocol
-	taskModel.Command = strings.TrimSpace(form.Command)
+	// 清理命令中的 HTML 实体编码
+	originalCmd := strings.TrimSpace(form.Command)
+	cleanedCmd := utils.CleanHTMLEntities(originalCmd)
+	if originalCmd != cleanedCmd {
+		logger.Infof("[HTML Entity Cleaned] Task: %s, Original length: %d, Cleaned length: %d", form.Name, len(originalCmd), len(cleanedCmd))
+	}
+	taskModel.Command = cleanedCmd
 	taskModel.Timeout = form.Timeout
 	taskModel.Tag = form.Tag
 	taskModel.Remark = form.Remark

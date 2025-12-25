@@ -123,6 +123,13 @@
               >{{ t('taskLog.viewOutput') }}</el-button
             >
             <el-button
+              type="info"
+              size="small"
+              v-if="scope.row.status === 3"
+              @click="showTaskResult(scope.row)"
+              >{{ t('taskLog.viewOutput') }}</el-button
+            >
+            <el-button
               type="danger"
               size="small"
               v-if="scope.row.status === 1 && scope.row.protocol === 2"
@@ -148,6 +155,13 @@
               type="warning"
               size="small"
               v-if="scope.row.status === 0"
+              @click="showTaskResult(scope.row)"
+              >{{ t('taskLog.viewOutput') }}</el-button
+            >
+            <el-button
+              type="info"
+              size="small"
+              v-if="scope.row.status === 3"
               @click="showTaskResult(scope.row)"
               >{{ t('taskLog.viewOutput') }}</el-button
             >
@@ -296,7 +310,18 @@ export default {
     },
     showTaskResult(item) {
       this.dialogVisible = true
-      this.currentTaskResult.command = item.command
+      // 清理命令中的 HTML 实体编码
+      let cleanedCommand = item.command
+      if (cleanedCommand) {
+        cleanedCommand = cleanedCommand
+          .replace(/&quot;/g, '"')
+          .replace(/&apos;/g, "'")
+          .replace(/&#39;/g, "'")
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&amp;/g, '&')
+      }
+      this.currentTaskResult.command = cleanedCommand
       this.currentTaskResult.result = item.result
     },
     refresh() {
