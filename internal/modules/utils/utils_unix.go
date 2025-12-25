@@ -7,25 +7,61 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
 )
 
 type Result struct {
-	output string
-	err    error
+    output string
+    err    error
 }
 
 // 执行shell命令，可设置执行超时时间
-// 改进：即使超时或被取消，也会返回已产生的输出
+// 改进：将命令写入临时脚本执行，即使超时或被取消，也会返回已产生的输出
 func ExecShell(ctx context.Context, command string) (string, error) {
 	// 清理可能存在的 HTML 实体编码
 	command = CleanHTMLEntities(command)
-	
-	cmd := exec.Command("/bin/bash", "-c", command)
+	// 将换行符统一替换为Unix风格的\n
+	command = strings.ReplaceAll(command, "\r\n", "\n")
+
+	// 创建临时文件来存储命令，按照指定格式命名
+	tmpDir := "/tmp"
+	timestamp := time.Now().Format("20060102150405")
+	scriptPattern := fmt.Sprintf("gocron_%s_*.sh", timestamp)
+
+	tmpFile, err := os.CreateTemp(tmpDir, scriptPattern)
+	if err != nil {
+		return "", fmt.Errorf("创建临时脚本文件失败: %w", err)
+	}
+	defer os.Remove(tmpFile.Name()) // 执行完毕后删除临时文件
+	defer tmpFile.Close()
+
+	// 将命令写入临时文件
+	_, err = tmpFile.WriteString(command)
+	if err != nil {
+		return "", fmt.Errorf("写入脚本内容失败: %w", err)
+	}
+
+	// 确保文件写入磁盘
+	err = tmpFile.Sync()
+	if err != nil {
+		return "", fmt.Errorf("同步文件失败: %w", err)
+	}
+
+	// 给脚本文件添加执行权限
+	err = os.Chmod(tmpFile.Name(), 0700)
+	if err != nil {
+		return "", fmt.Errorf("设置脚本执行权限失败: %w", err)
+	}
+
+	// 使用 /bin/bash 命令执行脚本文件
+	scriptPath := tmpFile.Name()
+	cmd := exec.Command("/bin/bash", scriptPath)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Setpgid: true,
 	}
@@ -33,7 +69,7 @@ func ExecShell(ctx context.Context, command string) (string, error) {
 	if homeDir, err := os.UserHomeDir(); err == nil {
 		cmd.Dir = homeDir
 	} else {
-		cmd.Dir = "/tmp"
+		cmd.Dir = tmpDir
 	}
 
 	// 使用管道实时捕获输出
@@ -101,7 +137,7 @@ func ExecShell(ctx context.Context, command string) (string, error) {
 		if cmd.Process != nil && cmd.Process.Pid > 0 {
 			// 先发送 SIGTERM，给进程清理的机会
 			_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGTERM)
-			
+
 			// 等待 2 秒，看进程是否自行退出
 			timer := time.NewTimer(2 * time.Second)
 			select {
@@ -113,16 +149,16 @@ func ExecShell(ctx context.Context, command string) (string, error) {
 				<-done // 等待 Wait() 返回
 			}
 		}
-		
+
 		// 等待 IO 读取完成
 		wg.Wait()
-		
+
 		// 返回已捕获的输出和错误信息
 		mu.Lock()
 		output := outputBuffer.String()
 		mu.Unlock()
 		return output, errors.New("timeout killed")
-		
+
 	case err := <-done:
 		// 命令正常完成
 		wg.Wait()
