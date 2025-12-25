@@ -7,12 +7,18 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
+
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
 )
 
 type Result struct {
@@ -21,24 +27,47 @@ type Result struct {
 }
 
 // 执行shell命令，可设置执行超时时间
-// 改进：即使超时或被取消，也会返回已产生的输出
+// 改进：将命令写入临时批处理文件执行，即使超时或被取消，也会返回已产生的输出
 func ExecShell(ctx context.Context, command string) (string, error) {
 	// 清理可能存在的 HTML 实体编码,防止 &quot; 等导致命令执行失败
 	// 例如: del &quot;C:\file.txt&quot; -> del "C:\file.txt"
 	command = CleanHTMLEntities(command)
 
-	// 使用 cmd.exe，通过 CmdLine 直接传递完整命令行，绕过 Go 的参数转义
+	// 将换行符统一替换为Windows风格的\r\n
+	command = strings.ReplaceAll(command, "\r\n", "\n")
+	command = strings.ReplaceAll(command, "\n", "\r\n")
+
+	// 创建带时间戳的临时批处理文件名
+	timestamp := time.Now().Format("20060102150405") // 年月日时分秒
+
+	// 使用 os.CreateTemp 创建临时文件
+	batFile, err := os.CreateTemp(os.TempDir(), fmt.Sprintf("gocron_%s_*.bat", timestamp))
+	if err != nil {
+		return "", fmt.Errorf("创建临时批处理文件失败: %w", err)
+	}
+	defer os.Remove(batFile.Name()) // 确保函数退出时删除临时文件
+	defer batFile.Close()
+
+	// 将命令写入批处理文件
+	content := "@echo off\r\n" + command
+
+	// 使用 ANSI 编码 (GBK) 写入批处理文件
+	gbkWriter := transform.NewWriter(batFile, simplifiedchinese.GBK.NewEncoder())
+	_, err = io.WriteString(gbkWriter, content)
+
+	if err != nil {
+		return "", fmt.Errorf("写入批处理文件失败: %w", err)
+	}
+
+	// 使用 cmd.exe 执行批处理文件
 	cmd := exec.Command("cmd")
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		HideWindow: true,
-		CmdLine:    `cmd /c "` + command + `"`,
+		CmdLine:    `cmd /c "` + batFile.Name() + `"`,
 	}
-	// 设置工作目录为用户家目录
-	if homeDir, err := os.UserHomeDir(); err == nil {
-		cmd.Dir = homeDir
-	} else {
-		cmd.Dir = os.TempDir()
-	}
+
+	// 设置工作目录为临时目录
+	cmd.Dir = os.TempDir()
 
 	// 使用管道实时捕获输出
 	stdout, err := cmd.StdoutPipe()
