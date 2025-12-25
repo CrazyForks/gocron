@@ -78,4 +78,7 @@ var zhCN = map[string]string{
 	"password_must_contain_letter_and_digit": "密码必须包含字母和数字",
 	"account_locked":                         "账户已被锁定，请在%d分钟后重试",
 	"login_failed_with_attempts":             "用户名或密码错误，还剩%d次尝试机会",
+	"rpc_unavailable":                        "无法连接远程服务器",
+	"rpc_timeout":                            "执行超时, 强制结束",
+	"rpc_manual_stop":                        "手动停止",
 }

@@ -9,6 +9,7 @@ import (
 
 	"google.golang.org/grpc/status"
 
+	"github.com/gocronx-team/gocron/internal/modules/i18n"
 	"github.com/gocronx-team/gocron/internal/modules/logger"
 	"github.com/gocronx-team/gocron/internal/modules/rpc/grpcpool"
 	pb "github.com/gocronx-team/gocron/internal/modules/rpc/proto"
@@ -17,7 +18,8 @@ import (
 
 var (
 	taskCtxMap     sync.Map // 存储任务执行的 context.CancelFunc
-	errUnavailable = errors.New("无法连接远程服务器")
+	errUnavailable = errors.New(i18n.Translate("rpc_unavailable"))
+	ErrManualStop  = errors.New("rpc_manual_stop") // 特殊错误标识，用于判断是否手动停止
 )
 
 func generateTaskUniqueKey(ip string, port int, id int64) string {
@@ -25,24 +27,26 @@ func generateTaskUniqueKey(ip string, port int, id int64) string {
 }
 
 func Stop(ip string, port int, id int64) {
-	// 通过RPC调用通知服务端停止任务
-	addr := fmt.Sprintf("%s:%d", ip, port)
-	c, err := grpcpool.Pool.Get(addr)
-	if err != nil {
-		logger.Errorf("连接服务器失败#%s#%v", addr, err)
-		return
-	}
-	
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-	
-	_, err = c.Run(ctx, &pb.TaskRequest{
-		Command: "__STOP__",
-		Id:      id,
-	})
-	if err != nil {
-		logger.Errorf("发送停止信号失败#%v", err)
-	}
+	// 异步发送停止信号，不阻塞调用者
+	go func() {
+		addr := fmt.Sprintf("%s:%d", ip, port)
+		c, err := grpcpool.Pool.Get(addr)
+		if err != nil {
+			logger.Errorf("连接服务器失败#%s#%v", addr, err)
+			return
+		}
+		
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		
+		_, err = c.Run(ctx, &pb.TaskRequest{
+			Command: "__STOP__",
+			Id:      id,
+		})
+		if err != nil {
+			logger.Errorf("发送停止信号失败#%v", err)
+		}
+	}()
 }
 
 func Exec(ip string, port int, taskReq *pb.TaskRequest) (string, error) {
@@ -84,7 +88,7 @@ func Exec(ip string, port int, taskReq *pb.TaskRequest) (string, error) {
 
 	// 检查是否是手动停止
 	if resp.Error == "manual stop" {
-		return resp.Output, errors.New("手动停止")
+		return resp.Output, ErrManualStop
 	}
 
 	return resp.Output, errors.New(resp.Error)
@@ -95,9 +99,9 @@ func parseGRPCError(err error) (string, error) {
 	case codes.Unavailable:
 		return "", errUnavailable
 	case codes.DeadlineExceeded:
-		return "", errors.New("执行超时, 强制结束")
+		return "", errors.New(i18n.Translate("rpc_timeout"))
 	case codes.Canceled:
-		return "", errors.New("手动停止")
+		return "", ErrManualStop
 	}
 	return "", err
 }
@@ -108,9 +112,9 @@ func parseGRPCErrorOnly(err error) error {
 	case codes.Unavailable:
 		return errUnavailable
 	case codes.DeadlineExceeded:
-		return errors.New("执行超时, 强制结束")
+		return errors.New(i18n.Translate("rpc_timeout"))
 	case codes.Canceled:
-		return errors.New("手动停止")
+		return ErrManualStop
 	}
 	return err
 }

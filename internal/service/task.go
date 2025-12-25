@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -305,7 +306,12 @@ func (h *RPCHandler) Run(taskModel models.Task, taskUniqueId int64) (result stri
 			output, err := rpcClient.Exec(th.Name, th.Port, taskRequest)
 			errorMessage := ""
 			if err != nil {
-				errorMessage = err.Error()
+				// 如果是手动停止错误，保留原始错误以便后续判断，但显示翻译后的文本
+				if errors.Is(err, rpcClient.ErrManualStop) {
+					errorMessage = "手动停止"
+				} else {
+					errorMessage = err.Error()
+				}
 			}
 			output = strings.TrimSpace(output)
 			if errorMessage != "" {
@@ -360,18 +366,25 @@ func updateTaskLog(taskLogId int64, taskResult TaskResult) (int64, error) {
 	taskLogModel := new(models.TaskLog)
 	var status models.Status
 	result := taskResult.Result
+	
+	// 根据错误类型设置状态
 	if taskResult.Err != nil {
-		status = models.Failure
+		// 检查是否是手动停止
+		if errors.Is(taskResult.Err, rpcClient.ErrManualStop) {
+			status = models.Cancel
+		} else {
+			status = models.Failure
+		}
 	} else {
 		status = models.Finish
 	}
+	
 	return taskLogModel.Update(taskLogId, models.CommonMap{
 		"retry_times": taskResult.RetryTimes,
 		"status":      status,
 		"result":      result,
 		"end_time":    time.Now(),
 	})
-
 }
 
 func createJob(taskModel models.Task) cron.FuncJob {

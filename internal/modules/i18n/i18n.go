@@ -28,6 +28,15 @@ func T(c *gin.Context, key string, args ...interface{}) string {
 	return msg
 }
 
+// Translate 不依赖gin.Context的翻译函数，默认使用中文
+func Translate(key string) string {
+	msg, ok := messages[ZhCN][key]
+	if !ok {
+		return key
+	}
+	return msg
+}
+
 func GetLocale(c *gin.Context) Locale {
 	lang := c.GetHeader("Accept-Language")
 	if lang == "" || lang == "zh-CN" || lang == "zh" {

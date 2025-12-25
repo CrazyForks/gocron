@@ -78,4 +78,7 @@ var enUS = map[string]string{
 	"password_must_contain_letter_and_digit": "Password must contain both letters and digits",
 	"account_locked":                         "Account locked, please try again in %d minutes",
 	"login_failed_with_attempts":             "Username or password is incorrect, %d attempts remaining",
+	"rpc_unavailable":                        "Unable to connect to remote server",
+	"rpc_timeout":                            "Execution timeout, forcibly terminated",
+	"rpc_manual_stop":                        "Manually stopped",
 }
