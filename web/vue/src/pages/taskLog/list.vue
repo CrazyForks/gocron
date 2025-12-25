@@ -228,9 +228,8 @@ export default {
   computed: {
     computedStatusList() {
       return [
-        { value: '1', label: this.t('taskLog.failed') },
-        { value: '2', label: this.t('message.running') },
         { value: '3', label: this.t('taskLog.success') },
+        { value: '1', label: this.t('taskLog.failed') },
         { value: '4', label: this.t('message.cancelled') }
       ]
     }
@@ -241,6 +240,15 @@ export default {
         this.statusList = newVal
       },
       immediate: true
+    },
+    '$route.query.task_id': {
+      handler(newTaskId) {
+        if (newTaskId !== undefined) {
+          this.searchParams.task_id = newTaskId
+          this.searchParams.page = 1
+          this.search()
+        }
+      }
     }
   },
   components: { taskSidebar },
@@ -251,17 +259,6 @@ export default {
   activated() {
     this.updateTaskIdFromRoute()
     this.search()
-  },
-  watch: {
-    '$route.query.task_id': {
-      handler(newTaskId) {
-        if (newTaskId !== undefined) {
-          this.searchParams.task_id = newTaskId
-          this.searchParams.page = 1
-          this.search()
-        }
-      }
-    }
   },
   methods: {
     formatProtocol(row, col) {
