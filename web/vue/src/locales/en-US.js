@@ -89,7 +89,7 @@ export default {
     disable: 'Disable',
     mainTaskTip: 'Main task can configure multiple child tasks. Child tasks will be executed automatically after main task completes.\nTask type cannot be changed after creation.',
     dependencyTip: 'Strong Dependency: Child tasks run only when main task succeeds\nWeak Dependency: Child tasks run regardless of main task result',
-    timeoutTip: 'Force terminate task on timeout, range 0-86400 (seconds), default 0, no limit',
+    timeoutTip: 'Force terminate task on timeout, range 0-86400 (seconds), default 3600, 0 means no limit',
     singleInstanceTip: 'Single instance mode: whether to execute next scheduled task if previous task is still running',
     cronStandard: 'Standard Syntax (Second Minute Hour Day Month Week)',
     cronShortcut: 'Shortcut Syntax',
