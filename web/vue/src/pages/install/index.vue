@@ -1,9 +1,14 @@
 <template>
   <el-container>
     <el-main>
-      <el-form ref="form" :model="form" :rules="formRules" label-width="auto" style="width: 700px;">
-        <h3>数据库配置</h3>
-        <el-form-item label="数据库选择" prop="db_type">
+      <div class="install-header">
+        <div class="language-switcher">
+          <LanguageSwitcher />
+        </div>
+      </div>
+      <el-form ref="form" :model="form" :rules="formRules" label-width="150px" style="width: 700px;">
+        <h3>{{ t('install.dbConfig') }}</h3>
+        <el-form-item :label="t('install.dbType')" prop="db_type">
           <el-select v-model.trim="form.db_type" @change="update_port">
             <el-option
               v-for="item in dbList"
@@ -15,79 +20,143 @@
         </el-form-item>
         <el-row v-if="form.db_type !== 'sqlite'">
           <el-col :span="12">
-            <el-form-item label="主机名" prop="db_host">
+            <el-form-item :label="t('install.dbHost')" prop="db_host">
               <el-input v-model="form.db_host"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="端口" prop="db_port">
+            <el-form-item :label="t('install.dbPort')" prop="db_port">
               <el-input v-model.number="form.db_port"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row v-if="form.db_type !== 'sqlite'">
           <el-col :span="12">
-            <el-form-item label="用户名" prop="db_username">
+            <el-form-item :label="t('install.dbUser')" prop="db_username">
               <el-input v-model="form.db_username"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="密码" prop="db_password">
+            <el-form-item :label="t('install.dbPassword')" prop="db_password">
               <el-input v-model="form.db_password" type="password"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item :label="form.db_type === 'sqlite' ? '数据库文件路径' : '数据库名称'" prop="db_name">
-              <el-input v-model="form.db_name" :placeholder="form.db_type === 'sqlite' ? './data/gocron.db' : '如果数据库不存在, 需提前创建'"></el-input>
+            <el-form-item :label="form.db_type === 'sqlite' ? t('install.dbFilePath') : t('install.dbName')" prop="db_name">
+              <el-input v-model="form.db_name" :placeholder="form.db_type === 'sqlite' ? t('install.dbFilePathPlaceholder') : t('install.dbNamePlaceholder')"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="表前缀" prop="db_table_prefix">
+            <el-form-item :label="t('install.dbTablePrefix')" prop="db_table_prefix">
               <el-input v-model="form.db_table_prefix"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
-        <h3>管理员账号配置</h3>
+        <h3>{{ t('install.adminConfig') }}</h3>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="账号" prop="admin_username">
+            <el-form-item :label="t('install.adminUsername')" prop="admin_username">
               <el-input v-model="form.admin_username"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="邮箱" prop="admin_email">
+            <el-form-item :label="t('install.adminEmail')" prop="admin_email">
               <el-input v-model="form.admin_email"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="密码" prop="admin_password">
-              <el-input v-model="form.admin_password" type="password" placeholder="至少8位，包含字母和数字"></el-input>
+            <el-form-item :label="t('install.adminPassword')" prop="admin_password">
+              <el-input v-model="form.admin_password" type="password" :placeholder="t('install.passwordPlaceholder')"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="确认密码" prop="confirm_admin_password">
-              <el-input v-model="form.confirm_admin_password" type="password" placeholder="至少8位，包含字母和数字"></el-input>
+            <el-form-item :label="t('install.confirmPassword')" prop="confirm_admin_password">
+              <el-input v-model="form.confirm_admin_password" type="password" :placeholder="t('install.passwordPlaceholder')"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
         <el-form-item>
-          <el-button type="primary" @click="submit()">安装</el-button>
+          <el-button type="primary" @click="submit()">{{ t('install.install') }}</el-button>
         </el-form-item>
       </el-form>
     </el-main>
+
+    <!-- 语言选择对话框 -->
+    <el-dialog
+      v-model="showLanguageDialog"
+      :title="currentDialogTitle"
+      width="400px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      :show-close="false"
+      center
+    >
+      <div class="language-selection">
+        <p class="language-prompt">{{ currentDialogPrompt }}</p>
+        <div class="language-options">
+          <el-button
+            v-for="lang in availableLanguages"
+            :key="lang.value"
+            :type="selectedLanguage === lang.value ? 'primary' : 'default'"
+            size="large"
+            class="language-button"
+            @click="selectLanguage(lang.value)"
+          >
+            <span class="language-icon">{{ lang.icon }}</span>
+            <span class="language-label">{{ lang.label }}</span>
+          </el-button>
+        </div>
+      </div>
+      <template #footer>
+        <el-button type="primary" @click="confirmLanguage" :disabled="!selectedLanguage">
+          {{ currentConfirmText }}
+        </el-button>
+      </template>
+    </el-dialog>
   </el-container>
 </template>
 
 <script>
+import { useI18n } from 'vue-i18n'
 import installService from '../../api/install'
+import LanguageSwitcher from '../../components/common/LanguageSwitcher.vue'
+
 export default {
   name: 'index',
+  components: { LanguageSwitcher },
+  setup() {
+    const { t, locale } = useI18n()
+    
+    // 返回一个方法来设置语言，而不是直接返回 locale
+    const setLocale = (lang) => {
+      locale.value = lang
+    }
+    
+    return { 
+      t,
+      setLocale
+    }
+  },
   data () {
     return {
+      showLanguageDialog: false,
+      selectedLanguage: '',
+      availableLanguages: [
+        {
+          value: 'zh-CN',
+          label: '简体中文',
+          icon: '🇨🇳'
+        },
+        {
+          value: 'en-US',
+          label: 'English',
+          icon: '🇺🇸'
+        }
+      ],
       form: {
         db_type: 'mysql',
         db_host: '127.0.0.1',
@@ -101,28 +170,7 @@ export default {
         confirm_admin_password: '',
         admin_email: ''
       },
-      formRules: {
-        db_type: [
-          {required: true, message: '请选择数据库', trigger: 'blur'}
-        ],
-        db_name: [
-          {required: true, message: '请输入数据库名称', trigger: 'blur'}
-        ],
-        admin_username: [
-          {required: true, message: '请输入管理员账号', trigger: 'blur'}
-        ],
-        admin_email: [
-          {type: 'email', required: true, message: '请输入管理员邮箱', trigger: 'blur'}
-        ],
-        admin_password: [
-          {required: true, message: '请输入管理员密码', trigger: 'blur'},
-          {min: 8, message: '长度至少8个字符', trigger: 'blur'}
-        ],
-        confirm_admin_password: [
-          {required: true, message: '请再次输入管理员密码', trigger: 'blur'},
-          {min: 8, message: '长度至少8个字符', trigger: 'blur'}
-        ]
-      },
+      formRules: {},
       dbList: [
         {
           value: 'mysql',
@@ -144,7 +192,79 @@ export default {
       }
     }
   },
+  computed: {
+    currentDialogTitle() {
+      return this.selectedLanguage === 'en-US' ? 'Select Language' : '选择语言'
+    },
+    currentDialogPrompt() {
+      return this.selectedLanguage === 'en-US' 
+        ? 'Please select your preferred language' 
+        : '请选择您的首选语言'
+    },
+    currentConfirmText() {
+      return this.selectedLanguage === 'en-US' ? 'Confirm' : '确认'
+    }
+  },
+  created() {
+    this.checkAndShowLanguageDialog()
+    this.initFormRules()
+  },
+  mounted() {
+    console.log('Install page mounted')
+    console.log('Saved locale:', localStorage.getItem('locale'))
+    console.log('Show dialog:', this.showLanguageDialog)
+  },
   methods: {
+    checkAndShowLanguageDialog() {
+      // 安装页面每次都显示语言选择对话框
+      // 因为安装是一次性操作，每次进入都应该让用户确认语言
+      const savedLocale = localStorage.getItem('locale')
+      console.log('Checking language dialog, savedLocale:', savedLocale)
+      
+      // 总是显示对话框
+      console.log('Showing language selection dialog')
+      this.showLanguageDialog = true
+      // 默认英文，如果有保存的语言则使用保存的
+      this.selectedLanguage = savedLocale || 'en-US'
+    },
+    selectLanguage(lang) {
+      this.selectedLanguage = lang
+    },
+    confirmLanguage() {
+      if (this.selectedLanguage) {
+        // 使用 setup 中返回的方法来设置语言
+        this.setLocale(this.selectedLanguage)
+        localStorage.setItem('locale', this.selectedLanguage)
+        this.showLanguageDialog = false
+        
+        // 不立即更新表单规则，避免触发验证
+        // 表单规则会在用户交互时自动使用新语言
+      }
+    },
+    initFormRules() {
+      this.formRules = {
+        db_type: [
+          {required: true, message: this.t('install.selectDb'), trigger: 'blur'}
+        ],
+        db_name: [
+          {required: true, message: this.t('install.enterDbName'), trigger: 'blur'}
+        ],
+        admin_username: [
+          {required: true, message: this.t('install.enterAdminUsername'), trigger: 'blur'}
+        ],
+        admin_email: [
+          {type: 'email', required: true, message: this.t('install.enterAdminEmail'), trigger: 'blur'}
+        ],
+        admin_password: [
+          {required: true, message: this.t('install.enterAdminPassword'), trigger: 'blur'},
+          {min: 8, message: this.t('install.passwordMinLength'), trigger: 'blur'}
+        ],
+        confirm_admin_password: [
+          {required: true, message: this.t('install.confirmAdminPassword'), trigger: 'blur'},
+          {min: 8, message: this.t('install.passwordMinLength'), trigger: 'blur'}
+        ]
+      }
+    },
     update_port (dbType) {
       this.form['db_port'] = this.default_ports[dbType]
       if (dbType === 'sqlite') {
@@ -161,19 +281,19 @@ export default {
       // 动态验证：非 SQLite 数据库需要验证主机名、端口、用户名和密码
       if (this.form.db_type !== 'sqlite') {
         if (!this.form.db_host) {
-          this.$message.error('请输入数据库主机名')
+          this.$message.error(this.t('install.enterDbHost'))
           return
         }
         if (!this.form.db_port) {
-          this.$message.error('请输入数据库端口')
+          this.$message.error(this.t('install.enterDbPort'))
           return
         }
         if (!this.form.db_username) {
-          this.$message.error('请输入数据库用户名')
+          this.$message.error(this.t('install.enterDbUser'))
           return
         }
         if (!this.form.db_password) {
-          this.$message.error('请输入数据库密码')
+          this.$message.error(this.t('install.enterDbPassword'))
           return
         }
       }
@@ -193,3 +313,60 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.install-header {
+  position: relative;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.language-switcher {
+  position: absolute;
+  top: 0;
+  right: 20px;
+}
+
+.language-selection {
+  padding: 20px 0;
+}
+
+.language-prompt {
+  text-align: center;
+  font-size: 14px;
+  color: #606266;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.language-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+}
+
+.language-button {
+  width: 280px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+.language-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.language-icon {
+  font-size: 24px;
+}
+
+.language-label {
+  font-weight: 500;
+}
+</style>

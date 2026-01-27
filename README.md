@@ -1,72 +1,72 @@
-# gocron - 分布式定时任务管理系统
+# gocron - Distributed Scheduled Task Management System
 
 [![Release](https://img.shields.io/github/release/gocronx-team/gocron.svg?label=Release)](https://github.com/gocronx-team/gocron/releases) [![Downloads](https://img.shields.io/github/downloads/gocronx-team/gocron/total.svg)](https://github.com/gocronx-team/gocron/releases) [![License](https://img.shields.io/github/license/gocronx-team/gocron.svg)](https://github.com/gocronx-team/gocron/blob/master/LICENSE)
 
-[English](README_EN.md) | 简体中文
+English | [简体中文](README_ZH.md)
 
-使用 Go 语言开发的轻量级分布式定时任务集中调度和管理系统，用于替代 Linux-crontab。
+A lightweight distributed scheduled task management system developed in Go, designed to replace Linux-crontab.
 
-## 📖 文档
+## 📖 Documentation
 
-访问完整文档请跳转：[文档](https://gocron-docs.pages.dev)
+Full documentation is available at: **[document](https://gocron-docs.pages.dev/en/)**
 
-- 🚀 [快速开始](https://gocron-docs.pages.dev/zh/guide/quick-start) - 安装部署指南
-- 🤖 [Agent 自动注册](https://gocron-docs.pages.dev/zh/guide/agent-registration) - 一键部署任务节点
-- ⚙️ [配置文件](https://gocron-docs.pages.dev/zh/guide/configuration) - 详细配置说明
-- 🔌 [API 文档](https://gocron-docs.pages.dev/zh/guide/api) - API 接口说明
+- 🚀 [Quick Start](https://gocron-docs.pages.dev/en/guide/quick-start) - Installation and deployment guide
+- 🤖 [Agent Auto-Registration](https://gocron-docs.pages.dev/en/guide/agent-registration) - One-click task node deployment
+- ⚙️ [Configuration](https://gocron-docs.pages.dev/en/guide/configuration) - Detailed configuration guide
+- 🔌 [API Documentation](https://gocron-docs.pages.dev/en/guide/api) - API reference
 
-## ✨ 功能特性
+## ✨ Features
 
-* **Web 界面管理**：直观的定时任务管理界面
-* **秒级定时**：支持 Crontab 时间表达式，精确到秒
-* **分布式架构**：Master-Worker 架构，支持多节点高可用
-* **任务重试**：支持任务执行失败重试设置
-* **任务依赖**：支持配置任务依赖关系
-* **多用户权限**：完善的用户和权限控制
-* **双因素认证**：支持 2FA，提升系统安全性
-* **Agent 自动注册**：支持 Linux/macOS 一键安装注册
-* **多数据库支持**：MySQL / PostgreSQL / SQLite
-* **日志管理**：完整的任务执行日志，支持自动清理
-* **消息通知**：支持邮件、Slack、Webhook 等多种通知方式
+* **Web Interface**: Intuitive task management interface
+* **Second-level Precision**: Supports Crontab expressions with second precision
+* **Distributed Architecture**: Master-Worker architecture, high availability
+* **Task Retry**: Configurable retry policies for failed tasks
+* **Task Dependency**: Supports task dependency configuration
+* **Access Control**: Comprehensive user and permission management
+* **2FA Security**: Two-Factor Authentication support
+* **Agent Auto-Registration**: One-click installation for Linux/macOS
+* **Multi-Database**: MySQL / PostgreSQL / SQLite support
+* **Log Management**: Complete execution logs with auto-cleanup
+* **Notifications**: Email, Slack, Webhook support
 
-## 🚀 快速开始 (Docker)
+## 🚀 Quick Start (Docker)
 
-最简单的部署方式是使用 Docker Compose：
+The easiest way to deploy is using Docker Compose:
 
 ```bash
-# 1. 克隆项目
+# 1. Clone the project
 git clone https://github.com/gocronx-team/gocron.git
 cd gocron
 
-# 2. 启动服务
+# 2. Start services
 docker-compose up -d
 
-# 3. 访问 Web 界面
+# 3. Access Web Interface
 # http://localhost:5920
 ```
 
-更多部署方式（二进制部署、开发环境）请查看 [安装部署指南](https://gocron-docs.pages.dev/zh/guide/quick-start)。
+For more deployment methods (Binary, Development), please refer to the [Installation Guide](https://gocron-docs.pages.dev/en/guide/quick-start).
 
-## 📸 界面截图
+## 📸 Screenshots
 
-![任务调度](assets/screenshot/scheduler.png)
+![Scheduled Tasks](assets/screenshot/scheduler_en.png)
 
-![Agent自动注册](assets/screenshot/agent.png)
+![Agent Auto-Registration](assets/screenshot/agent_en.png)
 
-![Agent自动注册](assets/screenshot/task.png)
+![Task Management](assets/screenshot/task_en.png)
 
-![Agent自动注册](assets/screenshot/notification.png)
+![Notifications](assets/screenshot/notification_en.png)
 
-## 🤝 贡献
+## 🤝 Contributing
 
-我们非常欢迎社区的贡献！
+We warmly welcome community contributions!
 
-- 🐛 **提交 Bug**：请在 GitHub Issues 中提交
-- 💡 **提交代码**：请遵循 [贡献指南](https://gocron-docs.pages.dev/zh/guide/contributing) 提交 PR
+- 🐛 **Report Bugs**: Please submit via GitHub Issues
+- 💡 **Submit Code**: Please follow the [Contributing Guide](https://gocron-docs.pages.dev/en/guide/contributing) to submit PRs
 
-## 📄 许可证
+## 📄 License
 
-本项目遵循 MIT 许可证。详情请见 [LICENSE](LICENSE) 文件。
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Star History
 
