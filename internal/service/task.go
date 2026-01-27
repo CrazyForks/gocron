@@ -324,10 +324,10 @@ func (h *RPCHandler) Run(taskModel models.Task, taskUniqueId int64) (result stri
 			if errorMessage != "" {
 				errorMessage = strings.TrimSpace(errorMessage) + "\n"
 			}
-			outputMessage := fmt.Sprintf("主机: [%s-%s:%d]\n%s%s",
+			outputMessage := fmt.Sprintf("Host: [%s-%s:%d]\n%s%s",
 				th.Alias, th.Name, th.Port, errorMessage, output,
 			)
-			logger.Infof("RPC调用完成#主机-%s:%d#输出长度-%d#错误-%v", th.Name, th.Port, len(output), err)
+			logger.Infof("RPC调用完成#Host-%s:%d#输出长度-%d#错误-%v", th.Name, th.Port, len(output), err)
 			resultChan <- TaskResult{Err: err, Result: outputMessage}
 		}(taskHost)
 	}

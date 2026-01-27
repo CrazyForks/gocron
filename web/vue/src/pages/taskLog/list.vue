@@ -169,10 +169,16 @@
         </el-table-column>
       </el-table>
       <el-dialog :title="t('message.taskExecutionResult')" v-model="dialogVisible" width="60%">
+        <div v-if="currentTaskResult.hostname">
+          <strong>{{ t('taskLog.host') }}:</strong>
+          <pre v-html="currentTaskResult.hostname"></pre>
+        </div>
         <div>
+          <strong>{{ t('task.command') }}:</strong>
           <pre>{{ currentTaskResult.command }}</pre>
         </div>
         <div>
+          <strong>{{ t('taskLog.output') }}:</strong>
           <pre>{{ currentTaskResult.result }}</pre>
         </div>
       </el-dialog>
@@ -209,6 +215,7 @@ export default {
       isAdmin: userStore.isAdmin,
       dialogVisible: false,
       currentTaskResult: {
+        hostname: '',
         command: '',
         result: ''
       },
@@ -318,6 +325,7 @@ export default {
           .replace(/&gt;/g, '>')
           .replace(/&amp;/g, '&')
       }
+      this.currentTaskResult.hostname = item.hostname || ''
       this.currentTaskResult.command = cleanedCommand
       this.currentTaskResult.result = item.result
     },

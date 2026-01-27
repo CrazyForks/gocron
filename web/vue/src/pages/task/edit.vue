@@ -482,11 +482,8 @@ export default {
         if (this.$refs.form) {
           this.$refs.form.clearValidate('notify_keyword')
         }
-      } else if (this.$refs.form) {
-        this.$nextTick(() => {
-          this.$refs.form && this.$refs.form.validateField('notify_keyword')
-        })
       }
+      // 移除主动验证，只在用户交互时才验证
     },
     updateSpecRule () {
       const specRules = this.formRules.spec
@@ -497,11 +494,8 @@ export default {
       specRules[0].required = needSpec
       if (!needSpec && this.$refs.form) {
         this.$refs.form.clearValidate('spec')
-      } else if (needSpec && this.$refs.form) {
-        this.$nextTick(() => {
-          this.$refs.form && this.$refs.form.validateField('spec')
-        })
       }
+      // 移除主动验证，只在用户交互时才验证
     },
     validateHostIds (rule, value, callback) {
       if (Number(this.form.protocol) === 2 && (!value || value.length === 0)) {

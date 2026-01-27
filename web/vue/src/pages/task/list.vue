@@ -127,9 +127,10 @@
       <el-table-column
         prop="spec"
         :label="t('task.cronExpression')"
-      width="120">
+        width="150"
+        class-name="no-wrap-header">
       </el-table-column>
-      <el-table-column :label="t('task.nextRunTime')" width="160">
+      <el-table-column :label="t('task.nextRunTime')" width="180" class-name="no-wrap-header">
         <template #default="scope">
           {{ $filters.formatTime(scope.row.next_run_time) }}
         </template>
@@ -137,7 +138,9 @@
       <el-table-column
         prop="protocol"
         :formatter="formatProtocol"
-        :label="t('task.protocol')">
+        :label="t('task.protocol')"
+        width="140"
+        class-name="no-wrap-header">
       </el-table-column>
       <el-table-column
         :label="t('common.status')" v-if="isAdmin">
@@ -452,4 +455,20 @@ export default {
     width: 50%;
   }
 
+  /* 防止表头文字换行 */
+  :deep(.no-wrap-header .cell) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* 表头文字居中对齐 */
+  :deep(.el-table th .cell) {
+    text-align: center;
+  }
+
+  /* 表格内容居中对齐 */
+  :deep(.el-table td .cell) {
+    text-align: center;
+  }
 </style>

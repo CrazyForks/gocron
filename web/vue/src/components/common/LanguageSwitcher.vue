@@ -24,7 +24,9 @@ import { availableLanguages } from '@/const/index'
 const { locale } = useI18n()
 
 const currentLanguage = computed(() => {
-  return availableLanguages[locale.value] || availableLanguages.zhCN.label
+  // 根据 locale.value 查找对应的语言标签
+  const lang = Object.values(availableLanguages).find(l => l.value === locale.value)
+  return lang ? lang.label : availableLanguages.zhCN.label
 })
 
 const handleCommand = command => {
