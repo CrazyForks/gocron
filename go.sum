@@ -40,6 +40,8 @@ github.com/gocronx-team/cron v0.0.0-20251030173627-9a49493abdf5 h1:Ef4f3E1ilbPrR
 github.com/gocronx-team/cron v0.0.0-20251030173627-9a49493abdf5/go.mod h1:HqYzaybMPpKERqcHeuVBO3IGyA+n7fVmRlowQ/uDfyw=
 github.com/gocronx-team/cron v0.0.0-20260120161724-75c065182ba5 h1:Ro++Njhol4CJRuPrPtvAx0qyCfeFL5PAWU4pb2o3f70=
 github.com/gocronx-team/cron v0.0.0-20260120161724-75c065182ba5/go.mod h1:HqYzaybMPpKERqcHeuVBO3IGyA+n7fVmRlowQ/uDfyw=
+github.com/gocronx-team/cron v0.1.0 h1:gjJ31bzRakRR2RKJqfgsqIxSx3WhGOqG6ztEOWPqIhc=
+github.com/gocronx-team/cron v0.1.0/go.mod h1:HqYzaybMPpKERqcHeuVBO3IGyA+n7fVmRlowQ/uDfyw=
 github.com/golang-jwt/jwt/v5 v5.2.2 h1:Rl4B7itRWVtYIHFrSNd7vhTiz9UpLdi6gZhZ3wEeDy8=
 github.com/golang-jwt/jwt/v5 v5.2.2/go.mod h1:pqrtFR0X4osieyHYxtmOUWsAWrfe1Q5UVIyoH402zdk=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
