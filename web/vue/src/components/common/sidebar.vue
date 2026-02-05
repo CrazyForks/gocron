@@ -1,7 +1,7 @@
 <template>
   <el-aside width="200px" class="global-sidebar">
     <div class="sidebar-header">
-      <h2 class="app-title">GoCron</h2>
+      <h2 class="app-title">gocron</h2>
     </div>
     
     <el-menu
@@ -122,8 +122,8 @@ const currentRoute = computed(() => {
 }
 
 .sidebar-header {
-  padding: 20px;
-  text-align: center;
+  padding: 20px 20px 20px 32px;
+  text-align: left;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -173,10 +173,21 @@ const currentRoute = computed(() => {
 /* 子菜单样式 */
 :deep(.el-sub-menu__title) {
   color: #bfcbd9 !important;
+  display: flex;
+  align-items: center;
+  padding-left: 20px !important;
+  padding-right: 40px !important;
 }
 
 :deep(.el-sub-menu__title:hover) {
   background-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+:deep(.el-menu-item) {
+  display: flex;
+  align-items: center;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
 }
 
 :deep(.el-menu-item:hover) {
@@ -185,5 +196,35 @@ const currentRoute = computed(() => {
 
 :deep(.el-menu-item.is-active) {
   background-color: rgba(64, 158, 255, 0.2) !important;
+}
+
+/* 确保图标和文字垂直居中 */
+:deep(.el-icon) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+:deep(.el-sub-menu__title span),
+:deep(.el-menu-item span) {
+  vertical-align: middle;
+  line-height: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 子菜单的子项增加缩进 */
+:deep(.el-menu--inline .el-menu-item) {
+  padding-left: 48px !important;
+}
+
+/* 确保展开箭头不被遮挡 */
+:deep(.el-sub-menu__icon-arrow) {
+  margin-left: auto !important;
+  flex-shrink: 0;
 }
 </style>
