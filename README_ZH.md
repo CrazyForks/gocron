@@ -49,13 +49,32 @@ docker-compose up -d
 
 ## 📸 界面截图
 
-![任务调度](assets/screenshot/scheduler.png)
+<p align="center">
+  <b>任务调度</b><br>
+  <img src="assets/screenshot/scheduler.png" alt="任务调度" width="100%">
+</p>
 
-![Agent自动注册](assets/screenshot/agent.png)
+<table>
+  <tr>
+    <td width="50%" align="center"><b>Agent自动注册</b></td>
+    <td width="50%" align="center"><b>任务管理</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshot/agent.png" alt="Agent自动注册" width="100%"></td>
+    <td><img src="assets/screenshot/task.png" alt="任务管理" width="100%"></td>
+  </tr>
+</table>
 
-![任务管理](assets/screenshot/task.png)
-
-![消息通知](assets/screenshot/notification.png)
+<table>
+  <tr>
+    <td width="50%" align="center"><b>数据统计</b></td>
+    <td width="50%" align="center"><b>消息通知</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshot/statistic.png" alt="数据统计" width="100%"></td>
+    <td><img src="assets/screenshot/notification.png" alt="消息通知" width="100%"></td>
+  </tr>
+</table>
 
 ## 🤝 贡献
 

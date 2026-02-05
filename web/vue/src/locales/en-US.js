@@ -148,6 +148,7 @@ export default {
     confirmPassword: 'Confirm Password',
     oldPassword: 'Old Password',
     newPassword: 'New Password',
+    confirmNewPassword: 'Confirm New Password',
     createNew: 'Add User',
     changePassword: 'Change Password',
     usernamePlaceholder: 'Please enter username',

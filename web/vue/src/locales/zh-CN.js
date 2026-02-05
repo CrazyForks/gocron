@@ -148,6 +148,7 @@ export default {
     confirmPassword: '确认密码',
     oldPassword: '旧密码',
     newPassword: '新密码',
+    confirmNewPassword: '确认新密码',
     createNew: '新增用户',
     changePassword: '修改密码',
     usernamePlaceholder: '请输入用户名',
