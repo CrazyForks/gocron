@@ -49,13 +49,32 @@ For more deployment methods (Binary, Development), please refer to the [Installa
 
 ## 📸 Screenshots
 
-![Scheduled Tasks](assets/screenshot/scheduler_en.png)
+<p align="center">
+  <b>Scheduled Tasks</b><br>
+  <img src="assets/screenshot/scheduler_en.png" alt="Scheduled Tasks" width="100%">
+</p>
 
-![Agent Auto-Registration](assets/screenshot/agent_en.png)
+<table>
+  <tr>
+    <td width="50%" align="center"><b>Agent Auto-Registration</b></td>
+    <td width="50%" align="center"><b>Task Management</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshot/agent_en.png" alt="Agent Auto-Registration" width="100%"></td>
+    <td><img src="assets/screenshot/task_en.png" alt="Task Management" width="100%"></td>
+  </tr>
+</table>
 
-![Task Management](assets/screenshot/task_en.png)
-
-![Notifications](assets/screenshot/notification_en.png)
+<table>
+  <tr>
+    <td width="50%" align="center"><b>Statistics</b></td>
+    <td width="50%" align="center"><b>Notifications</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshot/statistic_en.png" alt="Statistics" width="100%"></td>
+    <td><img src="assets/screenshot/notification_en.png" alt="Notifications" width="100%"></td>
+  </tr>
+</table>
 
 ## 🤝 Contributing
 

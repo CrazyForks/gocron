@@ -1,7 +1,7 @@
 <template>
-  <el-container>
-    <el-main>
-      <el-form ref="form" :model="form" :rules="formRules" label-width="auto" style="width: 500px;">
+  <el-main>
+    <div class="form-container">
+      <el-form ref="form" :model="form" :rules="formRules" label-width="140px" label-position="left" class="user-form">
         <el-form-item>
           <el-input v-model="form.id" type="hidden"></el-input>
         </el-form-item>
@@ -19,25 +19,27 @@
             <el-input v-model="form.confirm_password" type="password" :placeholder="t('user.passwordPlaceholder')"></el-input>
           </el-form-item>
         </template>
-        <el-form-item :label="t('user.role')" prop="is_admin">
+        <el-form-item :label="t('user.role')" prop="is_admin" required>
           <el-radio-group v-model="form.is_admin">
             <el-radio :label="0">{{ t('user.normalUser') }}</el-radio>
             <el-radio :label="1">{{ t('user.admin') }}</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="t('common.status')" prop="status">
+        <el-form-item :label="t('common.status')" prop="status" required>
           <el-radio-group v-model="form.status">
             <el-radio :label="1">{{ t('common.enabled') }}</el-radio>
             <el-radio :label="0">{{ t('common.disabled') }}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="submit()">{{ t('common.save') }}</el-button>
-          <el-button @click="cancel">{{ t('common.cancel') }}</el-button>
+          <div class="button-group">
+            <el-button type="primary" @click="submit()">{{ t('common.save') }}</el-button>
+            <el-button @click="cancel">{{ t('common.cancel') }}</el-button>
+          </div>
         </el-form-item>
       </el-form>
-    </el-main>
-  </el-container>
+    </div>
+  </el-main>
 </template>
 
 <script>
@@ -126,3 +128,34 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.form-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.user-form {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.user-form :deep(.el-form-item:last-child) {
+  margin-bottom: 0;
+}
+
+.user-form :deep(.el-form-item:last-child .el-form-item__content) {
+  margin-left: 0 !important;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  width: 100%;
+}
+</style>

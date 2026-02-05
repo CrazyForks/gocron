@@ -23,10 +23,10 @@ export default {
     date: 'Date'
   },
   nav: {
-    taskManage: 'Task Management',
-    taskNode: 'Task Node',
-    userManage: 'User Management',
-    systemManage: 'System Management',
+    taskManage: 'Tasks',
+    taskNode: 'Nodes',
+    userManage: 'Users',
+    systemManage: 'System',
     statistics: 'Statistics',
     logout: 'Logout',
     changePassword: 'Change Password',
@@ -46,7 +46,7 @@ export default {
     verifyCodeRequired: 'Please enter 2FA code'
   },
   task: {
-    list: 'Scheduled Tasks',
+    list: 'Task List',
     log: 'Task Log',
     id: 'Task ID',
     name: 'Task Name',
@@ -148,6 +148,7 @@ export default {
     confirmPassword: 'Confirm Password',
     oldPassword: 'Old Password',
     newPassword: 'New Password',
+    confirmNewPassword: 'Confirm New Password',
     createNew: 'Add User',
     changePassword: 'Change Password',
     usernamePlaceholder: 'Please enter username',
