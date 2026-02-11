@@ -207,14 +207,11 @@ fi
 # 生成 release notes
 cat > /tmp/release_notes.md <<EOF
 
-fix:token timeout #73
-fix:resolve race condition in single-instance task execution #66
-fix: some fields may change unexpectedly on the first edit after task creation #63
-fix:incorrect options in the task log status filter dropdown menu #57
-feat:optimize shell execution by running commands via a temporary script #60
-feat(web): adapt to i18n changes #45
-refactor: reduce dependencies and enhance security
-
+refactor(web): sidebar by @gocronx #93
+feat: add statistics dashboard with 7-day execution trends and analytics by @gocronx in #91
+feat: the default timeout for new tasks is set to 3600 seconds by foecmke in #81
+feat(i18n): English and Chinese support by @gocronx
+feat: upgrade cron version (30%+ performance boost) by @gocronx
 
 EOF
 
