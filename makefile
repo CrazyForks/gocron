@@ -94,20 +94,47 @@ package-all: build-web
 .PHONY: build-vue
 build-vue:
 	@echo "Installing Vue dependencies..."
-	cd web/vue && yarn install
+	@if [ -f web/vue/pnpm-lock.yaml ]; then \
+		echo "Using pnpm..."; \
+		cd web/vue && pnpm install; \
+	elif [ -f web/vue/yarn.lock ]; then \
+		echo "Using yarn..."; \
+		cd web/vue && yarn install; \
+	else \
+		echo "Using npm..."; \
+		cd web/vue && npm install; \
+	fi
 	@echo "Building Vue frontend..."
-	cd web/vue && yarn run build
+	@if [ -f web/vue/pnpm-lock.yaml ]; then \
+		cd web/vue && pnpm run build; \
+	elif [ -f web/vue/yarn.lock ]; then \
+		cd web/vue && yarn run build; \
+	else \
+		cd web/vue && npm run build; \
+	fi
 	@echo "✅ Vue build complete! Files will be embedded during Go build."
 
 .PHONY: install-vue
 install-vue:
 	@echo "Installing Vue dependencies..."
-	cd web/vue && yarn install
+	@if [ -f web/vue/pnpm-lock.yaml ]; then \
+		cd web/vue && pnpm install; \
+	elif [ -f web/vue/yarn.lock ]; then \
+		cd web/vue && yarn install; \
+	else \
+		cd web/vue && npm install; \
+	fi
 
 .PHONY: run-vue
 run-vue:
 	@echo "Starting Vue dev server..."
-	cd web/vue && yarn run dev
+	@if [ -f web/vue/pnpm-lock.yaml ]; then \
+		cd web/vue && pnpm run dev; \
+	elif [ -f web/vue/yarn.lock ]; then \
+		cd web/vue && yarn run dev; \
+	else \
+		cd web/vue && npm run dev; \
+	fi
 
 .PHONY: build-web
 build-web: build-vue

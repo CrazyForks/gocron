@@ -104,8 +104,22 @@ echo ""
 # 2. 构建前端
 echo "2. Building frontend..."
 cd web/vue
-yarn install --frozen-lockfile
-yarn run build
+
+# 检测使用哪个包管理器
+if [ -f "pnpm-lock.yaml" ]; then
+    echo "Using pnpm..."
+    pnpm install --frozen-lockfile
+    pnpm run build
+elif [ -f "yarn.lock" ]; then
+    echo "Using yarn..."
+    yarn install --frozen-lockfile
+    yarn run build
+else
+    echo "Using npm..."
+    npm ci
+    npm run build
+fi
+
 cd ../..
 echo "✓ Frontend built (output: web/vue/dist/)"
 echo ""
