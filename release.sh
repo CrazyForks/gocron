@@ -223,7 +223,7 @@ cat > /tmp/release_notes.md <<EOF
 
 refactor(web): sidebar by @gocronx #93
 feat: add statistics dashboard with 7-day execution trends and analytics by @gocronx in #91
-feat: the default timeout for new tasks is set to 3600 seconds by foecmke in #81
+feat: the default timeout for new tasks is set to 3600 seconds by @foecmke in #81
 feat(i18n): English and Chinese support by @gocronx
 feat: upgrade cron version (30%+ performance boost) by @gocronx
 
