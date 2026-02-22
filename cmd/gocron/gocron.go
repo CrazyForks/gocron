@@ -3,10 +3,14 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -25,8 +29,11 @@ var (
 	BuildDate, GitCommit string
 )
 
-// web服务器默认端口
+// Default port for web server
 const DefaultPort = 5920
+
+// Graceful shutdown timeout
+const shutdownTimeout = 30 * time.Second
 
 func main() {
 	cliApp := cli.NewApp()
@@ -36,7 +43,7 @@ func main() {
 	cliApp.Commands = getCommands()
 	cliApp.Flags = append(cliApp.Flags, []cli.Flag{}...)
 
-	// Windows下双击运行时自动添加web命令
+	// Auto-append "web" command when double-clicking on Windows
 	if len(os.Args) == 1 && utils.IsWindows() {
 		os.Args = append(os.Args, "web")
 	}
@@ -78,31 +85,43 @@ func getCommands() []*cli.Command {
 }
 
 func runWeb(ctx *cli.Context) error {
-	// 设置运行环境
+	// Set runtime environment
 	setEnvironment(ctx)
 	fmt.Printf("Starting gocron web server...\n")
-	// 初始化应用
+	// Initialize application
 	app.InitEnv(AppVersion)
 	fmt.Printf("Application initialized\n")
-	// 初始化模块 DB、定时任务等
+	// Initialize modules: DB, scheduled tasks, etc.
 	initModule()
 	fmt.Printf("Modules initialized\n")
-	// 捕捉信号,配置热更新等
-	go catchSignal()
+
 	r := gin.Default()
-	// 注册中间件
+	// Register middleware
 	routers.RegisterMiddleware(r)
-	// 注册路由
+	// Register routes
 	routers.Register(r)
+
 	host := parseHost(ctx)
 	port := parsePort(ctx)
 	addr := fmt.Sprintf("%s:%d", host, port)
-	fmt.Printf("Starting server on %s\n", addr)
-	err := r.Run(addr)
-	if err != nil {
-		fmt.Printf("Failed to start server: %v\n", err)
-		logger.Fatal("Failed to start server", err)
+
+	// Use http.Server to support graceful shutdown
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: r,
 	}
+
+	// Start HTTP server in a goroutine
+	go func() {
+		fmt.Printf("Server listening on %s\n", addr)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Fatalf("Failed to start server: %v", err)
+		}
+	}()
+
+	// Wait for shutdown signal, blocks the main goroutine
+	waitForShutdown(srv)
+
 	return nil
 }
 
@@ -113,29 +132,29 @@ func initModule() {
 
 	config, err := setting.Read(app.AppConfig)
 	if err != nil {
-		logger.Fatal("读取应用配置失败", err)
+		logger.Fatal("Failed to read application config", err)
 	}
 	app.Setting = config
 
-	// 初始化DB
+	// Initialize DB
 	models.Db = models.CreateDb()
 
-	// 版本升级
+	// Version upgrade
 	upgradeIfNeed()
 
-	// 自动创建缺失的表
+	// Auto-create missing tables
 	ensureTables()
 
-	// 修复缺失的配置记录
+	// Repair missing settings records
 	if err := models.RepairSettings(); err != nil {
-		logger.Error("修复配置记录失败", err)
+		logger.Error("Failed to repair settings records", err)
 	}
 
-	// 初始化定时任务
+	// Initialize scheduled tasks
 	service.ServiceTask.Initialize()
 }
 
-// 解析端口
+// parsePort parses the port from CLI flags
 func parsePort(ctx *cli.Context) int {
 	port := DefaultPort
 	if ctx.IsSet("port") {
@@ -172,43 +191,81 @@ func setEnvironment(ctx *cli.Context) {
 	}
 }
 
-// 捕捉信号
-func catchSignal() {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)
+// waitForShutdown waits for OS signals and performs graceful shutdown
+func waitForShutdown(srv *http.Server) {
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM)
+
 	for {
-		s := <-c
+		s := <-quit
 		logger.Info("Received signal -- ", s)
 		switch s {
 		case syscall.SIGHUP:
 			logger.Info("Received terminal disconnect signal, ignoring")
+			continue
 		case syscall.SIGINT, syscall.SIGTERM:
-			shutdown()
+			// Proceed to graceful shutdown
 		}
+		break
 	}
-}
 
-// 应用退出
-func shutdown() {
-	defer func() {
-		logger.Info("Exited")
-		logger.Close() // 确保日志刷新
-		os.Exit(0)
+	logger.Info("Shutting down gracefully, press Ctrl+C again to force exit...")
+
+	// Allow forced exit: immediately exit on receiving another signal
+	go func() {
+		forceQuit := make(chan os.Signal, 1)
+		signal.Notify(forceQuit, syscall.SIGINT, syscall.SIGTERM)
+		<-forceQuit
+		logger.Warn("Forced shutdown")
+		os.Exit(1)
 	}()
 
-	if !app.Installed {
-		return
+	// Step 1: Stop HTTP server, reject new requests, wait for in-flight requests to complete
+	logger.Info("Step 1/3: Stopping HTTP server (waiting for in-flight requests)...")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		logger.Errorf("HTTP server shutdown error: %v", err)
+	} else {
+		logger.Info("HTTP server stopped successfully")
 	}
-	logger.Info("Application preparing to exit")
-	// 停止所有任务调度
-	logger.Info("Stopping scheduled task scheduler")
-	service.ServiceTask.WaitAndExit()
+
+	// Step 2: Stop scheduled task scheduler, wait for running tasks to complete
+	if app.Installed {
+		logger.Info("Step 2/3: Stopping scheduled task scheduler (waiting for running tasks)...")
+		service.ServiceTask.WaitAndExit()
+		logger.Info("Scheduled task scheduler stopped")
+
+		// Step 3: Close database connections
+		logger.Info("Step 3/3: Closing database connections...")
+		closeDatabase()
+		logger.Info("Database connections closed")
+	}
+
+	logger.Info("Graceful shutdown completed")
+	logger.Close()
 }
 
-// 判断应用是否需要升级, 当存在版本号文件且版本小于app.VersionId时升级
+// closeDatabase closes the database connection pool
+func closeDatabase() {
+	if models.Db == nil {
+		return
+	}
+	sqlDB, err := models.Db.DB()
+	if err != nil {
+		logger.Errorf("Failed to get database connection for closing: %v", err)
+		return
+	}
+	if err := sqlDB.Close(); err != nil {
+		logger.Errorf("Failed to close database connection: %v", err)
+	}
+}
+
+// upgradeIfNeed checks if the app needs upgrading when version file exists and version < app.VersionId
 func upgradeIfNeed() {
 	currentVersionId := app.GetCurrentVersionId()
-	// 没有版本号文件
+	// No version file found
 	if currentVersionId == 0 {
 		return
 	}
@@ -217,22 +274,22 @@ func upgradeIfNeed() {
 	}
 
 	migration := new(models.Migration)
-	logger.Infof("版本升级开始, 当前版本号%d", currentVersionId)
+	logger.Infof("Starting version upgrade, current version: %d", currentVersionId)
 
 	migration.Upgrade(currentVersionId)
 	app.UpdateVersionFile()
 
-	logger.Infof("已升级到最新版本%d", app.VersionId)
+	logger.Infof("Upgraded to latest version: %d", app.VersionId)
 }
 
-// 确保所有表都存在
+// ensureTables ensures all required tables exist
 func ensureTables() {
 	if !models.Db.Migrator().HasTable(&models.AgentToken{}) {
-		logger.Info("检测到agent_token表不存在，开始创建...")
+		logger.Info("agent_token table not found, creating...")
 		if err := models.Db.AutoMigrate(&models.AgentToken{}); err != nil {
-			logger.Error("创建agent_token表失败", err)
+			logger.Error("Failed to create agent_token table", err)
 		} else {
-			logger.Info("agent_token表创建成功")
+			logger.Info("agent_token table created successfully")
 		}
 	}
 }
