@@ -215,16 +215,23 @@ func RegisterMiddleware(r *gin.Engine) {
 	r.Use(urlAuth)
 }
 
-// region 自定义中间件
+// region Custom middleware
 
-/** 检测应用是否已安装 **/
+// isStaticFileRequest checks if the request is for a static file (non-API path).
+// Static files are served via NoRoute handler and never match registered API routes.
+func isStaticFileRequest(path string) bool {
+	return !strings.HasPrefix(path, urlPrefix+"/") && !strings.HasPrefix(path, "/v1/")
+}
+
+// checkAppInstall verifies the application has been installed.
 func checkAppInstall(c *gin.Context) {
 	if app.Installed {
 		c.Next()
 		return
 	}
 	path := c.Request.URL.Path
-	if strings.HasPrefix(path, "/api/install") || path == "/" || strings.HasPrefix(path, "/static") || strings.HasSuffix(path, ".js") || strings.HasSuffix(path, ".css") {
+	// Allow install API, root page, and static files before installation
+	if strings.HasPrefix(path, "/api/install") || isStaticFileRequest(path) {
 		c.Next()
 		return
 	}
@@ -258,7 +265,7 @@ func ipAuth(c *gin.Context) {
 	c.Abort()
 }
 
-// 用户认证
+// userAuth authenticates the user for API requests.
 func userAuth(c *gin.Context) {
 	if !app.Installed {
 		c.Next()
@@ -266,8 +273,8 @@ func userAuth(c *gin.Context) {
 	}
 
 	path := c.Request.URL.Path
-	// 静态文件直接放行
-	if strings.HasSuffix(path, ".js") || strings.HasSuffix(path, ".css") || strings.HasSuffix(path, ".png") || strings.HasSuffix(path, ".jpg") || strings.HasSuffix(path, ".svg") {
+	// Static files (non-API paths) don't require authentication
+	if isStaticFileRequest(path) {
 		c.Next()
 		return
 	}
@@ -314,7 +321,7 @@ func userAuth(c *gin.Context) {
 	c.Next()
 }
 
-// URL权限验证
+// urlAuth checks URL-level permissions (admin vs normal user).
 func urlAuth(c *gin.Context) {
 	if !app.Installed {
 		c.Next()
@@ -322,8 +329,8 @@ func urlAuth(c *gin.Context) {
 	}
 
 	path := c.Request.URL.Path
-	// 静态文件直接放行
-	if strings.HasSuffix(path, ".js") || strings.HasSuffix(path, ".css") || strings.HasSuffix(path, ".png") || strings.HasSuffix(path, ".jpg") || strings.HasSuffix(path, ".svg") {
+	// Static files (non-API paths) don't require permission checks
+	if isStaticFileRequest(path) {
 		c.Next()
 		return
 	}
