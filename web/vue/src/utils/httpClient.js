@@ -3,6 +3,7 @@ import { ElMessage } from 'element-plus'
 import router from '../router/index'
 import { useUserStore } from '../stores/user'
 import qs from 'qs'
+import NProgress from '@/utils/progress'
 
 const getLocale = () => localStorage.getItem('locale') || 'zh-CN'
 
@@ -21,7 +22,7 @@ const messages = {
   }
 }
 
-const t = (key) => {
+const t = key => {
   const locale = getLocale()
   return messages[locale]?.[key] || messages['zh-CN'][key]
 }
@@ -35,62 +36,72 @@ const APP_NOT_INSTALL_CODE = 801
 axios.defaults.baseURL = '/api'
 axios.defaults.timeout = 30000
 axios.defaults.responseType = 'json'
-axios.interceptors.request.use(config => {
-  const userStore = useUserStore()
-  config.headers['Auth-Token'] = userStore.token
-  config.headers['Accept-Language'] = localStorage.getItem('locale') || 'zh-CN'
-  return config
-}, error => {
-  ElMessage.error({
-    message: t('loadFailed')
-  })
-
-  return Promise.reject(error)
-})
-
-axios.interceptors.response.use(data => {
-  // 检查是否有新的 token
-  const newToken = data.headers['new-auth-token']
-  if (newToken) {
+axios.interceptors.request.use(
+  config => {
+    NProgress.start()
     const userStore = useUserStore()
-    userStore.token = newToken
-  }
-  return data
-}, error => {
-  // 处理超时
-  if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
+    config.headers['Auth-Token'] = userStore.token
+    config.headers['Accept-Language'] = localStorage.getItem('locale') || 'zh-CN'
+    return config
+  },
+  error => {
     ElMessage.error({
-      message: t('requestTimeout')
+      message: t('loadFailed')
     })
+
     return Promise.reject(error)
   }
-  
-  // 处理认证失败
-  if (error.response && error.response.status === 401) {
-    const userStore = useUserStore()
-    userStore.token = ''
-    ElMessage.warning({
-      message: t('authExpired')
+)
+
+axios.interceptors.response.use(
+  data => {
+    NProgress.done()
+    // 检查是否有新的 token
+    const newToken = data.headers['new-auth-token']
+    if (newToken) {
+      const userStore = useUserStore()
+      userStore.token = newToken
+    }
+    return data
+  },
+  error => {
+    NProgress.done()
+    // 处理超时
+    if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
+      ElMessage.error({
+        message: t('requestTimeout')
+      })
+      return Promise.reject(error)
+    }
+
+    // 处理认证失败
+    if (error.response && error.response.status === 401) {
+      const userStore = useUserStore()
+      userStore.token = ''
+      ElMessage.warning({
+        message: t('authExpired')
+      })
+      setTimeout(() => {
+        window.location.href = '/'
+      }, 500)
+      return Promise.reject(error)
+    }
+
+    ElMessage.error({
+      message: t('loadFailed')
     })
-    setTimeout(() => {
-      window.location.href = '/'
-    }, 500)
+
     return Promise.reject(error)
   }
-  
-  ElMessage.error({
-    message: t('loadFailed')
-  })
+)
 
-  return Promise.reject(error)
-})
-
-function handle (promise, next, errorCallback) {
-  promise.then((res) => successCallback(res, next, errorCallback))
-    .catch((error) => failureCallback(error))
+function handle(promise, next, errorCallback) {
+  promise
+    .then(res => successCallback(res, next, errorCallback))
+    .catch(error => failureCallback(error))
 }
 
-function checkResponseCode (code, msg) {
+function checkResponseCode(code, msg) {
   switch (code) {
     // 应用未安装
     case APP_NOT_INSTALL_CODE:
@@ -118,7 +129,7 @@ function checkResponseCode (code, msg) {
   return true
 }
 
-function successCallback (res, next, errorCallback) {
+function successCallback(res, next, errorCallback) {
   if (res.data.code !== SUCCESS_CODE) {
     if (errorCallback) {
       errorCallback(res.data.code, res.data.message)
@@ -134,7 +145,7 @@ function successCallback (res, next, errorCallback) {
   next(res.data.data, res.data.code, res.data.message)
 }
 
-function failureCallback (error) {
+function failureCallback(error) {
   // 避免重复提示（已在 interceptor 中处理）
   if (error.response && error.response.status === 401) {
     return
@@ -148,34 +159,36 @@ function failureCallback (error) {
 }
 
 export default {
-  get (uri, params, next) {
-    const promise = axios.get(uri, {params})
+  get(uri, params, next) {
+    const promise = axios.get(uri, { params })
     handle(promise, next)
   },
 
-  batchGet (uriGroup, next) {
+  batchGet(uriGroup, next) {
     const requests = []
     for (let item of uriGroup) {
       let params = {}
       if (item.params !== undefined) {
         params = item.params
       }
-      requests.push(axios.get(item.uri, {params}))
+      requests.push(axios.get(item.uri, { params }))
     }
 
-    Promise.all(requests).then(function (res) {
-      const result = []
-      for (let item of res) {
-        if (!checkResponseCode(item.data.code, item.data.message)) {
-          return
+    Promise.all(requests)
+      .then(function (res) {
+        const result = []
+        for (let item of res) {
+          if (!checkResponseCode(item.data.code, item.data.message)) {
+            return
+          }
+          result.push(item.data.data)
         }
-        result.push(item.data.data)
-      }
-      next(...result)
-    }).catch((error) => failureCallback(error))
+        next(...result)
+      })
+      .catch(error => failureCallback(error))
   },
 
-  post (uri, data, next, errorCallback) {
+  post(uri, data, next, errorCallback) {
     const promise = axios.post(uri, qs.stringify(data), {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -184,7 +197,7 @@ export default {
     handle(promise, next, errorCallback)
   },
 
-  postJson (uri, data, next, errorCallback) {
+  postJson(uri, data, next, errorCallback) {
     const promise = axios.post(uri, data, {
       headers: {
         'Content-Type': 'application/json'
