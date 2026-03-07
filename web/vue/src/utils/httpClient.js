@@ -45,6 +45,7 @@ axios.interceptors.request.use(
     return config
   },
   error => {
+    NProgress.done()
     ElMessage.error({
       message: t('loadFailed')
     })

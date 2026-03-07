@@ -14,4 +14,20 @@ NProgress.configure({
   minimum: 0.3
 })
 
-export default NProgress
+let activeRequests = 0
+
+export function start() {
+  if (activeRequests === 0) {
+    NProgress.start()
+  }
+  activeRequests++
+}
+
+export function done() {
+  activeRequests = Math.max(0, activeRequests - 1)
+  if (activeRequests === 0) {
+    NProgress.done()
+  }
+}
+
+export default { start, done }
