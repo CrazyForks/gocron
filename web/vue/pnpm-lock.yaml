@@ -4,10 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  lodash@<4.17.23: 4.17.23
-  tmp@<0.2.4: 0.2.4
-
 importers:
 
   .:
@@ -1244,7 +1240,7 @@ packages:
     resolution: {integrity: sha512-WK9qSozxXOD7ZJQlpSqOT+om2ZfcT4yO+03FuzAHD0wF6S0l0090LRPDx3vhTTLZ8cFKpBn+IOcVXK6qOcIlfQ==}
     peerDependencies:
       '@types/lodash-es': '*'
-      lodash: 4.17.23
+      lodash: '*'
       lodash-es: '*'
 
   lodash.merge@4.6.2:
