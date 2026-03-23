@@ -27,7 +27,8 @@
   "pnpm": {
     "overrides": {
       "lodash@<4.17.23": "4.17.23",
-      "tmp@<0.2.4": "0.2.4"
+      "tmp@<0.2.4": "0.2.4",
+      "flatted": ">=3.4.2"
     }
   },
   "devDependencies": {
