@@ -171,12 +171,12 @@ func (taskLog *TaskLog) GetLast7DaysTrend() ([]DailyStats, error) {
 	tomorrow := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 
 	err := Db.Raw(`
-		SELECT 
+		SELECT
 			DATE(start_time) as date,
 			COUNT(*) as total,
 			SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as success,
 			SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as failed
-		FROM task_log
+		FROM `+TablePrefix+`task_log
 		WHERE start_time >= ? AND start_time < ?
 		GROUP BY DATE(start_time)
 		ORDER BY date DESC
