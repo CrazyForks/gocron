@@ -49,42 +49,17 @@ For more deployment methods (Binary, Development), please refer to the [Installa
 
 ## 🔷 High Availability (Optional)
 
-gocron supports multi-instance deployment with automatic leader election. Only the leader node runs the scheduler; followers stay on hot standby and take over within seconds if the leader goes down.
-
-### How It Works
-
-- Uses database row locking (`SELECT ... FOR UPDATE`) for leader election — no external dependencies needed
-- Leader renews its lease every 5 seconds (15-second expiry)
-- Automatic failover: if the leader crashes, a follower takes over within 15 seconds
-- Graceful shutdown releases the lock immediately for instant failover
-- **Requires MySQL or PostgreSQL** — SQLite does not support multi-instance access, leader election is skipped automatically in SQLite mode
-
-### Setup
-
-1. Complete the web installation wizard on the first node
-2. Copy the `.gocron/conf/` directory (app.ini, install.lock) to other nodes
-3. Start all nodes pointing to the **same MySQL/PostgreSQL database**
+Deploy multiple gocron instances pointing to the same **MySQL/PostgreSQL** database. Leader election is automatic — no extra configuration needed. SQLite runs in single-node mode.
 
 ```bash
-# Node 1 — complete web install first, then start
+# Node 1
 ./gocron web --port 5920
 
-# Node 2 — copy .gocron/conf/ from Node 1, then start
+# Node 2 (same database)
 ./gocron web --port 5921
 ```
 
-No extra configuration needed. The `scheduler_lock` table is created automatically on first startup.
-
-For K8s/Docker deployments, mount the same config or use environment variable overrides instead of copying files.
-
-### Environment Variable Overrides
-
-Database and app settings can be overridden via environment variables (useful for K8s/Docker):
-
-| Variable | Overrides |
-|---|---|
-| `GOCRON_DB_ENGINE` / `HOST` / `PORT` / `USER` / `PASSWORD` / `DATABASE` / `PREFIX` | Database config |
-| `GOCRON_AUTH_SECRET` | JWT auth secret |
+See the [High Availability Guide](https://gocron-docs.pages.dev/en/guide/high-availability) for setup details, K8s deployment, and environment variable overrides.
 
 ## 📸 Screenshots
 
