@@ -37,6 +37,10 @@ var (
 	// 同一任务是否有实例处于运行中
 	runInstance Instance
 
+	// 调度器运行状态
+	schedulerMu      sync.Mutex
+	schedulerRunning bool
+
 	// 任务计数-正在运行的任务
 	taskCount TaskCount
 
@@ -117,15 +121,28 @@ type TaskResult struct {
 	RetryTimes int8
 }
 
-// 初始化任务, 从数据库取出所有任务, 添加到定时任务并运行
+// Initialize 初始化调度器基础设施（不加载任务）
+// 任务加载由 StartScheduler 完成，配合 leader election 使用
 func (task Task) Initialize() {
-	serviceCron = cron.New()
-	serviceCron.Start()
 	concurrencyQueue = ConcurrencyQueue{queue: make(chan struct{}, app.Setting.ConcurrencyQueue)}
 	taskCount = TaskCount{sync.WaitGroup{}, make(chan struct{})}
 	go taskCount.Wait()
+	logger.Info("Scheduler infrastructure initialized")
+}
 
-	logger.Info("Starting to initialize scheduled tasks")
+// StartScheduler 启动调度器并加载所有任务（当选 leader 时调用）
+func (task Task) StartScheduler() {
+	schedulerMu.Lock()
+	defer schedulerMu.Unlock()
+
+	if schedulerRunning {
+		return
+	}
+
+	serviceCron = cron.New()
+	serviceCron.Start()
+
+	logger.Info("Starting to load scheduled tasks (this node is leader)")
 	taskModel := new(models.Task)
 	taskNum := 0
 	page := 1
@@ -148,8 +165,30 @@ func (task Task) Initialize() {
 	}
 	logger.Infof("Scheduled task initialization completed, %d tasks added to scheduler", taskNum)
 
-	// 添加日志自动清理任务
 	task.initLogCleanupTask()
+	schedulerRunning = true
+}
+
+// StopScheduler 停止调度器（失去 leader 时调用）
+func (task Task) StopScheduler() {
+	schedulerMu.Lock()
+	defer schedulerMu.Unlock()
+
+	if !schedulerRunning {
+		return
+	}
+
+	logger.Info("Stopping scheduler (this node lost leadership)")
+	serviceCron.Stop()
+	serviceCron = nil
+	schedulerRunning = false
+}
+
+// IsSchedulerRunning 返回调度器是否正在运行
+func (task Task) IsSchedulerRunning() bool {
+	schedulerMu.Lock()
+	defer schedulerMu.Unlock()
+	return schedulerRunning
 }
 
 // 初始化日志清理任务
@@ -209,6 +248,9 @@ func (task Task) Add(taskModel models.Task) {
 		logger.Errorf("Failed to add task#Child tasks cannot be added to scheduler#Task ID-%d", taskModel.Id)
 		return
 	}
+	if serviceCron == nil {
+		return // follower node, skip
+	}
 	taskFunc := createJob(taskModel)
 	if taskFunc == nil {
 		logger.Error("Failed to create task job#Unsupported task protocol#", taskModel.Protocol)
@@ -225,6 +267,9 @@ func (task Task) Add(taskModel models.Task) {
 }
 
 func (task Task) NextRunTime(taskModel models.Task) time.Time {
+	if serviceCron == nil {
+		return time.Time{}
+	}
 	if taskModel.Level != models.TaskLevelParent ||
 		taskModel.Status != models.Enabled {
 		return time.Time{}
@@ -246,12 +291,20 @@ func (task Task) Stop(ip string, port int, id int64) {
 }
 
 func (task Task) Remove(id int) {
+	if serviceCron == nil {
+		return
+	}
 	serviceCron.RemoveJob(strconv.Itoa(id))
 }
 
 // 等待所有任务结束后退出
 func (task Task) WaitAndExit() {
-	serviceCron.Stop()
+	schedulerMu.Lock()
+	if schedulerRunning && serviceCron != nil {
+		serviceCron.Stop()
+		schedulerRunning = false
+	}
+	schedulerMu.Unlock()
 	taskCount.Exit()
 }
 

@@ -16,6 +16,7 @@ import (
 
 	"github.com/gocronx-team/gocron/internal/models"
 	"github.com/gocronx-team/gocron/internal/modules/app"
+	"github.com/gocronx-team/gocron/internal/modules/leader"
 	"github.com/gocronx-team/gocron/internal/modules/logger"
 	"github.com/gocronx-team/gocron/internal/modules/setting"
 	"github.com/gocronx-team/gocron/internal/modules/utils"
@@ -27,6 +28,9 @@ import (
 var (
 	AppVersion           = "1.5.7"
 	BuildDate, GitCommit string
+
+	// leaderElection 全局选举实例，用于 graceful shutdown 时释放锁
+	leaderElection *leader.Election
 )
 
 // Default port for web server
@@ -150,8 +154,31 @@ func initModule() {
 		logger.Error("Failed to repair settings records", err)
 	}
 
-	// Initialize scheduled tasks
+	// Initialize scheduler infrastructure
 	service.ServiceTask.Initialize()
+
+	// SQLite: single-node only, skip leader election
+	if models.Db.Dialector.Name() == "sqlite" {
+		logger.Info("SQLite detected, skipping leader election (single-node mode)")
+		service.ServiceTask.StartScheduler()
+		return
+	}
+
+	// Ensure scheduler_lock table exists
+	if !models.Db.Migrator().HasTable(&models.SchedulerLock{}) {
+		logger.Info("scheduler_lock table not found, creating...")
+		if err := models.Db.AutoMigrate(&models.SchedulerLock{}); err != nil {
+			logger.Error("Failed to create scheduler_lock table", err)
+		}
+	}
+
+	// Start leader election — scheduler only runs on the leader node
+	leaderElection = leader.New(
+		models.Db,
+		func() { service.ServiceTask.StartScheduler() },  // onElected
+		func() { service.ServiceTask.StopScheduler() },    // onEvicted
+	)
+	leaderElection.Start()
 }
 
 // parsePort parses the port from CLI flags
@@ -231,14 +258,21 @@ func waitForShutdown(srv *http.Server) {
 		logger.Info("HTTP server stopped successfully")
 	}
 
-	// Step 2: Stop scheduled task scheduler, wait for running tasks to complete
+	// Step 2: Stop leader election and release lock
 	if app.Installed {
-		logger.Info("Step 2/3: Stopping scheduled task scheduler (waiting for running tasks)...")
+		if leaderElection != nil {
+			logger.Info("Step 2/4: Stopping leader election (releasing lock)...")
+			leaderElection.Stop()
+			logger.Info("Leader election stopped")
+		}
+
+		// Step 3: Stop scheduled task scheduler, wait for running tasks to complete
+		logger.Info("Step 3/4: Stopping scheduled task scheduler (waiting for running tasks)...")
 		service.ServiceTask.WaitAndExit()
 		logger.Info("Scheduled task scheduler stopped")
 
-		// Step 3: Close database connections
-		logger.Info("Step 3/3: Closing database connections...")
+		// Step 4: Close database connections
+		logger.Info("Step 4/4: Closing database connections...")
 		closeDatabase()
 		logger.Info("Database connections closed")
 	}
