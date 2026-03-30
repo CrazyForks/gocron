@@ -1,8 +1,6 @@
 module github.com/gocronx-team/gocron
 
-go 1.26.0
-
-toolchain go1.26.1
+go 1.26.1
 
 require (
 	github.com/gin-gonic/gin v1.12.0

@@ -53,15 +53,14 @@ func TestAsyncLoggerBatchFlush(t *testing.T) {
 func TestAsyncLoggerFullBatch(t *testing.T) {
 	var buf bytes.Buffer
 	handler := newAsyncHandler(&buf, 10, 1*time.Second)
-	defer handler.close()
 
 	// 写入10条日志（等于批量大小）
 	for i := 0; i < 10; i++ {
 		handler.log(slog.LevelInfo, "test")
 	}
 
-	// 短暂等待批量写入
-	time.Sleep(50 * time.Millisecond)
+	// close 会等待 worker 完成所有写入
+	handler.close()
 
 	// 验证日志已写入
 	if buf.Len() == 0 {
