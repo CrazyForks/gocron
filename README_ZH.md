@@ -156,7 +156,7 @@ K8s/Docker 部署时，可以挂载相同配置或使用环境变量覆盖，无
 
 ### 提交信息规范
 
-本项目使用 [commitizen](https://github.com/commitizen/cz-cli) 和 [cz-git](https://cz-git.qbb.sh/) 来规范化提交信息，并自动添加表情符号前缀。
+本项目使用 [commitizen](https://github.com/commitizen/cz-cli) 和 [cz-git](https://cz-git.qbb.sh/) 来规范化提交信息。
 
 请使用以下命令代替 `git commit`：
 
@@ -166,9 +166,9 @@ pnpm run commit
 
 这将引导你通过交互式提示创建格式正确的提交信息，例如：
 
-- ✨ feat(task): 添加任务依赖配置
-- 🐛 fix(api): 修复任务状态更新问题
-- 📝 docs: 更新 API 文档
+- `feat(task): 添加任务依赖配置`
+- `fix(api): 修复任务状态更新问题`
+- `docs: 更新 API 文档`
 
 ### 其他贡献方式
 

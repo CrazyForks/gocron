@@ -156,7 +156,7 @@ We warmly welcome community contributions!
 
 ### Commit Message Guidelines
 
-This project uses [commitizen](https://github.com/commitizen/cz-cli) and [cz-git](https://cz-git.qbb.sh/) for standardized commit messages with emoji prefixes.
+This project uses [commitizen](https://github.com/commitizen/cz-cli) and [cz-git](https://cz-git.qbb.sh/) for standardized commit messages.
 
 Instead of `git commit`, use:
 
@@ -166,9 +166,9 @@ pnpm run commit
 
 This will guide you through an interactive prompt to create properly formatted commit messages like:
 
-- ✨ feat(task): add task dependency configuration
-- 🐛 fix(api): fix task status update issue
-- 📝 docs: update API documentation
+- `feat(task): add task dependency configuration`
+- `fix(api): fix task status update issue`
+- `docs: update API documentation`
 
 ### Other Ways to Contribute
 
