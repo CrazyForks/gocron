@@ -19,7 +19,7 @@
 
 - **Web 界面管理**：直观的定时任务管理界面
 - **秒级定时**：支持 Crontab 时间表达式，精确到秒
-- **分布式架构**：Master-Worker 架构，支持多节点高可用
+- **高可用**：基于数据库锁的 Leader 选举，秒级自动故障转移
 - **任务重试**：支持任务执行失败重试设置
 - **任务依赖**：支持配置任务依赖关系
 - **多用户权限**：完善的用户和权限控制
@@ -46,6 +46,45 @@ docker-compose up -d
 ```
 
 更多部署方式（二进制部署、开发环境）请查看 [安装部署指南](https://gocron-docs.pages.dev/zh/guide/quick-start)。
+
+## 🔷 高可用部署（可选）
+
+gocron 支持多实例部署，内置基于数据库行锁的 Leader 自动选举。只有 Leader 节点运行调度器，其他节点热备待命，Leader 故障后秒级自动接管。
+
+### 工作原理
+
+- 通过 `SELECT ... FOR UPDATE` 行锁实现选主，无需额外依赖
+- Leader 每 5 秒续约一次（租约 15 秒）
+- 自动故障转移：Leader 宕机后最多 15 秒，备用节点自动接管
+- 优雅关机时立即释放锁，实现秒级切换
+- **仅支持 MySQL / PostgreSQL** — SQLite 不支持多实例并发访问，SQLite 模式下自动跳过选举，以单节点运行
+
+### 部署方式
+
+1. 在第一个节点完成 Web 安装向导
+2. 将 `.gocron/conf/` 目录（app.ini、install.lock）复制到其他节点
+3. 所有节点连接**同一个 MySQL/PostgreSQL 数据库**
+
+```bash
+# 节点 1 — 先完成 Web 安装，然后启动
+./gocron web --port 5920
+
+# 节点 2 — 从节点 1 复制 .gocron/conf/ 后启动
+./gocron web --port 5921
+```
+
+无需额外配置，`scheduler_lock` 表在首次启动时自动创建。
+
+K8s/Docker 部署时，可以挂载相同配置或使用环境变量覆盖，无需手动复制文件。
+
+### 环境变量覆盖
+
+数据库和应用配置支持环境变量覆盖（适用于 K8s/Docker）：
+
+| 环境变量 | 覆盖配置 |
+|---|---|
+| `GOCRON_DB_ENGINE` / `HOST` / `PORT` / `USER` / `PASSWORD` / `DATABASE` / `PREFIX` | 数据库配置 |
+| `GOCRON_AUTH_SECRET` | JWT 认证密钥 |
 
 ## 📸 界面截图
 
