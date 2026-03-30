@@ -109,7 +109,7 @@ function checkResponseCode(code, msg) {
       router.push('/install')
       return false
     // 认证失败
-    case AUTH_ERROR_CODE:
+    case AUTH_ERROR_CODE: {
       const userStore = useUserStore()
       userStore.token = ''
       ElMessage.warning({
@@ -119,6 +119,7 @@ function checkResponseCode(code, msg) {
         window.location.href = '/'
       }, 500)
       return false
+    }
   }
   if (code !== SUCCESS_CODE) {
     ElMessage.error({

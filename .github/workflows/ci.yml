@@ -20,6 +20,9 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Create frontend dist placeholder
+        run: mkdir -p web/vue/dist && touch web/vue/dist/.gitkeep
+
       - name: Format check
         run: |
           unformatted=$(gofmt -l .)

@@ -108,7 +108,7 @@ function validateStandardCron(spec) {
  */
 function validateSegment(segment, range) {
   // 允许的字符
-  if (!/^[0-9*\/,\-?LW#]+$/.test(segment)) {
+  if (!/^[0-9*/,\-?LW#]+$/.test(segment)) {
     return {
       valid: false,
       message: `${range.name}字段包含非法字符`
