@@ -27,12 +27,12 @@ const (
 // Election 基于数据库行锁的领导者选举
 type Election struct {
 	db         *gorm.DB
-	instanceID string    // 当前实例标识
+	instanceID string // 当前实例标识
 	isLeader   atomic.Bool
 	stopCh     chan struct{}
 	stoppedCh  chan struct{}
-	onElected  func()    // 当选回调
-	onEvicted  func()    // 失去领导权回调
+	onElected  func() // 当选回调
+	onEvicted  func() // 失去领导权回调
 	mu         sync.Mutex
 }
 

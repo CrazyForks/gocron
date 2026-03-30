@@ -221,11 +221,9 @@ fi
 # 生成 release notes
 cat > /tmp/release_notes.md <<EOF
 
-refactor(web): sidebar by @gocronx #93
-feat: add statistics dashboard with 7-day execution trends and analytics by @gocronx in #91
-feat: the default timeout for new tasks is set to 3600 seconds by @foecmke in #81
-feat(i18n): English and Chinese support by @gocronx
-feat: upgrade cron version (30%+ performance boost) by @gocronx
+feat: support high availability deployment by @gocronx
+feat: update cron version(allocs -85%, ns/op -73%) @gocronx
+feat: feat(web): Display a progress bar for web request by @WShihan
 
 EOF
 

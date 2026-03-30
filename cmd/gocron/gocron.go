@@ -175,8 +175,8 @@ func initModule() {
 	// Start leader election — scheduler only runs on the leader node
 	leaderElection = leader.New(
 		models.Db,
-		func() { service.ServiceTask.StartScheduler() },  // onElected
-		func() { service.ServiceTask.StopScheduler() },    // onEvicted
+		func() { service.ServiceTask.StartScheduler() }, // onElected
+		func() { service.ServiceTask.StopScheduler() },  // onEvicted
 	)
 	leaderElection.Start()
 }
