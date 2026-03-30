@@ -33,3 +33,8 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    ignore:
+      - dependency-name: "actions/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "pnpm/*"
+        update-types: ["version-update:semver-major"]
