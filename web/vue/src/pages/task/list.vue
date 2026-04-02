@@ -8,7 +8,23 @@
         <el-input v-model.trim="searchParams.name" style="width: 180px;"></el-input>
       </el-form-item>
       <el-form-item :label="t('task.tag')">
-        <el-input v-model.trim="searchParams.tag" style="width: 180px;"></el-input>
+        <el-select
+          v-model="searchParams.selectedTags"
+          multiple
+          filterable
+          allow-create
+          default-first-option
+          collapse-tags
+          collapse-tags-tooltip
+          :placeholder="t('task.tagPlaceholder')"
+          style="width: 180px;">
+          <el-option
+            v-for="tag in tagOptions"
+            :key="tag"
+            :label="tag"
+            :value="tag">
+          </el-option>
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="search()">{{ t('common.search') }}</el-button>
@@ -119,8 +135,18 @@
       width="150">
       </el-table-column>
       <el-table-column
-        prop="tag"
         :label="t('task.tag')">
+        <template #default="scope">
+          <template v-if="scope.row.tag">
+            <el-tag
+              v-for="tag in scope.row.tag.split(',').filter(Boolean)"
+              :key="tag"
+              size="small"
+              style="margin-right: 4px; margin-bottom: 2px;">
+              {{ tag }}
+            </el-tag>
+          </template>
+        </template>
       </el-table-column>
       <el-table-column
         prop="spec"
@@ -212,9 +238,11 @@ export default {
         protocol: '',
         name: '',
         tag: '',
+        selectedTags: [],
         host_id: '',
         status: ''
       },
+      tagOptions: [],
       isAdmin: userStore.isAdmin,
       protocolList: [
         {
@@ -257,6 +285,7 @@ export default {
       this.searchParams.host_id = hostId
     }
 
+    this.loadTagOptions()
     this.search()
   },
   activated () {
@@ -307,7 +336,13 @@ export default {
       this.searchParams.page_size = pageSize
       this.search()
     },
+    loadTagOptions () {
+      taskService.allTags((tags) => {
+        this.tagOptions = tags || []
+      })
+    },
     search (callback = null) {
+      this.searchParams.tag = (this.searchParams.selectedTags || []).join(',')
       taskService.list(this.searchParams, (tasks, hosts) => {
         this.tasks = tasks.data
         this.taskTotal = tasks.total

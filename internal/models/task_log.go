@@ -108,6 +108,26 @@ func (taskLog *TaskLog) Clear() (int64, error) {
 	return result.RowsAffected, result.Error
 }
 
+// 清空指定任务的日志(批量删除)
+func (taskLog *TaskLog) ClearByTaskId(taskId int) (int64, error) {
+	if taskId <= 0 {
+		return 0, nil
+	}
+	var totalAffected int64
+	batchSize := 1000
+	for {
+		result := Db.Where("task_id = ?", taskId).Limit(batchSize).Delete(&TaskLog{})
+		if result.Error != nil {
+			return totalAffected, result.Error
+		}
+		totalAffected += result.RowsAffected
+		if result.RowsAffected < int64(batchSize) {
+			break
+		}
+	}
+	return totalAffected, nil
+}
+
 // 删除N个月前的日志
 func (taskLog *TaskLog) Remove(id int) (int64, error) {
 	t := time.Now().AddDate(0, -id, 0)
@@ -123,6 +143,38 @@ func (taskLog *TaskLog) RemoveByDays(days int) (int64, error) {
 	t := time.Now().AddDate(0, 0, -days)
 	result := Db.Where("start_time < ?", t).Delete(&TaskLog{})
 	return result.RowsAffected, result.Error
+}
+
+// 删除N天前的日志，排除有自定义保留策略的任务
+func (taskLog *TaskLog) RemoveByDaysExcludingCustomRetention(days int) (int64, error) {
+	if days <= 0 {
+		return 0, nil
+	}
+	t := time.Now().AddDate(0, 0, -days)
+	result := Db.Where("start_time < ? AND task_id NOT IN (SELECT id FROM "+TablePrefix+"task WHERE log_retention_days > 0)", t).Delete(&TaskLog{})
+	return result.RowsAffected, result.Error
+}
+
+// 删除指定任务N天前的日志（批量删除，每批1000条）
+func (taskLog *TaskLog) RemoveByTaskIdAndDays(taskId int, days int) (int64, error) {
+	if taskId <= 0 || days <= 0 {
+		return 0, nil
+	}
+	t := time.Now().AddDate(0, 0, -days)
+	var totalDeleted int64
+	for {
+		result := Db.Where("task_id = ? AND start_time < ?", taskId, t).
+			Limit(1000).
+			Delete(&TaskLog{})
+		if result.Error != nil {
+			return totalDeleted, result.Error
+		}
+		totalDeleted += result.RowsAffected
+		if result.RowsAffected < 1000 {
+			break
+		}
+	}
+	return totalDeleted, nil
 }
 
 func (taskLog *TaskLog) Total(params CommonMap) (int64, error) {

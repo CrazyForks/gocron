@@ -10,21 +10,33 @@
           </el-col>
           <el-col :span="12">
             <el-form-item :label="t('task.tag')">
-              <el-input v-model.trim="form.tag" :placeholder="t('task.tagPlaceholder')"></el-input>
+              <el-select
+                v-model="form.tags"
+                multiple
+                filterable
+                allow-create
+                default-first-option
+                collapse-tags
+                collapse-tags-tooltip
+                :placeholder="t('task.tagPlaceholder')"
+                style="width: 100%">
+                <el-option
+                  v-for="tag in tagOptions"
+                  :key="tag"
+                  :label="tag"
+                  :value="tag">
+                </el-option>
+              </el-select>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row v-if="form.level === 1">
           <el-col>
-            <el-alert
-              :title="t('task.mainTaskTip')"
-              type="info"
-              :closable="false">
+            <el-alert type="info" :closable="false">
+              <span v-html="t('task.mainTaskTip')"></span>
             </el-alert>
-            <el-alert
-              :title="t('task.dependencyTip')"
-              type="info"
-              :closable="false">
+            <el-alert type="info" :closable="false">
+              <span v-html="t('task.dependencyTip')"></span>
             </el-alert> <br>
           </el-col>
         </el-row>
@@ -280,6 +292,14 @@
           </el-col>
         </el-row>
         <el-row>
+          <el-col :span="12">
+            <el-form-item :label="t('task.logRetentionDays')">
+              <el-input-number v-model="form.log_retention_days" :min="0" :max="3650"></el-input-number>
+              <span style="margin-left: 8px; color: #909399; font-size: 12px;">{{ t('task.logRetentionDaysTip') }}</span>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
           <el-col :span="16">
             <el-form-item :label="t('task.remark')">
               <el-input
@@ -309,6 +329,7 @@ const createDefaultForm = () => ({
   id: '',
   name: '',
   tag: '',
+  tags: [],
   level: 1,
   dependency_status: 1,
   dependency_task_id: '',
@@ -326,6 +347,7 @@ const createDefaultForm = () => ({
   notify_keyword: '',
   retry_times: 0,
   retry_interval: 0,
+  log_retention_days: 0,
   remark: ''
 })
 
@@ -370,7 +392,8 @@ export default {
       webhookUrls: [],
       selectedMailNotifyIds: [],
       selectedSlackNotifyIds: [],
-      selectedWebhookNotifyIds: []
+      selectedWebhookNotifyIds: [],
+      tagOptions: []
     }
   },
   computed: {
@@ -406,6 +429,7 @@ export default {
     this.initFormRules()
     this.initSelectOptions()
     this.loadNotificationOptions()
+    this.loadTagOptions()
     this.initializeForm()
   },
   methods: {
@@ -582,6 +606,7 @@ export default {
         id: taskData.id,
         name: taskData.name,
         tag: taskData.tag,
+        tags: taskData.tag ? taskData.tag.split(',').filter(Boolean) : [],
         level: taskData.level,
         dependency_status: taskData.dependency_status || 1,
         dependency_task_id: taskData.dependency_task_id || '',
@@ -597,6 +622,7 @@ export default {
         notify_receiver_id: taskData.notify_receiver_id,
         retry_times: taskData.retry_times,
         retry_interval: taskData.retry_interval,
+        log_retention_days: taskData.log_retention_days || 0,
         remark: taskData.remark || ''
       })
       const taskHosts = taskData.hosts || []
@@ -619,6 +645,11 @@ export default {
           this.selectedWebhookNotifyIds = notifyReceiverIds.map(v => parseInt(v))
         }
       }
+    },
+    loadTagOptions () {
+      taskService.allTags((tags) => {
+        this.tagOptions = tags || []
+      })
     },
     loadNotificationOptions () {
       notificationService.mail((data) => {
@@ -655,6 +686,9 @@ export default {
       })
     },
     save () {
+      // 将标签数组转换为逗号分隔的字符串
+      this.form.tag = (this.form.tags || []).join(',')
+
       // 清理命令中的 HTML 实体编码
       if (this.form.command) {
         this.form.command = this.form.command

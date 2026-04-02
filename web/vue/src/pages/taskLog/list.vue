@@ -37,6 +37,9 @@
         </el-form-item>
       </el-form>
       <el-row type="flex" justify="end">
+        <el-col :span="4" v-if="isAdmin && searchParams.task_id">
+          <el-button type="warning" @click="clearTaskLog">{{ t('task.clearTaskLog') }}</el-button>
+        </el-col>
         <el-col :span="3">
           <el-button type="danger" v-if="isAdmin" @click="clearLog">{{
             t('message.clearLog')
@@ -286,6 +289,26 @@ export default {
           callback()
         }
       })
+    },
+    clearTaskLog() {
+      const taskId = this.searchParams.task_id
+      ElMessageBox.confirm(
+        this.t('task.confirmClearTaskLog', { taskId }),
+        this.t('common.tip'),
+        {
+          confirmButtonText: this.t('common.confirm'),
+          cancelButtonText: this.t('common.cancel'),
+          type: 'warning',
+          center: true
+        }
+      )
+        .then(() => {
+          taskLogService.clearByTaskId(taskId, () => {
+            this.searchParams.page = 1
+            this.search()
+          })
+        })
+        .catch(() => {})
     },
     clearLog() {
       ElMessageBox.confirm(this.t('message.confirmClearLog'), this.t('common.tip'), {

@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"errors"
+	"sort"
 	"strings"
 	"time"
 
@@ -85,7 +86,8 @@ type Task struct {
 	NotifyType       int8                 `json:"notify_type" gorm:"type:tinyint;not null;default:0"`
 	NotifyReceiverId string               `json:"notify_receiver_id" gorm:"type:varchar(256);not null;default:''"`
 	NotifyKeyword    string               `json:"notify_keyword" gorm:"type:varchar(128);not null;default:''"`
-	Tag              string               `json:"tag" gorm:"type:varchar(32);not null;default:''"`
+	Tag              string               `json:"tag" gorm:"type:varchar(255);not null;default:''"`
+	LogRetentionDays int                  `json:"log_retention_days" gorm:"type:smallint;not null;default:0"`
 	Remark           string               `json:"remark" gorm:"type:varchar(100);not null;default:''"`
 	Status           Status               `json:"status" gorm:"type:tinyint;not null;index;default:0"`
 	CreatedAt        time.Time            `json:"created" gorm:"column:created;autoCreateTime"`
@@ -118,6 +120,7 @@ func (task *Task) Create() (insertId int, err error) {
 		"notify_receiver_id": task.NotifyReceiverId,
 		"notify_keyword":     task.NotifyKeyword,
 		"tag":                task.Tag,
+		"log_retention_days": task.LogRetentionDays,
 		"remark":             task.Remark,
 		"status":             task.Status,
 	}
@@ -139,7 +142,8 @@ func (task *Task) UpdateBean(id int) (int64, error) {
 		Select("name", "spec", "protocol", "command", "timeout", "multi",
 			"retry_times", "retry_interval", "remark", "notify_status",
 			"notify_type", "notify_receiver_id", "dependency_task_id",
-			"dependency_status", "tag", "http_method", "notify_keyword").
+			"dependency_status", "tag", "http_method", "notify_keyword",
+			"log_retention_days").
 		UpdateColumns(map[string]interface{}{
 			"name":               task.Name,
 			"spec":               task.Spec,
@@ -158,6 +162,7 @@ func (task *Task) UpdateBean(id int) (int64, error) {
 			"tag":                task.Tag,
 			"http_method":        task.HttpMethod,
 			"notify_keyword":     task.NotifyKeyword,
+			"log_retention_days": task.LogRetentionDays,
 		})
 	return result.RowsAffected, result.Error
 }
@@ -381,4 +386,32 @@ func (task *Task) parseWhere(query *gorm.DB, params CommonMap) {
 	if ok && tag.(string) != "" {
 		query.Where("t.tag LIKE ?", "%"+tag.(string)+"%")
 	}
+}
+
+// GetAllTags 获取所有任务中使用的标签，去重并排序返回
+func (task *Task) GetAllTags() ([]string, error) {
+	var tags []string
+	err := Db.Model(&Task{}).Where("tag != ''").Distinct("tag").Pluck("tag", &tags).Error
+	if err != nil {
+		return nil, err
+	}
+
+	tagSet := make(map[string]struct{})
+	for _, tagStr := range tags {
+		parts := strings.Split(tagStr, ",")
+		for _, part := range parts {
+			trimmed := strings.TrimSpace(part)
+			if trimmed != "" {
+				tagSet[trimmed] = struct{}{}
+			}
+		}
+	}
+
+	result := make([]string, 0, len(tagSet))
+	for t := range tagSet {
+		result = append(result, t)
+	}
+	sort.Strings(result)
+
+	return result, nil
 }

@@ -41,6 +41,10 @@ export default {
     httpClient.get(`/task/run/${id}`, { _t: Date.now() }, callback)
   },
 
+  allTags (callback) {
+    httpClient.get('/task/tags', {}, callback)
+  },
+
   batchEnable (ids, callback) {
     httpClient.postJson('/task/batch-enable', { ids }, callback)
   },
