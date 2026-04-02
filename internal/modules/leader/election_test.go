@@ -23,6 +23,13 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
 	}
+	// SQLite in-memory DB is per-connection; force single connection
+	// so all goroutines share the same schema and data
+	sqlDB, err := db.DB()
+	if err != nil {
+		t.Fatalf("get sql.DB: %v", err)
+	}
+	sqlDB.SetMaxOpenConns(1)
 	if err := db.AutoMigrate(&models.SchedulerLock{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
