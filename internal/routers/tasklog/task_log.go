@@ -91,6 +91,24 @@ func Remove(c *gin.Context) {
 	}
 }
 
+// 清空指定任务的日志
+func ClearByTaskId(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		base.RespondError(c, i18n.T(c, "invalid_task_id"))
+		return
+	}
+	taskLogModel := new(models.TaskLog)
+	affected, err := taskLogModel.ClearByTaskId(id)
+	if err != nil {
+		base.RespondError(c, i18n.T(c, "delete_failed"), err)
+	} else {
+		base.RespondSuccess(c, i18n.T(c, "delete_success"), map[string]interface{}{
+			"affected": affected,
+		})
+	}
+}
+
 // 解析查询参数
 func parseQueryParams(c *gin.Context) models.CommonMap {
 	var params models.CommonMap = models.CommonMap{}

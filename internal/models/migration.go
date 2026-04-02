@@ -46,7 +46,7 @@ func (migration *Migration) Upgrade(oldVersionId int) {
 		return
 	}
 
-	versionIds := []int{110, 122, 130, 140, 150, 151, 152, 153, 154, 155, 156, 157}
+	versionIds := []int{110, 122, 130, 140, 150, 151, 152, 153, 154, 155, 156, 157, 158}
 	upgradeFuncs := []func(*gorm.DB) error{
 		migration.upgradeFor110,
 		migration.upgradeFor122,
@@ -60,6 +60,7 @@ func (migration *Migration) Upgrade(oldVersionId int) {
 		migration.upgradeFor155,
 		migration.upgradeFor156,
 		migration.upgradeFor157,
+		migration.upgradeFor158,
 	}
 
 	startIndex := -1
@@ -542,6 +543,31 @@ func (m *Migration) upgradeFor157(tx *gorm.DB) error {
 	}
 
 	logger.Info("已升级到v1.5.7\n")
+
+	return nil
+}
+
+// 升级到v1.5.8版本 - 多标签支持 + 任务级日志保留天数
+func (m *Migration) upgradeFor158(tx *gorm.DB) error {
+	logger.Info("开始升级到v1.5.8 - 多标签支持、任务级日志保留天数")
+
+	// 扩展 tag 字段从 varchar(32) 到 varchar(255) 以支持多标签
+	if err := tx.Migrator().AlterColumn(&Task{}, "Tag"); err != nil {
+		logger.Warn("扩展 tag 字段类型失败", err)
+	} else {
+		logger.Info("✓ tag 字段已扩展为 varchar(255)")
+	}
+
+	// 添加任务级日志保留天数字段
+	if !tx.Migrator().HasColumn(&Task{}, "log_retention_days") {
+		err := tx.Migrator().AddColumn(&Task{}, "log_retention_days")
+		if err != nil {
+			return err
+		}
+		logger.Info("✓ 已添加 log_retention_days 字段")
+	}
+
+	logger.Info("已升级到v1.5.8\n")
 
 	return nil
 }

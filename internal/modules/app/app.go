@@ -43,9 +43,16 @@ func InitEnv(versionString string) {
 	}
 	execDir := filepath.Dir(execPath)
 
-	// 如果可执行文件在 tmp 目录（开发环境），使用项目根目录
+	// 开发环境检测：Air 热重载（tmp 目录）或 go run（go-build cache 目录）
 	if filepath.Base(execDir) == "tmp" {
 		AppDir = filepath.Join(filepath.Dir(execDir), ".gocron")
+	} else if strings.Contains(execDir, "go-build") {
+		// go run 会将二进制编译到 go-build cache 中，使用当前工作目录
+		wd, wdErr := os.Getwd()
+		if wdErr != nil {
+			logger.Fatal(wdErr)
+		}
+		AppDir = filepath.Join(wd, ".gocron")
 	} else {
 		AppDir = filepath.Join(execDir, ".gocron")
 	}

@@ -76,10 +76,12 @@ func Register(r *gin.Engine) {
 	taskGroup := api.Group("/task")
 	{
 		taskGroup.POST("/store", task.Store)
+		taskGroup.GET("/tags", task.GetAllTags)
 		taskGroup.GET("/:id", task.Detail)
 		taskGroup.GET("", task.Index)
 		taskGroup.GET("/log", tasklog.Index)
 		taskGroup.POST("/log/clear", tasklog.Clear)
+		taskGroup.POST("/log/clear/:id", tasklog.ClearByTaskId)
 		taskGroup.POST("/log/stop", tasklog.Stop)
 		taskGroup.POST("/remove/:id", task.Remove)
 		taskGroup.POST("/enable/:id", task.Enable)
@@ -349,6 +351,7 @@ func urlAuth(c *gin.Context) {
 		"",
 		"/api/install/status",
 		"/api/task",
+		"/api/task/tags",
 		"/api/task/log",
 		"/api/host",
 		"/api/host/all",

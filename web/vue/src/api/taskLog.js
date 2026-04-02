@@ -11,5 +11,9 @@ export default {
 
   stop (id, taskId, callback) {
     httpClient.post('/task/log/stop', {id, task_id: taskId}, callback)
+  },
+
+  clearByTaskId (taskId, callback) {
+    httpClient.post(`/task/log/clear/${taskId}`, {}, callback)
   }
 }

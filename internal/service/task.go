@@ -202,12 +202,38 @@ func (task Task) initLogCleanupTask() {
 	cronSpec := fmt.Sprintf("0 %d %d * * *", minute, hour)
 
 	serviceCron.AddFunc(cronSpec, func() {
+		// 1. Task-level log retention: clean logs for tasks with custom retention days
+		taskLogModel := new(models.TaskLog)
+		page := 1
+		pageSize := 1000
+		for {
+			var tasks []models.Task
+			err := models.Db.Where("log_retention_days > 0").
+				Limit(pageSize).Offset((page - 1) * pageSize).
+				Find(&tasks).Error
+			if err != nil {
+				logger.Errorf("Failed to query tasks with custom log retention: %s", err)
+				break
+			}
+			if len(tasks) == 0 {
+				break
+			}
+			for _, t := range tasks {
+				count, err := taskLogModel.RemoveByTaskIdAndDays(t.Id, t.LogRetentionDays)
+				if err != nil {
+					logger.Errorf("Failed to cleanup logs for task %d: %s", t.Id, err)
+				} else if count > 0 {
+					logger.Infof("Task %d: cleaned up %d logs older than %d days", t.Id, count, t.LogRetentionDays)
+				}
+			}
+			page++
+		}
+
+		// 2. Global log retention: clean remaining logs
 		settingModel := new(models.Setting)
 		days := settingModel.GetLogRetentionDays()
 		if days > 0 {
-			// 清理数据库日志
-			taskLogModel := new(models.TaskLog)
-			count, err := taskLogModel.RemoveByDays(days)
+			count, err := taskLogModel.RemoveByDaysExcludingCustomRetention(days)
 			if err != nil {
 				logger.Errorf("Failed to auto-cleanup database logs: %s", err)
 			} else {

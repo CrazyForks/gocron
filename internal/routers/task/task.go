@@ -36,6 +36,7 @@ type TaskForm struct {
 	NotifyType       int8                        `form:"notify_type" json:"notify_type" binding:"oneof=0 1 2"`
 	NotifyReceiverId string                      `form:"notify_receiver_id" json:"notify_receiver_id"`
 	NotifyKeyword    string                      `form:"notify_keyword" json:"notify_keyword"`
+	LogRetentionDays int                         `form:"log_retention_days" json:"log_retention_days" binding:"min=0,max=3650"`
 }
 
 // 首页
@@ -121,6 +122,7 @@ func Store(c *gin.Context) {
 	taskModel.NotifyType = form.NotifyType
 	taskModel.NotifyReceiverId = form.NotifyReceiverId
 	taskModel.NotifyKeyword = form.NotifyKeyword
+	taskModel.LogRetentionDays = form.LogRetentionDays
 	taskModel.Spec = form.Spec
 	taskModel.Level = form.Level
 	taskModel.DependencyStatus = form.DependencyStatus
@@ -361,6 +363,19 @@ func addTaskToTimer(id int) {
 	}
 
 	service.ServiceTask.RemoveAndAdd(task)
+}
+
+// GetAllTags 获取所有已使用的标签列表
+func GetAllTags(c *gin.Context) {
+	taskModel := new(models.Task)
+	tags, err := taskModel.GetAllTags()
+	if err != nil {
+		logger.Error(err)
+		tags = []string{}
+	}
+	jsonResp := utils.JsonResponse{}
+	result := jsonResp.Success(utils.SuccessContent, tags)
+	c.String(http.StatusOK, result)
 }
 
 // 解析查询参数
