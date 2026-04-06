@@ -83,14 +83,14 @@ func PostJson(url string, body string, timeout int) ResponseWrapper {
 // blockedHeaders 禁止用户设置的危险 Header
 var blockedHeaders = map[string]bool{
 	"host":                true,
-	"transfer-encoding":  true,
-	"content-length":     true,
-	"connection":         true,
-	"upgrade":            true,
+	"transfer-encoding":   true,
+	"content-length":      true,
+	"connection":          true,
+	"upgrade":             true,
 	"proxy-authorization": true,
-	"proxy-connection":   true,
-	"te":                 true,
-	"trailer":            true,
+	"proxy-connection":    true,
+	"te":                  true,
+	"trailer":             true,
 }
 
 // IsBlockedHeader 检查 header 是否在黑名单中

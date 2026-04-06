@@ -166,7 +166,7 @@ func TestHTTPHandlerRunPostFallbackToParams(t *testing.T) {
 	task := models.Task{
 		Command:    "http://example.com/api?a=1",
 		HttpMethod: models.TaskHttpMethodPost,
-		HttpBody:   "",   // empty — should fallback to URL params
+		HttpBody:   "", // empty — should fallback to URL params
 		Timeout:    10,
 	}
 	_, err := handler.Run(task, 1)

@@ -36,7 +36,7 @@ var (
 	httpPostJsonWithHdrsFunc = httpclient.PostJsonWithHeaders
 	httpPostParamsWithHdrs   = httpclient.PostParamsWithHeaders
 	notifyPushFunc           = notify.Push
-	sleepFunc          = time.Sleep
+	sleepFunc                = time.Sleep
 
 	// 定时任务调度管理器
 	serviceCron *cron.Cron
