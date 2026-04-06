@@ -26,11 +26,13 @@ func Index(c *gin.Context) {
 	queryParams := parseQueryParams(c)
 	total, err := hostModel.Total(queryParams)
 	if err != nil {
-		logger.Error(err)
+		base.RespondErrorWithDefaultMsg(c, err)
+		return
 	}
 	hosts, err := hostModel.List(queryParams)
 	if err != nil {
-		logger.Error(err)
+		base.RespondErrorWithDefaultMsg(c, err)
+		return
 	}
 
 	base.RespondSuccess(c, utils.SuccessContent, map[string]interface{}{

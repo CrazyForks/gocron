@@ -17,11 +17,10 @@ func Slack(c *gin.Context) {
 	settingModel := new(models.Setting)
 	slack, err := settingModel.Slack()
 	if err != nil {
-		logger.Error(err)
-		base.RespondSuccess(c, utils.SuccessContent, nil)
-	} else {
-		base.RespondSuccess(c, utils.SuccessContent, slack)
+		base.RespondErrorWithDefaultMsg(c, err)
+		return
 	}
+	base.RespondSuccess(c, utils.SuccessContent, slack)
 }
 
 func UpdateSlack(c *gin.Context) {
@@ -80,11 +79,10 @@ func Mail(c *gin.Context) {
 	settingModel := new(models.Setting)
 	mail, err := settingModel.Mail()
 	if err != nil {
-		logger.Error(err)
-		base.RespondSuccess(c, utils.SuccessContent, nil)
-	} else {
-		base.RespondSuccess(c, "", mail)
+		base.RespondErrorWithDefaultMsg(c, err)
+		return
 	}
+	base.RespondSuccess(c, "", mail)
 }
 
 type MailServerForm struct {
@@ -202,11 +200,10 @@ func WebHook(c *gin.Context) {
 	settingModel := new(models.Setting)
 	webHook, err := settingModel.Webhook()
 	if err != nil {
-		logger.Error(err)
-		base.RespondSuccess(c, utils.SuccessContent, nil)
-	} else {
-		base.RespondSuccess(c, "", webHook)
+		base.RespondErrorWithDefaultMsg(c, err)
+		return
 	}
+	base.RespondSuccess(c, "", webHook)
 }
 
 func UpdateWebHook(c *gin.Context) {

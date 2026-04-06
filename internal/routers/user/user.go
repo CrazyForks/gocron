@@ -50,11 +50,13 @@ func Index(c *gin.Context) {
 	userModel := new(models.User)
 	users, err := userModel.List(queryParams)
 	if err != nil {
-		logger.Error(err)
+		base.RespondErrorWithDefaultMsg(c, err)
+		return
 	}
 	total, err := userModel.Total()
 	if err != nil {
-		logger.Error(err)
+		base.RespondErrorWithDefaultMsg(c, err)
+		return
 	}
 
 	base.RespondSuccess(c, utils.SuccessContent, map[string]interface{}{

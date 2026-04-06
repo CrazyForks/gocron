@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gocronx-team/gocron/internal/models"
 	"github.com/gocronx-team/gocron/internal/modules/i18n"
-	"github.com/gocronx-team/gocron/internal/modules/logger"
 	"github.com/gocronx-team/gocron/internal/modules/utils"
 	"github.com/gocronx-team/gocron/internal/routers/base"
 	"github.com/gocronx-team/gocron/internal/service"
@@ -19,11 +18,13 @@ func Index(c *gin.Context) {
 	queryParams := parseQueryParams(c)
 	total, err := logModel.Total(queryParams)
 	if err != nil {
-		logger.Error(err)
+		base.RespondErrorWithDefaultMsg(c, err)
+		return
 	}
 	logs, err := logModel.List(queryParams)
 	if err != nil {
-		logger.Error(err)
+		base.RespondErrorWithDefaultMsg(c, err)
+		return
 	}
 	base.RespondSuccess(c, utils.SuccessContent, map[string]interface{}{
 		"total": total,

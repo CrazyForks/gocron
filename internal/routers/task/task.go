@@ -49,11 +49,13 @@ func Index(c *gin.Context) {
 	queryParams := parseQueryParams(c)
 	total, err := taskModel.Total(queryParams)
 	if err != nil {
-		logger.Error(err)
+		base.RespondErrorWithDefaultMsg(c, err)
+		return
 	}
 	tasks, err := taskModel.List(queryParams)
 	if err != nil {
-		logger.Error(err)
+		base.RespondErrorWithDefaultMsg(c, err)
+		return
 	}
 	for i, item := range tasks {
 		tasks[i].NextRunTime = models.NextRunTime(service.ServiceTask.NextRunTime(item))
