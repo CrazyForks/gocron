@@ -581,7 +581,7 @@ export default {
       this.form.host_id = ''
       this.$nextTick(() => {
         if (this.$refs.form) {
-          try { this.$refs.form.clearValidate('host_ids') } catch (_) {}
+          try { this.$refs.form.clearValidate('host_ids') } catch { /* ignore */ }
         }
       })
     },
