@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ncruces/go-sqlite3/gormlite"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
@@ -87,7 +87,7 @@ func CreateDb() *gorm.DB {
 		dialector = postgres.Open(dsn)
 	case "sqlite":
 		ensureSqliteDir(dsn)
-		dialector = sqlite.Open(dsn)
+		dialector = gormlite.Open(dsn)
 	default:
 		glogger.Fatal("不支持的数据库类型", nil)
 	}
@@ -147,7 +147,7 @@ func CreateTmpDb(setting *setting.Setting) (*gorm.DB, error) {
 		dialector = postgres.Open(dsn)
 	case "sqlite":
 		ensureSqliteDir(dsn)
-		dialector = sqlite.Open(dsn)
+		dialector = gormlite.Open(dsn)
 	default:
 		return nil, fmt.Errorf("不支持的数据库类型: %s", engine)
 	}

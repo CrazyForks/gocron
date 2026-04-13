@@ -13,8 +13,7 @@ RUN pnpm build
 # Backend build stage
 FROM golang:1.26-alpine AS builder
 
-# Install build dependencies for CGO and SQLite
-RUN apk add --no-cache git gcc musl-dev sqlite-dev
+RUN apk add --no-cache git
 
 WORKDIR /app
 COPY go.mod go.sum ./
@@ -26,14 +25,12 @@ COPY --from=frontend /app/web/vue/dist ./web/vue/dist
 # Then copy the rest of the project
 COPY . .
 
-# Build with CGO enabled for SQLite support
-# Use -p=1 to reduce memory usage during compilation
-RUN CGO_ENABLED=1 go build -p=1 -ldflags="-s -w" -trimpath -o gocron ./cmd/gocron
+# Build with pure Go SQLite (no CGO required)
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -o gocron ./cmd/gocron
 
 FROM alpine:latest
 
-# Install runtime dependencies for SQLite
-RUN apk add --no-cache ca-certificates sqlite-libs
+RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /app/gocron /gocron
 

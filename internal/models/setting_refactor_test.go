@@ -3,14 +3,14 @@ package models
 import (
 	"testing"
 
-	"gorm.io/driver/sqlite"
+	"github.com/ncruces/go-sqlite3/gormlite"
 	"gorm.io/gorm"
 )
 
 // TestSettingRefactorBackwardCompatibility 测试重构后的向后兼容性
 func TestSettingRefactorBackwardCompatibility(t *testing.T) {
 	// 创建内存数据库
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	db, err := gorm.Open(gormlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("failed to connect database: %v", err)
 	}
@@ -151,7 +151,7 @@ func TestSettingRefactorBackwardCompatibility(t *testing.T) {
 // TestSettingHelperMethods 测试辅助方法
 func TestSettingHelperMethods(t *testing.T) {
 	// 创建内存数据库
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	db, err := gorm.Open(gormlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("failed to connect database: %v", err)
 	}

@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"testing"
 
-	"gorm.io/driver/sqlite"
+	"github.com/ncruces/go-sqlite3/gormlite"
 	"gorm.io/gorm"
 )
 
 // setupTestDB 创建测试数据库
 func setupTestDB(t *testing.T) *gorm.DB {
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	db, err := gorm.Open(gormlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("failed to open test database: %v", err)
 	}
@@ -264,7 +264,7 @@ func TestSetting_CreateWebhookUrl_DuplicateNames(t *testing.T) {
 
 // BenchmarkSetting_CreateWebhookUrl 性能测试：创建webhook地址
 func BenchmarkSetting_CreateWebhookUrl(b *testing.B) {
-	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	db, _ := gorm.Open(gormlite.Open(":memory:"), &gorm.Config{})
 	if err := db.AutoMigrate(&Setting{}); err != nil {
 		b.Fatalf("failed to migrate: %v", err)
 	}
@@ -280,7 +280,7 @@ func BenchmarkSetting_CreateWebhookUrl(b *testing.B) {
 
 // BenchmarkSetting_Webhook 性能测试：获取webhook配置
 func BenchmarkSetting_Webhook(b *testing.B) {
-	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	db, _ := gorm.Open(gormlite.Open(":memory:"), &gorm.Config{})
 	if err := db.AutoMigrate(&Setting{}); err != nil {
 		b.Fatalf("failed to migrate: %v", err)
 	}

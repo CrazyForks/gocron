@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"gorm.io/driver/sqlite"
+	"github.com/ncruces/go-sqlite3/gormlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -14,7 +14,7 @@ func setupRetentionTestDB(t *testing.T) func() {
 	originalDb := Db
 	originalPrefix := TablePrefix
 
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
+	db, err := gorm.Open(gormlite.Open(":memory:"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {

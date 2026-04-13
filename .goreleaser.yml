@@ -1,0 +1,98 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: gocron
+    main: ./cmd/gocron
+    binary: gocron
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X 'main.AppVersion={{ .Version }}'
+      - -X 'main.BuildDate={{ .Date }}'
+      - -X 'main.GitCommit={{ .ShortCommit }}'
+
+  - id: gocron-node
+    main: ./cmd/node
+    binary: gocron-node
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X 'main.AppVersion={{ .Version }}'
+      - -X 'main.BuildDate={{ .Date }}'
+      - -X 'main.GitCommit={{ .ShortCommit }}'
+
+archives:
+  - id: gocron
+    ids:
+      - gocron
+    name_template: "gocron-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+
+  - id: gocron-node
+    ids:
+      - gocron-node
+    name_template: "gocron-node-{{ .Os }}-{{ .Arch }}"
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^style:"
+      - "^chore\\(deps\\):"
+  groups:
+    - title: "New Features"
+      regexp: '^feat'
+    - title: "Bug Fixes"
+      regexp: '^fix'
+    - title: "Performance"
+      regexp: '^perf'
+    - title: "Others"
+      order: 999
+
+release:
+  github:
+    owner: gocronx-team
+    name: gocron
+  draft: false
+  prerelease: auto

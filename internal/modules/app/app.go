@@ -121,6 +121,7 @@ func GetCurrentVersionId() int {
 }
 
 // ToNumberVersion 把字符串版本号a.b.c转换为整数版本号abc
+// 非数字版本（如 "dev"）返回 0
 func ToNumberVersion(versionString string) int {
 	versionString = strings.TrimPrefix(versionString, "v")
 	v := strings.Replace(versionString, ".", "", -1)
@@ -130,7 +131,7 @@ func ToNumberVersion(versionString string) int {
 
 	versionId, err := strconv.Atoi(v)
 	if err != nil {
-		logger.Fatal(err)
+		return 0
 	}
 
 	return versionId
