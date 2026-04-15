@@ -88,8 +88,15 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-dialog :title="t('audit.detail')" v-model="dialogVisible" width="50%">
-      <pre>{{ currentDetail }}</pre>
+    <el-dialog :title="t('audit.detail')" v-model="dialogVisible" width="600px" align-center>
+      <el-table :data="detailRows" border size="small" :show-header="true">
+        <el-table-column prop="field" label="Field" width="160" />
+        <el-table-column prop="old" label="Before" />
+        <el-table-column label="" width="40" align="center">
+          <template #default>&rarr;</template>
+        </el-table-column>
+        <el-table-column prop="new" label="After" />
+      </el-table>
     </el-dialog>
   </el-main>
 </template>
@@ -119,7 +126,7 @@ export default {
       },
       dateRange: [],
       dialogVisible: false,
-      currentDetail: '',
+      detailRows: [],
       moduleList: [],
       actionList: []
     }
@@ -222,7 +229,15 @@ export default {
       return types[action] || 'info'
     },
     showDetail(row) {
-      this.currentDetail = row.detail
+      this.detailRows = (row.detail || '').split('\n').filter(Boolean).map(line => {
+        const parts = line.split(' → ')
+        const fieldAndOld = (parts[0] || '').split(': ')
+        return {
+          field: fieldAndOld[0] || '',
+          old: fieldAndOld.slice(1).join(': ') || '',
+          new: parts.slice(1).join(' → ') || ''
+        }
+      })
       this.dialogVisible = true
     }
   }
@@ -230,11 +245,4 @@ export default {
 </script>
 
 <style scoped>
-pre {
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  padding: 10px;
-  background-color: #4c4c4c;
-  color: white;
-}
 </style>
