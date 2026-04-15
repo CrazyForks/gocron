@@ -184,7 +184,7 @@ export default {
         this.searchParams.end_date = ''
       }
       auditService.list(this.searchParams, data => {
-        this.logs = data.list
+        this.logs = data.data
         this.logTotal = data.total
       })
     },
