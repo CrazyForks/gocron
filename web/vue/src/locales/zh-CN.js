@@ -421,6 +421,28 @@ export default {
     every30s: '每隔30秒运行一次',
     every1m20s: '每隔1分钟20秒运行一次'
   },
+  audit: {
+    log: '操作审计',
+    module: '模块',
+    action: '操作',
+    target: '操作对象',
+    detail: '变更详情',
+    module_task: '任务',
+    module_host: '节点',
+    module_user: '用户',
+    module_system: '系统',
+    action_create: '创建',
+    action_update: '修改',
+    action_delete: '删除',
+    action_enable: '启用',
+    action_disable: '禁用',
+    action_run: '手动执行',
+    action_batch_enable: '批量启用',
+    action_batch_disable: '批量禁用',
+    action_batch_remove: '批量删除',
+    action_change_password: '修改密码',
+    action_reset_password: '重置密码'
+  },
   statistics: {
     title: '数据统计',
     totalTasks: '任务总数',

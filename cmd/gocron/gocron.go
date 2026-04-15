@@ -326,4 +326,13 @@ func ensureTables() {
 			logger.Info("agent_token table created successfully")
 		}
 	}
+
+	if !models.Db.Migrator().HasTable(&models.AuditLog{}) {
+		logger.Info("audit_log table not found, creating...")
+		if err := models.Db.AutoMigrate(&models.AuditLog{}); err != nil {
+			logger.Error("Failed to create audit_log table", err)
+		} else {
+			logger.Info("audit_log table created successfully")
+		}
+	}
 }

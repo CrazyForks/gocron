@@ -13,7 +13,7 @@ type Migration struct{}
 func (migration *Migration) Install(dbName string) error {
 	setting := new(Setting)
 	tables := []interface{}{
-		&User{}, &Task{}, &TaskLog{}, &Host{}, setting, &LoginLog{}, &TaskHost{}, &AgentToken{},
+		&User{}, &Task{}, &TaskLog{}, &Host{}, setting, &LoginLog{}, &TaskHost{}, &AgentToken{}, &AuditLog{},
 	}
 
 	for _, table := range tables {
@@ -46,7 +46,7 @@ func (migration *Migration) Upgrade(oldVersionId int) {
 		return
 	}
 
-	versionIds := []int{110, 122, 130, 140, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159}
+	versionIds := []int{110, 122, 130, 140, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 1510}
 	upgradeFuncs := []func(*gorm.DB) error{
 		migration.upgradeFor110,
 		migration.upgradeFor122,
@@ -62,6 +62,7 @@ func (migration *Migration) Upgrade(oldVersionId int) {
 		migration.upgradeFor157,
 		migration.upgradeFor158,
 		migration.upgradeFor159,
+		migration.upgradeFor1510,
 	}
 
 	startIndex := -1
@@ -605,6 +606,19 @@ func (m *Migration) upgradeFor159(tx *gorm.DB) error {
 	}
 
 	logger.Info("已升级到v1.5.9\n")
+
+	return nil
+}
+
+// 升级到v1.5.10版本 - 添加审计日志表
+func (m *Migration) upgradeFor1510(tx *gorm.DB) error {
+	logger.Info("开始升级到v1.5.10 - 添加审计日志支持")
+
+	if err := tx.AutoMigrate(&AuditLog{}); err != nil {
+		return err
+	}
+
+	logger.Info("已升级到v1.5.10\n")
 
 	return nil
 }

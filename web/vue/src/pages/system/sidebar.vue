@@ -9,6 +9,7 @@
       router>
       <el-menu-item index="/system">{{ t('system.notification') }}</el-menu-item>
       <el-menu-item index="/system/login-log">{{ t('system.loginLog') }}</el-menu-item>
+      <el-menu-item index="/system/audit-log">{{ t('audit.log') }}</el-menu-item>
       <el-menu-item index="/system/log-retention">{{ t('system.logCleanup') }}</el-menu-item>
     </el-menu>
   </el-aside>
@@ -29,6 +30,9 @@ export default {
     currentRoute () {
       if (this.$route.path === '/system/login-log') {
         return '/system/login-log'
+      }
+      if (this.$route.path === '/system/audit-log') {
+        return '/system/audit-log'
       }
       if (this.$route.path === '/system/log-retention') {
         return '/system/log-retention'

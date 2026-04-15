@@ -426,6 +426,28 @@ export default {
     every30s: 'Run every 30 seconds',
     every1m20s: 'Run every 1 minute and 20 seconds'
   },
+  audit: {
+    log: 'Audit Log',
+    module: 'Module',
+    action: 'Action',
+    target: 'Target',
+    detail: 'Detail',
+    module_task: 'Task',
+    module_host: 'Host',
+    module_user: 'User',
+    module_system: 'System',
+    action_create: 'Create',
+    action_update: 'Update',
+    action_delete: 'Delete',
+    action_enable: 'Enable',
+    action_disable: 'Disable',
+    action_run: 'Manual Run',
+    action_batch_enable: 'Batch Enable',
+    action_batch_disable: 'Batch Disable',
+    action_batch_remove: 'Batch Delete',
+    action_change_password: 'Change Password',
+    action_reset_password: 'Reset Password'
+  },
   statistics: {
     title: 'Statistics',
     totalTasks: 'Total Tasks',

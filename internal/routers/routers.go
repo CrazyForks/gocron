@@ -10,11 +10,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	gocronembed "github.com/gocronx-team/gocron"
+	"github.com/gocronx-team/gocron/internal/models"
 	"github.com/gocronx-team/gocron/internal/modules/app"
 	"github.com/gocronx-team/gocron/internal/modules/i18n"
 	"github.com/gocronx-team/gocron/internal/modules/logger"
 	"github.com/gocronx-team/gocron/internal/modules/utils"
 	"github.com/gocronx-team/gocron/internal/routers/agent"
+	"github.com/gocronx-team/gocron/internal/routers/audit"
 	"github.com/gocronx-team/gocron/internal/routers/host"
 	"github.com/gocronx-team/gocron/internal/routers/install"
 	"github.com/gocronx-team/gocron/internal/routers/loginlog"
@@ -147,6 +149,12 @@ func Register(r *gin.Engine) {
 		statisticsGroup.GET("/overview", statistics.Overview)
 	}
 
+	// 审计日志（需认证）
+	auditGroup := api.Group("/audit")
+	{
+		auditGroup.GET("", audit.Index)
+	}
+
 	// API
 	v1Group := api.Group("/v1")
 	v1Group.Use(apiAuth)
@@ -215,6 +223,7 @@ func RegisterMiddleware(r *gin.Engine) {
 	r.Use(ipAuth)
 	r.Use(userAuth)
 	r.Use(urlAuth)
+	r.Use(auditLog)
 }
 
 // region Custom middleware
@@ -377,6 +386,111 @@ func urlAuth(c *gin.Context) {
 	data := jsonResp.Failure(utils.UnauthorizedError, i18n.T(c, "unauthorized"))
 	c.String(http.StatusOK, data)
 	c.Abort()
+}
+
+// auditLog middleware records audit log entries for write operations.
+// It runs after the handler (post-processing) and only records successful POST requests.
+func auditLog(c *gin.Context) {
+	c.Next()
+
+	// Only record POST requests
+	if c.Request.Method != http.MethodPost {
+		return
+	}
+
+	// Only record successful operations (status < 400)
+	if c.Writer.Status() >= 400 {
+		return
+	}
+
+	path := c.FullPath()
+	username := user.Username(c)
+	ip := c.ClientIP()
+
+	module, action := resolveModuleAction(path, c)
+	if module == "" || action == "" {
+		return
+	}
+
+	targetId := 0
+	if idStr := c.Param("id"); idStr != "" {
+		targetId, _ = strconv.Atoi(idStr)
+	}
+
+	log := &models.AuditLog{
+		Username: username,
+		Ip:       ip,
+		Module:   module,
+		Action:   action,
+		TargetId: targetId,
+	}
+
+	go func() {
+		if _, err := log.Create(); err != nil {
+			logger.Warnf("写入审计日志失败: %v", err)
+		}
+	}()
+}
+
+// resolveModuleAction maps a Gin full path pattern to (module, action).
+func resolveModuleAction(path string, c *gin.Context) (module, action string) {
+	switch path {
+	// Task routes
+	case "/api/task/store":
+		idStr := c.PostForm("id")
+		if idStr == "" || idStr == "0" {
+			return "task", "create"
+		}
+		return "task", "update"
+	case "/api/task/remove/:id":
+		return "task", "delete"
+	case "/api/task/enable/:id":
+		return "task", "enable"
+	case "/api/task/disable/:id":
+		return "task", "disable"
+	case "/api/task/batch-enable":
+		return "task", "batch-enable"
+	case "/api/task/batch-disable":
+		return "task", "batch-disable"
+	case "/api/task/batch-remove":
+		return "task", "batch-remove"
+
+	// Host routes
+	case "/api/host/store":
+		idStr := c.PostForm("id")
+		if idStr == "" || idStr == "0" {
+			return "host", "create"
+		}
+		return "host", "update"
+	case "/api/host/remove/:id":
+		return "host", "delete"
+
+	// User routes
+	case "/api/user/store":
+		idStr := c.PostForm("id")
+		if idStr == "" || idStr == "0" {
+			return "user", "create"
+		}
+		return "user", "update"
+	case "/api/user/remove/:id":
+		return "user", "delete"
+	case "/api/user/enable/:id":
+		return "user", "enable"
+	case "/api/user/disable/:id":
+		return "user", "disable"
+	case "/api/user/editMyPassword":
+		return "user", "change-password"
+	case "/api/user/editPassword/:id":
+		return "user", "reset-password"
+
+	// System routes — any POST under /api/system
+	default:
+		if strings.HasPrefix(path, "/api/system/") {
+			return "system", "update"
+		}
+	}
+
+	return "", ""
 }
 
 /** API接口签名验证 **/
