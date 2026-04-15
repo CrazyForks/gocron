@@ -412,8 +412,11 @@ func auditLog(c *gin.Context) {
 		return
 	}
 
+	// 获取 targetId：优先从 URL 参数，其次从 POST body
 	targetId := 0
 	if idStr := c.Param("id"); idStr != "" {
+		targetId, _ = strconv.Atoi(idStr)
+	} else if idStr := c.PostForm("id"); idStr != "" && idStr != "0" {
 		targetId, _ = strconv.Atoi(idStr)
 	}
 
@@ -425,7 +428,9 @@ func auditLog(c *gin.Context) {
 		TargetId: targetId,
 	}
 
+	// 异步查询对象名称并写入
 	go func() {
+		log.TargetName = resolveTargetName(module, targetId)
 		if _, err := log.Create(); err != nil {
 			logger.Warnf("写入审计日志失败: %v", err)
 		}
@@ -491,6 +496,34 @@ func resolveModuleAction(path string, c *gin.Context) (module, action string) {
 	}
 
 	return "", ""
+}
+
+// resolveTargetName 根据 module 和 targetId 查询对象名称
+func resolveTargetName(module string, targetId int) string {
+	if targetId == 0 {
+		return ""
+	}
+	switch module {
+	case "task":
+		task := &models.Task{}
+		if err := models.Db.Select("name").First(task, targetId).Error; err == nil {
+			return task.Name
+		}
+	case "host":
+		host := &models.Host{}
+		if err := models.Db.Select("name", "alias").First(host, targetId).Error; err == nil {
+			if host.Alias != "" {
+				return host.Alias
+			}
+			return host.Name
+		}
+	case "user":
+		u := &models.User{}
+		if err := models.Db.Select("name").First(u, targetId).Error; err == nil {
+			return u.Name
+		}
+	}
+	return ""
 }
 
 /** API接口签名验证 **/
