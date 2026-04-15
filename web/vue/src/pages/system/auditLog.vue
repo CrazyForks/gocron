@@ -51,33 +51,33 @@
       @current-change="changePage"
     ></el-pagination>
     <el-table :data="logs" border ref="table" style="width: 100%">
-      <el-table-column :label="t('system.loginTime')" width="180">
+      <el-table-column :label="t('system.loginTime')" width="180" align="center">
         <template #default="scope">
           {{ $filters.formatTime(scope.row.created) }}
         </template>
       </el-table-column>
-      <el-table-column prop="username" :label="t('user.username')"></el-table-column>
-      <el-table-column :label="t('audit.module')" width="100">
+      <el-table-column prop="username" :label="t('user.username')" align="center"></el-table-column>
+      <el-table-column :label="t('audit.module')" width="100" align="center">
         <template #default="scope">
           <el-tag :type="moduleTagType(scope.row.module)" size="small">
             {{ moduleLabel(scope.row.module) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column :label="t('audit.action')" width="120">
+      <el-table-column :label="t('audit.action')" width="120" align="center">
         <template #default="scope">
           <el-tag :type="actionTagType(scope.row.action)" size="small">
             {{ actionLabel(scope.row.action) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column :label="t('audit.target')">
+      <el-table-column :label="t('audit.target')" align="center">
         <template #default="scope">
           {{ scope.row.target_name || scope.row.target_id }}
         </template>
       </el-table-column>
-      <el-table-column prop="ip" :label="t('system.loginIp')"></el-table-column>
-      <el-table-column :label="t('audit.detail')" width="100">
+      <el-table-column prop="ip" :label="t('system.loginIp')" align="center"></el-table-column>
+      <el-table-column :label="t('audit.detail')" width="120" align="center">
         <template #default="scope">
           <el-button
             v-if="scope.row.detail"
