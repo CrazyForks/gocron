@@ -3,11 +3,6 @@ import { useUserStore } from '../stores/user'
 
 const routes = [
   {
-    path: '/:pathMatch(.*)*',
-    component: () => import('../components/common/notFound.vue'),
-    meta: { noLogin: true, noNeedAdmin: true }
-  },
-  {
     path: '/',
     redirect: '/task'
   },
@@ -132,6 +127,11 @@ const routes = [
     name: 'statistics',
     component: () => import('../pages/statistics/index.vue'),
     meta: { noNeedAdmin: true }
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    component: () => import('../components/common/notFound.vue'),
+    meta: { noLogin: true, noNeedAdmin: true }
   }
 ]
 

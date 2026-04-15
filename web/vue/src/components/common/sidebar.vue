@@ -59,6 +59,10 @@
           <el-icon><Document /></el-icon>
           <span>{{ t('system.loginLog') }}</span>
         </el-menu-item>
+        <el-menu-item index="/system/audit-log">
+          <el-icon><Notebook /></el-icon>
+          <span>{{ t('audit.log') }}</span>
+        </el-menu-item>
         <el-menu-item index="/system/log-retention">
           <el-icon><Delete /></el-icon>
           <span>{{ t('system.logCleanup') }}</span>
@@ -79,16 +83,17 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useUserStore } from '../../stores/user'
 import LanguageSwitcher from './LanguageSwitcher.vue'
-import { 
-  Calendar, 
-  List, 
-  Document, 
-  TrendCharts, 
-  Monitor, 
-  User, 
+import {
+  Calendar,
+  List,
+  Document,
+  TrendCharts,
+  Monitor,
+  User,
   Setting,
   Bell,
-  Delete
+  Delete,
+  Notebook
 } from '@element-plus/icons-vue'
 
 const { t } = useI18n()
@@ -105,6 +110,7 @@ const currentRoute = computed(() => {
   if (path.startsWith('/user')) return '/user'
   if (path.startsWith('/system')) {
     if (path === '/system/login-log') return '/system/login-log'
+    if (path === '/system/audit-log') return '/system/audit-log'
     if (path === '/system/log-retention') return '/system/log-retention'
     return '/system'
   }
