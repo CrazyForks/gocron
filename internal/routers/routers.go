@@ -420,12 +420,17 @@ func auditLog(c *gin.Context) {
 		targetId, _ = strconv.Atoi(idStr)
 	}
 
+	// 读取 handler 设置的审计详情
+	detail, _ := c.Get("audit_detail")
+	detailStr, _ := detail.(string)
+
 	log := &models.AuditLog{
 		Username: username,
 		Ip:       ip,
 		Module:   module,
 		Action:   action,
 		TargetId: targetId,
+		Detail:   detailStr,
 	}
 
 	// 异步查询对象名称并写入

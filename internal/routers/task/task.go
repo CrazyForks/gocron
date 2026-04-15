@@ -201,12 +201,20 @@ func Store(c *gin.Context) {
 			logger.Infof("[Task Create] After Create - ID: %d, Multi in DB: %d", id, verifyTask.Multi)
 		}
 	} else {
+		// 更新前记录旧值用于审计 diff
+		oldTask, _ := taskModel.Detail(id)
+
 		logger.Infof("[Task Update] Before Update - ID: %d, Multi: %d", id, taskModel.Multi)
 		_, err = taskModel.UpdateBean(id)
 		if err == nil {
 			// 立即读取验证
 			verifyTask, _ := taskModel.Detail(id)
 			logger.Infof("[Task Update] After Update - ID: %d, Multi in DB: %d", id, verifyTask.Multi)
+
+			// 生成审计 diff
+			if diff := buildTaskDiff(oldTask, verifyTask); diff != "" {
+				c.Set("audit_detail", diff)
+			}
 		}
 	}
 
@@ -407,4 +415,54 @@ func parseQueryParams(c *gin.Context) models.CommonMap {
 	base.ParsePageAndPageSize(c, params)
 
 	return params
+}
+
+// buildTaskDiff 对比任务的旧值和新值，返回可读的变更摘要
+func buildTaskDiff(old, new models.Task) string {
+	type change struct {
+		Field string `json:"field"`
+		Old   string `json:"old"`
+		New   string `json:"new"`
+	}
+	var changes []change
+
+	add := func(field, oldVal, newVal string) {
+		if oldVal != newVal {
+			changes = append(changes, change{field, oldVal, newVal})
+		}
+	}
+
+	add("name", old.Name, new.Name)
+	add("spec", old.Spec, new.Spec)
+	add("command", old.Command, new.Command)
+	add("tag", old.Tag, new.Tag)
+	add("timeout", strconv.Itoa(old.Timeout), strconv.Itoa(new.Timeout))
+	add("retry_times", strconv.Itoa(int(old.RetryTimes)), strconv.Itoa(int(new.RetryTimes)))
+	add("retry_interval", strconv.Itoa(int(old.RetryInterval)), strconv.Itoa(int(new.RetryInterval)))
+	add("remark", old.Remark, new.Remark)
+	add("http_method", strconv.Itoa(int(old.HttpMethod)), strconv.Itoa(int(new.HttpMethod)))
+	add("http_body", old.HttpBody, new.HttpBody)
+	add("http_headers", old.HttpHeaders, new.HttpHeaders)
+	add("success_pattern", old.SuccessPattern, new.SuccessPattern)
+	add("notify_status", strconv.Itoa(int(old.NotifyStatus)), strconv.Itoa(int(new.NotifyStatus)))
+	add("notify_keyword", old.NotifyKeyword, new.NotifyKeyword)
+	add("log_retention_days", strconv.Itoa(old.LogRetentionDays), strconv.Itoa(new.LogRetentionDays))
+
+	if len(changes) == 0 {
+		return ""
+	}
+
+	// 生成简洁的文本格式
+	var b strings.Builder
+	for i, ch := range changes {
+		if i > 0 {
+			b.WriteString("\n")
+		}
+		b.WriteString(ch.Field)
+		b.WriteString(": ")
+		b.WriteString(ch.Old)
+		b.WriteString(" → ")
+		b.WriteString(ch.New)
+	}
+	return b.String()
 }
