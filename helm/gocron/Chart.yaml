@@ -9,6 +9,7 @@ keywords:
   - scheduler
   - task
 home: https://github.com/gocronx-team/gocron
+icon: https://raw.githubusercontent.com/gocronx-team/gocron/master/web/vue/public/favicon.ico
 sources:
   - https://github.com/gocronx-team/gocron
 maintainers:
