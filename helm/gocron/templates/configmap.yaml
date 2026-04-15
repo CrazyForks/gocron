@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "gocron.fullname" . }}
+  labels:
+    {{- include "gocron.labels" . | nindent 4 }}
+data:
+  app.ini: |
+    [default]
+    db.engine={{ .Values.db.engine }}
+    db.host={{ .Values.db.host }}
+    db.port={{ .Values.db.port }}
+    db.user={{ .Values.db.user }}
+    db.password={{ .Values.db.password }}
+    db.database={{ .Values.db.database }}
+    db.prefix={{ .Values.db.prefix }}
+    db.charset={{ .Values.db.charset }}
+    db.max.idle.conns={{ .Values.db.maxIdleConns }}
+    db.max.open.conns={{ .Values.db.maxOpenConns }}
+    app.name={{ .Values.app.name }}
+    api.key={{ .Values.app.apiKey }}
+    api.secret={{ .Values.app.apiSecret }}
+    allow_ips={{ .Values.app.allowIps }}
+    concurrency.queue={{ .Values.app.concurrencyQueue }}
+    enable_tls={{ .Values.app.enableTls }}
