@@ -2,6 +2,7 @@ package routers
 
 import (
 	"context"
+	"crypto/subtle"
 	"io"
 	"io/fs"
 	"net/http"
@@ -220,11 +221,21 @@ func Register(r *gin.Engine) {
 // 中间件注册
 func RegisterMiddleware(r *gin.Engine) {
 	// 中间件
+	r.Use(securityHeaders)
 	r.Use(checkAppInstall)
 	r.Use(ipAuth)
 	r.Use(userAuth)
 	r.Use(urlAuth)
 	r.Use(auditLog)
+}
+
+// securityHeaders 设置通用的安全响应头，防御点击劫持 / MIME sniff / referrer 泄漏。
+// 不设置 CSP（需要针对前端资源单独调校）也不设置 HSTS（由反向代理决定）。
+func securityHeaders(c *gin.Context) {
+	c.Header("X-Frame-Options", "DENY")
+	c.Header("X-Content-Type-Options", "nosniff")
+	c.Header("Referrer-Policy", "no-referrer")
+	c.Next()
 }
 
 // region Custom middleware
@@ -577,7 +588,7 @@ func apiAuth(c *gin.Context) {
 	}
 	raw := apiKey + strconv.FormatInt(timeParam, 10) + strings.TrimSpace(c.Request.URL.Path) + apiSecret
 	realSign := utils.Sha256(raw)
-	if sign != realSign {
+	if subtle.ConstantTimeCompare([]byte(sign), []byte(realSign)) != 1 {
 		msg := json.CommonFailure(i18n.T(c, "sign_verify_failed"))
 		c.String(http.StatusOK, msg)
 		c.Abort()

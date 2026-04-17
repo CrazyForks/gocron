@@ -266,9 +266,25 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// 只检查是否过期，不检查是否已使用
 	if time.Now().After(agentToken.ExpiresAt) {
 		base.RespondError(c, "Token expired")
+		return
+	}
+	if agentToken.Used {
+		base.RespondError(c, "Token already used")
+		return
+	}
+
+	// 原子地领取 token：用 WHERE used=false 的条件更新避免并发复用竞态
+	claim := models.Db.Model(&models.AgentToken{}).
+		Where("token = ? AND used = ?", req.Token, false).
+		Updates(map[string]interface{}{"used": true, "used_at": time.Now()})
+	if claim.Error != nil {
+		base.RespondError(c, "Operation failed", claim.Error)
+		return
+	}
+	if claim.RowsAffected == 0 {
+		base.RespondError(c, "Token already used")
 		return
 	}
 

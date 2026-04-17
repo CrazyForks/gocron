@@ -207,12 +207,9 @@ func (task Task) initLogCleanupTask() {
 	cleanupTime := settingModel.GetLogCleanupTime()
 	// 解析时间 HH:MM
 	var hour, minute int
-	if n, err := fmt.Sscanf(cleanupTime, "%d:%d", &hour, &minute); err != nil || n != 2 {
-		logger.Warnf("日志清理时间解析失败，使用默认值 00:00 (cleanupTime=%q, err=%v)", cleanupTime, err)
-		hour, minute = 0, 0
-	}
-	if hour < 0 || hour > 23 || minute < 0 || minute > 59 {
-		logger.Warnf("日志清理时间超出范围，使用默认值 00:00 (hour=%d, minute=%d)", hour, minute)
+	if n, err := fmt.Sscanf(cleanupTime, "%d:%d", &hour, &minute); err != nil || n != 2 ||
+		hour < 0 || hour > 23 || minute < 0 || minute > 59 {
+		logger.Warnf("日志清理时间解析失败，使用默认值 00:00 (cleanupTime=%q)", cleanupTime)
 		hour, minute = 0, 0
 	}
 	// 生成cron表达式: 秒 分 时 日 月 周
@@ -541,13 +538,11 @@ func updateTaskLog(taskLogId int64, taskResult TaskResult) (int64, error) {
 }
 
 func createJob(taskModel models.Task) cron.FuncJob {
-	logger.Infof("Creating task job#ID-%d#Name-%s#Host count-%d", taskModel.Id, taskModel.Name, len(taskModel.Hosts))
 	handler := createHandler(taskModel)
 	if handler == nil {
 		return nil
 	}
 	taskFunc := func() {
-		logger.Infof("Task closure execution#ID-%d#Name-%s#Host count-%d", taskModel.Id, taskModel.Name, len(taskModel.Hosts))
 		taskCount.Add()
 		defer taskCount.Done()
 
@@ -606,8 +601,6 @@ func beforeExecJob(taskModel models.Task) (taskLogId int64) {
 		}
 		return
 	}
-	logger.Infof("Task pre-execution completed#ID-%d#taskLogId-%d", taskModel.Id, taskLogId)
-	logger.Debugf("Task command-%s", taskModel.Command)
 
 	return taskLogId
 }

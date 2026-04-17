@@ -99,6 +99,11 @@ func runWeb(ctx *cli.Context) error {
 	initModule()
 	fmt.Printf("Modules initialized\n")
 
+	// Security warning: agent gRPC channel unencrypted when TLS is off
+	if app.Installed && app.Setting != nil && !app.Setting.EnableTLS {
+		logger.Warn("SECURITY: agent gRPC TLS is disabled (enable_tls=false); agent port is reachable without authentication")
+	}
+
 	r := gin.Default()
 	// Register middleware
 	routers.RegisterMiddleware(r)
