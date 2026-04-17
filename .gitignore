@@ -43,5 +43,4 @@ tmp/
 build-errors.log
 .gocache
 .gstack/
-CLAUDE.md
 .design-review/
