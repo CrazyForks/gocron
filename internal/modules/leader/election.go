@@ -78,9 +78,6 @@ func (e *Election) run() {
 	// 确保锁表和初始记录存在
 	e.ensureLockRecord()
 
-	ticker := time.NewTicker(RetryInterval)
-	defer ticker.Stop()
-
 	for {
 		select {
 		case <-e.stopCh:
@@ -121,9 +118,6 @@ func (e *Election) run() {
 			return
 		case <-time.After(interval):
 		}
-
-		// 重置 ticker（因为用了 time.After 替代）
-		ticker.Reset(interval)
 	}
 }
 

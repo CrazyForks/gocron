@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"context"
 	"io"
 	"io/fs"
 	"net/http"
@@ -433,10 +434,12 @@ func auditLog(c *gin.Context) {
 		Detail:   detailStr,
 	}
 
-	// 异步查询对象名称并写入
+	// 异步查询对象名称并写入；使用独立 context 避免请求已结束后 goroutine 无界堆积
 	go func() {
-		log.TargetName = resolveTargetName(module, targetId)
-		if _, err := log.Create(); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		log.TargetName = resolveTargetName(ctx, module, targetId)
+		if err := models.Db.WithContext(ctx).Create(log).Error; err != nil {
 			logger.Warnf("写入审计日志失败: %v", err)
 		}
 	}()
@@ -504,19 +507,20 @@ func resolveModuleAction(path string, c *gin.Context) (module, action string) {
 }
 
 // resolveTargetName 根据 module 和 targetId 查询对象名称
-func resolveTargetName(module string, targetId int) string {
+func resolveTargetName(ctx context.Context, module string, targetId int) string {
 	if targetId == 0 {
 		return ""
 	}
+	db := models.Db.WithContext(ctx)
 	switch module {
 	case "task":
 		task := &models.Task{}
-		if err := models.Db.Select("name").First(task, targetId).Error; err == nil {
+		if err := db.Select("name").First(task, targetId).Error; err == nil {
 			return task.Name
 		}
 	case "host":
 		host := &models.Host{}
-		if err := models.Db.Select("name", "alias").First(host, targetId).Error; err == nil {
+		if err := db.Select("name", "alias").First(host, targetId).Error; err == nil {
 			if host.Alias != "" {
 				return host.Alias
 			}
@@ -524,7 +528,7 @@ func resolveTargetName(module string, targetId int) string {
 		}
 	case "user":
 		u := &models.User{}
-		if err := models.Db.Select("name").First(u, targetId).Error; err == nil {
+		if err := db.Select("name").First(u, targetId).Error; err == nil {
 			return u.Name
 		}
 	}

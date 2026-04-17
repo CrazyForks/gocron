@@ -102,42 +102,18 @@ type Task struct {
 
 // 新增
 func (task *Task) Create() (insertId int, err error) {
-	// 使用 Session 配置 FullSaveAssociations 为 false，并使用 Create 方法
-	// 通过设置 gorm 标签中没有 default 或使用指针类型来处理零值
-	// 但这里我们使用 map 来明确指定所有字段值
-	data := map[string]interface{}{
-		"name":               task.Name,
-		"level":              task.Level,
-		"dependency_task_id": task.DependencyTaskId,
-		"dependency_status":  task.DependencyStatus,
-		"spec":               task.Spec,
-		"protocol":           task.Protocol,
-		"command":            task.Command,
-		"http_method":        task.HttpMethod,
-		"http_body":          task.HttpBody,
-		"http_headers":       task.HttpHeaders,
-		"success_pattern":    task.SuccessPattern,
-		"timeout":            task.Timeout,
-		"multi":              task.Multi,
-		"retry_times":        task.RetryTimes,
-		"retry_interval":     task.RetryInterval,
-		"notify_status":      task.NotifyStatus,
-		"notify_type":        task.NotifyType,
-		"notify_receiver_id": task.NotifyReceiverId,
-		"notify_keyword":     task.NotifyKeyword,
-		"tag":                task.Tag,
-		"log_retention_days": task.LogRetentionDays,
-		"remark":             task.Remark,
-		"status":             task.Status,
-	}
-
-	result := Db.Model(&Task{}).Create(data)
+	// 使用 Select 显式列出所有列，确保零值字段（如 Multi=0）也会被写入，
+	// 覆盖 gorm 标签中的 default 值，同时 GORM 会将自增主键回填到 task.Id。
+	result := Db.Select(
+		"name", "level", "dependency_task_id", "dependency_status",
+		"spec", "protocol", "command", "http_method", "http_body",
+		"http_headers", "success_pattern", "timeout", "multi",
+		"retry_times", "retry_interval", "notify_status", "notify_type",
+		"notify_receiver_id", "notify_keyword", "tag", "log_retention_days",
+		"remark", "status",
+	).Create(task)
 	if result.Error == nil {
-		// 从 data 中获取自动生成的 ID
-		if id, ok := data["id"].(int); ok {
-			insertId = id
-			task.Id = insertId
-		}
+		insertId = task.Id
 	}
 
 	return insertId, result.Error

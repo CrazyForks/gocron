@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -79,13 +80,13 @@ func (s *Server) Run(ctx context.Context, req *pb.TaskRequest) (*pb.TaskResponse
 	}()
 
 	// 监听客户端取消或停止信号
-	wasStopped := false
+	var wasStopped atomic.Bool
 	go func() {
 		select {
 		case <-ctx.Done():
 			cancel()
 		case <-stopChan:
-			wasStopped = true
+			wasStopped.Store(true)
 			cancel()
 		case <-taskCtx.Done():
 		}
@@ -99,7 +100,7 @@ func (s *Server) Run(ctx context.Context, req *pb.TaskRequest) (*pb.TaskResponse
 	resp.Output = output
 	if execErr != nil {
 		// 如果是手动停止，使用特定的错误信息
-		if wasStopped {
+		if wasStopped.Load() {
 			resp.Error = "manual stop"
 			log.Infof("[id: %d] Manually stopped\n%s", req.Id, output)
 		} else {

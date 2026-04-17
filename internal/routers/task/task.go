@@ -70,7 +70,11 @@ func Index(c *gin.Context) {
 
 // Detail 任务详情
 func Detail(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		base.RespondError(c, i18n.T(c, "param_error"))
+		return
+	}
 	taskModel := new(models.Task)
 	task, err := taskModel.Detail(id)
 	jsonResp := utils.JsonResponse{}
@@ -245,9 +249,13 @@ func Store(c *gin.Context) {
 
 // 删除任务
 func Remove(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		base.RespondError(c, i18n.T(c, "param_error"))
+		return
+	}
 	taskModel := new(models.Task)
-	_, err := taskModel.Delete(id)
+	_, err = taskModel.Delete(id)
 	if err != nil {
 		base.RespondErrorWithDefaultMsg(c, err)
 	} else {
@@ -270,7 +278,11 @@ func Disable(c *gin.Context) {
 
 // 手动运行任务
 func Run(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		base.RespondError(c, i18n.T(c, "param_error"))
+		return
+	}
 	taskModel := new(models.Task)
 	task, err := taskModel.Detail(id)
 	if err != nil || task.Id <= 0 {
@@ -346,7 +358,7 @@ func BatchRemove(c *gin.Context) {
 		}
 	}
 
-	base.RespondSuccess(c, "操作成功", map[string]interface{}{
+	base.RespondSuccess(c, i18n.T(c, "operation_success"), map[string]interface{}{
 		"success_count": successCount,
 		"total_count":   len(form.Ids),
 	})
@@ -354,9 +366,13 @@ func BatchRemove(c *gin.Context) {
 
 // 改变任务状态
 func changeStatus(c *gin.Context, status models.Status) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil || id <= 0 {
+		base.RespondError(c, i18n.T(c, "param_error"))
+		return
+	}
 	taskModel := new(models.Task)
-	_, err := taskModel.Update(id, models.CommonMap{
+	_, err = taskModel.Update(id, models.CommonMap{
 		"status": status,
 	})
 	if err != nil {

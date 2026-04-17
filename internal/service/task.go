@@ -207,7 +207,14 @@ func (task Task) initLogCleanupTask() {
 	cleanupTime := settingModel.GetLogCleanupTime()
 	// 解析时间 HH:MM
 	var hour, minute int
-	_, _ = fmt.Sscanf(cleanupTime, "%d:%d", &hour, &minute)
+	if n, err := fmt.Sscanf(cleanupTime, "%d:%d", &hour, &minute); err != nil || n != 2 {
+		logger.Warnf("日志清理时间解析失败，使用默认值 00:00 (cleanupTime=%q, err=%v)", cleanupTime, err)
+		hour, minute = 0, 0
+	}
+	if hour < 0 || hour > 23 || minute < 0 || minute > 59 {
+		logger.Warnf("日志清理时间超出范围，使用默认值 00:00 (hour=%d, minute=%d)", hour, minute)
+		hour, minute = 0, 0
+	}
 	// 生成cron表达式: 秒 分 时 日 月 周
 	cronSpec := fmt.Sprintf("0 %d %d * * *", minute, hour)
 
@@ -468,17 +475,17 @@ func (h *RPCHandler) Run(taskModel models.Task, taskUniqueId int64) (result stri
 		}(taskHost)
 	}
 
-	var aggregationErr error = nil
-	aggregationResult := ""
+	var aggregationErr error
+	var resultBuilder strings.Builder
 	for i := 0; i < len(taskModel.Hosts); i++ {
 		taskResult := <-resultChan
-		aggregationResult += taskResult.Result
+		resultBuilder.WriteString(taskResult.Result)
 		if taskResult.Err != nil {
 			aggregationErr = taskResult.Err
 		}
 	}
 
-	return aggregationResult, aggregationErr
+	return resultBuilder.String(), aggregationErr
 }
 
 // 创建任务日志
@@ -491,11 +498,14 @@ func createTaskLog(taskModel models.Task, status models.Status) (int64, error) {
 	taskLogModel.Command = taskModel.Command
 	taskLogModel.Timeout = taskModel.Timeout
 	if taskModel.Protocol == models.TaskRPC {
-		aggregationHost := ""
+		var hostBuilder strings.Builder
 		for _, host := range taskModel.Hosts {
-			aggregationHost += fmt.Sprintf("%s - %s<br>", host.Alias, host.Name)
+			hostBuilder.WriteString(host.Alias)
+			hostBuilder.WriteString(" - ")
+			hostBuilder.WriteString(host.Name)
+			hostBuilder.WriteString("<br>")
 		}
-		taskLogModel.Hostname = aggregationHost
+		taskLogModel.Hostname = hostBuilder.String()
 	}
 	taskLogModel.StartTime = models.LocalTime(time.Now())
 	taskLogModel.Status = status
@@ -694,10 +704,12 @@ func SendNotification(taskModel models.Task, taskResult TaskResult) {
 }
 
 // 执行具体任务
-func execJob(handler Handler, taskModel models.Task, taskUniqueId int64) TaskResult {
+func execJob(handler Handler, taskModel models.Task, taskUniqueId int64) (result TaskResult) {
 	defer func() {
 		if err := recover(); err != nil {
 			logger.Error("panic#service/task.go:execJob#", err)
+			// 确保 panic 不会被误判为成功：返回失败结果
+			result = TaskResult{Err: fmt.Errorf("panic: %v", err)}
 		}
 	}()
 	// 默认只运行任务一次

@@ -286,6 +286,8 @@ func closeDatabase() {
 	if models.Db == nil {
 		return
 	}
+	// Stop the keep-alive goroutine before closing the connection
+	models.StopKeepAlive()
 	sqlDB, err := models.Db.DB()
 	if err != nil {
 		logger.Errorf("Failed to get database connection for closing: %v", err)

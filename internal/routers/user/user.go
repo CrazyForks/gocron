@@ -435,18 +435,36 @@ func RestoreToken(c *gin.Context) (string, error) {
 	if !ok {
 		return "", errors.New("invalid claims")
 	}
-	c.Set("uid", int(claims["uid"].(float64)))
-	c.Set("username", claims["username"])
-	c.Set("is_admin", int(claims["is_admin"].(float64)))
+
+	uidF, ok := claims["uid"].(float64)
+	if !ok {
+		return "", errors.New("invalid uid claim")
+	}
+	username, ok := claims["username"].(string)
+	if !ok {
+		return "", errors.New("invalid username claim")
+	}
+	isAdminF, ok := claims["is_admin"].(float64)
+	if !ok {
+		return "", errors.New("invalid is_admin claim")
+	}
+	expF, ok := claims["exp"].(float64)
+	if !ok {
+		return "", errors.New("invalid exp claim")
+	}
+
+	c.Set("uid", int(uidF))
+	c.Set("username", username)
+	c.Set("is_admin", int(isAdminF))
 
 	// 检查 token 是否即将过期（小于 1 小时）
-	exp := int64(claims["exp"].(float64))
+	exp := int64(expF)
 	if time.Until(time.Unix(exp, 0)) < time.Hour {
 		// 生成新 token
 		userModel := &models.User{
-			Id:      int(claims["uid"].(float64)),
-			Name:    claims["username"].(string),
-			IsAdmin: int8(claims["is_admin"].(float64)),
+			Id:      int(uidF),
+			Name:    username,
+			IsAdmin: int8(isAdminF),
 		}
 		newToken, err := generateToken(userModel)
 		if err != nil {

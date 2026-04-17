@@ -26,6 +26,9 @@ type CommonMap map[string]interface{}
 var TablePrefix = ""
 var Db *gorm.DB
 
+// dbKeepAliveStop is closed to signal the keepDbAlived goroutine to exit.
+var dbKeepAliveStop chan struct{}
+
 const (
 	Disabled Status = 0 // 禁用
 	Failure  Status = 0 // 失败
@@ -129,9 +132,23 @@ func CreateDb() *gorm.DB {
 		TablePrefix = app.Setting.Db.Prefix
 	}
 
-	go keepDbAlived(db)
+	dbKeepAliveStop = make(chan struct{})
+	go keepDbAlived(db, dbKeepAliveStop)
 
 	return db
+}
+
+// StopKeepAlive signals the keepDbAlived goroutine to exit. Safe to call multiple times.
+func StopKeepAlive() {
+	if dbKeepAliveStop == nil {
+		return
+	}
+	select {
+	case <-dbKeepAliveStop:
+		// already closed
+	default:
+		close(dbKeepAliveStop)
+	}
 }
 
 // 创建临时数据库连接
@@ -182,20 +199,24 @@ func getDbEngineDSN(setting *setting.Setting) string {
 	return dsn
 }
 
-func keepDbAlived(db *gorm.DB) {
-	t := time.Tick(dbPingInterval)
+func keepDbAlived(db *gorm.DB, stop <-chan struct{}) {
+	ticker := time.NewTicker(dbPingInterval)
+	defer ticker.Stop()
 	for {
-		<-t
-		sqlDB, err := db.DB()
-		if err != nil {
-			glogger.Infof("database get connection: %s", err)
-			continue
-		}
-		err = sqlDB.Ping()
-		if err != nil {
-			glogger.Infof("database ping failed: %s", err)
-		} else {
-			glogger.Infof("database ping: ok")
+		select {
+		case <-stop:
+			return
+		case <-ticker.C:
+			sqlDB, err := db.DB()
+			if err != nil {
+				glogger.Infof("database get connection: %s", err)
+				continue
+			}
+			if err := sqlDB.Ping(); err != nil {
+				glogger.Infof("database ping failed: %s", err)
+			} else {
+				glogger.Infof("database ping: ok")
+			}
 		}
 	}
 }
