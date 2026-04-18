@@ -80,6 +80,7 @@ func Register(r *gin.Engine) {
 	taskGroup := api.Group("/task")
 	{
 		taskGroup.POST("/store", task.Store)
+		taskGroup.POST("/cron-preview", task.CronPreview)
 		taskGroup.GET("/tags", task.GetAllTags)
 		taskGroup.GET("/:id", task.Detail)
 		taskGroup.GET("", task.Index)

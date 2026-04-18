@@ -4,6 +4,10 @@
  * 支持快捷语法：@yearly, @monthly, @weekly, @daily, @midnight, @hourly, @every
  */
 
+import i18n from '@/locales'
+
+const t = (key, params) => i18n.global.t(key, params)
+
 // 快捷语法列表
 const SHORTCUTS = [
   '@reboot',
@@ -42,7 +46,7 @@ export function extractTimezone(spec) {
  */
 export function validateCronSpec(spec) {
   if (!spec || typeof spec !== 'string') {
-    return { valid: false, message: '请输入cron表达式' }
+    return { valid: false, message: t('cronValidator.required') }
   }
 
   // 剥离 CRON_TZ=/TZ= 前缀后再验证
@@ -50,7 +54,7 @@ export function validateCronSpec(spec) {
   const trimmed = cronExpr.trim()
 
   if (!trimmed) {
-    return { valid: false, message: '请输入cron表达式' }
+    return { valid: false, message: t('cronValidator.required') }
   }
 
   // 检查快捷语法
@@ -78,7 +82,7 @@ function validateShortcut(spec) {
     if (!EVERY_PATTERN.test(lower)) {
       return {
         valid: false,
-        message: '@every 格式错误，示例：@every 30s, @every 1m20s, @every 3h5m10s'
+        message: t('cronValidator.everyFormatError')
       }
     }
     return { valid: true, message: '' }
@@ -86,7 +90,7 @@ function validateShortcut(spec) {
 
   return {
     valid: false,
-    message: '快捷语法错误，请点击“示例”查看'
+    message: t('cronValidator.shortcutError')
   }
 }
 
@@ -100,18 +104,18 @@ function validateStandardCron(spec) {
   if (segments.length !== 6) {
     return {
       valid: false,
-      message: 'cron表达式需包含6段（秒 分 时 天 月 周）'
+      message: t('cronValidator.sixFieldsRequired')
     }
   }
 
   // 字段范围定义
   const ranges = [
-    { name: '秒', min: 0, max: 59 },
-    { name: '分', min: 0, max: 59 },
-    { name: '时', min: 0, max: 23 },
-    { name: '天', min: 1, max: 31 },
-    { name: '月', min: 1, max: 12 },
-    { name: '周', min: 0, max: 7 }
+    { name: t('cronValidator.fieldSecond'), min: 0, max: 59 },
+    { name: t('cronValidator.fieldMinute'), min: 0, max: 59 },
+    { name: t('cronValidator.fieldHour'), min: 0, max: 23 },
+    { name: t('cronValidator.fieldDay'), min: 1, max: 31 },
+    { name: t('cronValidator.fieldMonth'), min: 1, max: 12 },
+    { name: t('cronValidator.fieldWeek'), min: 0, max: 7 }
   ]
 
   // 验证每一段
@@ -133,7 +137,7 @@ function validateSegment(segment, range) {
   if (!/^[0-9*/,\-?LW#]+$/.test(segment)) {
     return {
       valid: false,
-      message: `${range.name}字段包含非法字符`
+      message: t('cronValidator.illegalChar', { field: range.name })
     }
   }
 
@@ -168,7 +172,12 @@ function validateSegment(segment, range) {
     if (num < range.min || num > range.max) {
       return {
         valid: false,
-        message: `${range.name}字段值${num}超出范围[${range.min}-${range.max}]`
+        message: t('cronValidator.valueOutOfRange', {
+          field: range.name,
+          value: num,
+          min: range.min,
+          max: range.max
+        })
       }
     }
     return { valid: true }
@@ -181,7 +190,7 @@ function validateSegment(segment, range) {
 
   return {
     valid: false,
-    message: `${range.name}字段格式错误`
+    message: t('cronValidator.formatError', { field: range.name })
   }
 }
 
@@ -193,7 +202,7 @@ function validateRange(segment, range) {
   if (parts.length !== 2) {
     return {
       valid: false,
-      message: `${range.name}字段范围格式错误`
+      message: t('cronValidator.rangeFormatError', { field: range.name })
     }
   }
 
@@ -203,14 +212,18 @@ function validateRange(segment, range) {
   if (isNaN(start) || isNaN(end)) {
     return {
       valid: false,
-      message: `${range.name}字段范围必须是数字`
+      message: t('cronValidator.rangeNotNumber', { field: range.name })
     }
   }
 
   if (start < range.min || end > range.max || start > end) {
     return {
       valid: false,
-      message: `${range.name}字段范围[${start}-${end}]无效`
+      message: t('cronValidator.rangeInvalid', {
+        field: range.name,
+        start,
+        end
+      })
     }
   }
 
@@ -225,7 +238,7 @@ function validateStep(segment, range) {
   if (parts.length !== 2) {
     return {
       valid: false,
-      message: `${range.name}字段步长格式错误`
+      message: t('cronValidator.stepFormatError', { field: range.name })
     }
   }
 
@@ -233,7 +246,7 @@ function validateStep(segment, range) {
   if (isNaN(step) || step <= 0) {
     return {
       valid: false,
-      message: `${range.name}字段步长必须是正整数`
+      message: t('cronValidator.stepNotPositive', { field: range.name })
     }
   }
 
