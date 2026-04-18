@@ -5,81 +5,142 @@
         <LanguageSwitcher />
       </div>
     </div>
-    <el-form ref="form" :model="form" :rules="formRules" label-width="150px" style="width: 700px;">
+    <el-form
+      ref="form"
+      :model="form"
+      :rules="formRules"
+      label-width="150px"
+      style="width: 700px;"
+    >
       <h3>{{ t('install.dbConfig') }}</h3>
-      <el-form-item :label="t('install.dbType')" prop="db_type">
-        <el-select v-model.trim="form.db_type" @change="update_port">
+      <el-form-item
+        :label="t('install.dbType')"
+        prop="db_type"
+      >
+        <el-select
+          v-model.trim="form.db_type"
+          @change="update_port"
+        >
           <el-option
             v-for="item in dbList"
             :key="item.value"
             :label="item.label"
-            :value="item.value">
-          </el-option>
+            :value="item.value"
+          />
         </el-select>
       </el-form-item>
       <el-row v-if="form.db_type !== 'sqlite'">
         <el-col :span="12">
-          <el-form-item :label="t('install.dbHost')" prop="db_host">
-            <el-input v-model="form.db_host"></el-input>
+          <el-form-item
+            :label="t('install.dbHost')"
+            prop="db_host"
+          >
+            <el-input v-model="form.db_host" />
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item :label="t('install.dbPort')" prop="db_port">
-            <el-input v-model.number="form.db_port"></el-input>
+          <el-form-item
+            :label="t('install.dbPort')"
+            prop="db_port"
+          >
+            <el-input v-model.number="form.db_port" />
           </el-form-item>
         </el-col>
       </el-row>
       <el-row v-if="form.db_type !== 'sqlite'">
         <el-col :span="12">
-          <el-form-item :label="t('install.dbUser')" prop="db_username">
-            <el-input v-model="form.db_username"></el-input>
+          <el-form-item
+            :label="t('install.dbUser')"
+            prop="db_username"
+          >
+            <el-input v-model="form.db_username" />
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item :label="t('install.dbPassword')" prop="db_password">
-            <el-input v-model="form.db_password" type="password"></el-input>
+          <el-form-item
+            :label="t('install.dbPassword')"
+            prop="db_password"
+          >
+            <el-input
+              v-model="form.db_password"
+              type="password"
+            />
           </el-form-item>
         </el-col>
       </el-row>
       <el-row>
         <el-col :span="12">
-          <el-form-item :label="form.db_type === 'sqlite' ? t('install.dbFilePath') : t('install.dbName')" prop="db_name">
-            <el-input v-model="form.db_name" :placeholder="form.db_type === 'sqlite' ? t('install.dbFilePathPlaceholder') : t('install.dbNamePlaceholder')"></el-input>
+          <el-form-item
+            :label="form.db_type === 'sqlite' ? t('install.dbFilePath') : t('install.dbName')"
+            prop="db_name"
+          >
+            <el-input
+              v-model="form.db_name"
+              :placeholder="form.db_type === 'sqlite' ? t('install.dbFilePathPlaceholder') : t('install.dbNamePlaceholder')"
+            />
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item :label="t('install.dbTablePrefix')" prop="db_table_prefix">
-            <el-input v-model="form.db_table_prefix"></el-input>
+          <el-form-item
+            :label="t('install.dbTablePrefix')"
+            prop="db_table_prefix"
+          >
+            <el-input v-model="form.db_table_prefix" />
           </el-form-item>
         </el-col>
       </el-row>
       <h3>{{ t('install.adminConfig') }}</h3>
       <el-row>
         <el-col :span="12">
-          <el-form-item :label="t('install.adminUsername')" prop="admin_username">
-            <el-input v-model="form.admin_username"></el-input>
+          <el-form-item
+            :label="t('install.adminUsername')"
+            prop="admin_username"
+          >
+            <el-input v-model="form.admin_username" />
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item :label="t('install.adminEmail')" prop="admin_email">
-            <el-input v-model="form.admin_email"></el-input>
+          <el-form-item
+            :label="t('install.adminEmail')"
+            prop="admin_email"
+          >
+            <el-input v-model="form.admin_email" />
           </el-form-item>
         </el-col>
       </el-row>
       <el-row>
         <el-col :span="12">
-          <el-form-item :label="t('install.adminPassword')" prop="admin_password">
-            <el-input v-model="form.admin_password" type="password" :placeholder="t('install.passwordPlaceholder')"></el-input>
+          <el-form-item
+            :label="t('install.adminPassword')"
+            prop="admin_password"
+          >
+            <el-input
+              v-model="form.admin_password"
+              type="password"
+              :placeholder="t('install.passwordPlaceholder')"
+            />
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item :label="t('install.confirmPassword')" prop="confirm_admin_password">
-            <el-input v-model="form.confirm_admin_password" type="password" :placeholder="t('install.passwordPlaceholder')"></el-input>
+          <el-form-item
+            :label="t('install.confirmPassword')"
+            prop="confirm_admin_password"
+          >
+            <el-input
+              v-model="form.confirm_admin_password"
+              type="password"
+              :placeholder="t('install.passwordPlaceholder')"
+            />
           </el-form-item>
         </el-col>
       </el-row>
       <el-form-item>
-        <el-button type="primary" @click="submit()">{{ t('install.install') }}</el-button>
+        <el-button
+          type="primary"
+          @click="submit()"
+        >
+          {{ t('install.install') }}
+        </el-button>
       </el-form-item>
     </el-form>
 
@@ -94,7 +155,9 @@
       center
     >
       <div class="language-selection">
-        <p class="language-prompt">{{ currentDialogPrompt }}</p>
+        <p class="language-prompt">
+          {{ currentDialogPrompt }}
+        </p>
         <div class="language-options">
           <el-button
             v-for="lang in availableLanguages"
@@ -110,7 +173,11 @@
         </div>
       </div>
       <template #footer>
-        <el-button type="primary" @click="confirmLanguage" :disabled="!selectedLanguage">
+        <el-button
+          type="primary"
+          :disabled="!selectedLanguage"
+          @click="confirmLanguage"
+        >
           {{ currentConfirmText }}
         </el-button>
       </template>
@@ -124,7 +191,7 @@ import installService from '../../api/install'
 import LanguageSwitcher from '../../components/common/LanguageSwitcher.vue'
 
 export default {
-  name: 'index',
+  name: 'Index',
   components: { LanguageSwitcher },
   setup() {
     const { t, locale } = useI18n()

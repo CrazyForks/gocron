@@ -1,11 +1,20 @@
 <template>
-<el-main>
-  <el-form :inline="true" label-width="auto">
+  <el-main>
+    <el-form
+      :inline="true"
+      label-width="auto"
+    >
       <el-form-item :label="t('task.id')">
-        <el-input v-model.trim="searchParams.id" style="width: 180px;"></el-input>
+        <el-input
+          v-model.trim="searchParams.id"
+          style="width: 180px;"
+        />
       </el-form-item>
       <el-form-item :label="t('task.name')">
-        <el-input v-model.trim="searchParams.name" style="width: 180px;"></el-input>
+        <el-input
+          v-model.trim="searchParams.name"
+          style="width: 180px;"
+        />
       </el-form-item>
       <el-form-item :label="t('task.tag')">
         <el-select
@@ -17,82 +26,161 @@
           collapse-tags
           collapse-tags-tooltip
           :placeholder="t('task.tagPlaceholder')"
-          style="width: 180px;">
+          style="width: 180px;"
+        >
           <el-option
             v-for="tag in tagOptions"
             :key="tag"
             :label="tag"
-            :value="tag">
-          </el-option>
+            :value="tag"
+          />
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="search()">{{ t('common.search') }}</el-button>
+        <el-button
+          type="primary"
+          @click="search()"
+        >
+          {{ t('common.search') }}
+        </el-button>
       </el-form-item>
       <br>
       <el-form-item :label="t('task.protocol')">
-        <el-select v-model.trim="searchParams.protocol" style="width: 180px;">
-          <el-option :label="t('select')" value=""></el-option>
+        <el-select
+          v-model.trim="searchParams.protocol"
+          style="width: 180px;"
+        >
+          <el-option
+            :label="t('select')"
+            value=""
+          />
           <el-option
             v-for="item in protocolList"
             :key="item.value"
             :label="item.label"
-            :value="item.value">
-          </el-option>
+            :value="item.value"
+          />
         </el-select>
       </el-form-item>
       <el-form-item :label="t('task.taskNode')">
-        <el-select v-model.trim="searchParams.host_id" style="width: 180px;">
-          <el-option :label="t('select')" value=""></el-option>
+        <el-select
+          v-model.trim="searchParams.host_id"
+          style="width: 180px;"
+        >
+          <el-option
+            :label="t('select')"
+            value=""
+          />
           <el-option
             v-for="item in hosts"
             :key="item.id"
             :label="item.alias + ' - ' + item.name + ':' + item.port "
-            :value="item.id">
-          </el-option>
+            :value="item.id"
+          />
         </el-select>
       </el-form-item>
       <el-form-item :label="t('common.status')">
-        <el-select v-model.trim="searchParams.status" style="width: 180px;">
-          <el-option :label="t('select')" value=""></el-option>
+        <el-select
+          v-model.trim="searchParams.status"
+          style="width: 180px;"
+        >
+          <el-option
+            :label="t('select')"
+            value=""
+          />
           <el-option
             v-for="item in statusList"
             :key="item.value"
             :label="item.label"
-            :value="item.value">
-          </el-option>
+            :value="item.value"
+          />
         </el-select>
       </el-form-item>
     </el-form>
-    <el-row type="flex" justify="end" style="margin-bottom: 10px;">
-      <el-col :span="24" style="text-align: right;">
-        <span v-if="isAdmin && selectedTasks.length > 0" style="margin-right: 10px; color: #909399;">{{ t('message.selected') }} {{ selectedTasks.length }} {{ t('message.tasks') }}</span>
-        <el-button v-if="isAdmin" type="success" size="default" @click="batchEnable" :disabled="selectedTasks.length === 0">{{ t('message.batchEnable') }}</el-button>
-        <el-button v-if="isAdmin" type="warning" size="default" @click="batchDisable" :disabled="selectedTasks.length === 0">{{ t('message.batchDisable') }}</el-button>
-        <el-button v-if="isAdmin" type="danger" size="default" @click="batchRemove" :disabled="selectedTasks.length === 0">{{ t('message.batchDelete') }}</el-button>
-        <el-button type="primary" @click="toEdit(null)" v-if="isAdmin">{{ t('common.add') }}</el-button>
-        <el-button type="info" @click="refresh">{{ t('common.refresh') }}</el-button>
+    <el-row
+      type="flex"
+      justify="end"
+      style="margin-bottom: 10px;"
+    >
+      <el-col
+        :span="24"
+        style="text-align: right;"
+      >
+        <span
+          v-if="isAdmin && selectedTasks.length > 0"
+          style="margin-right: 10px; color: #909399;"
+        >{{ t('message.selected') }} {{ selectedTasks.length }} {{ t('message.tasks') }}</span>
+        <el-button
+          v-if="isAdmin"
+          type="success"
+          size="default"
+          :disabled="selectedTasks.length === 0"
+          @click="batchEnable"
+        >
+          {{ t('message.batchEnable') }}
+        </el-button>
+        <el-button
+          v-if="isAdmin"
+          type="warning"
+          size="default"
+          :disabled="selectedTasks.length === 0"
+          @click="batchDisable"
+        >
+          {{ t('message.batchDisable') }}
+        </el-button>
+        <el-button
+          v-if="isAdmin"
+          type="danger"
+          size="default"
+          :disabled="selectedTasks.length === 0"
+          @click="batchRemove"
+        >
+          {{ t('message.batchDelete') }}
+        </el-button>
+        <el-button
+          v-if="isAdmin"
+          type="primary"
+          @click="toEdit(null)"
+        >
+          {{ t('common.add') }}
+        </el-button>
+        <el-button
+          type="info"
+          @click="refresh"
+        >
+          {{ t('common.refresh') }}
+        </el-button>
       </el-col>
     </el-row>
     <el-pagination
+      v-model:current-page="searchParams.page"
+      v-model:page-size="searchParams.page_size"
       background
       layout="prev, pager, next, sizes, total"
       :total="taskTotal"
-      v-model:current-page="searchParams.page"
-      v-model:page-size="searchParams.page_size"
       @size-change="changePageSize"
-      @current-change="changePage">
-    </el-pagination>
+      @current-change="changePage"
+    />
     <el-table
       :data="tasks"
       tooltip-effect="dark"
       border
+      style="width: 100%"
       @selection-change="handleSelectionChange"
-      style="width: 100%">
-      <el-table-column type="selection" width="55" v-if="isAdmin"></el-table-column>
+    >
+      <el-table-column
+        v-if="isAdmin"
+        type="selection"
+        width="55"
+      />
       <el-table-column type="expand">
         <template #default="scope">
-          <el-form label-position="left" inline class="demo-table-expand" label-width="auto">
+          <el-form
+            label-position="left"
+            inline
+            class="demo-table-expand"
+            label-width="auto"
+          >
             <el-form-item :label="t('message.taskCreatedTime') + ':'">
               {{ $filters.formatTime(scope.row.created) }} <br>
             </el-form-item>
@@ -100,49 +188,60 @@
               {{ formatLevel(scope.row.level) }} <br>
             </el-form-item>
             <el-form-item :label="t('message.singleInstanceRun') + ':'">
-               {{ formatMulti(scope.row.multi) }} <br>
+              {{ formatMulti(scope.row.multi) }} <br>
             </el-form-item>
             <el-form-item :label="t('message.timeoutTime') + ':'">
               {{ formatTimeout(scope.row.timeout) }} <br>
             </el-form-item>
             <el-form-item :label="t('message.retryCount') + ':'">
-              {{scope.row.retry_times}} <br>
+              {{ scope.row.retry_times }} <br>
             </el-form-item>
             <el-form-item :label="t('message.retryIntervalTime') + ':'">
               {{ formatRetryTimesInterval(scope.row.retry_interval) }}
             </el-form-item> <br>
             <el-form-item :label="t('message.taskNodeLabel')">
-              <div v-for="item in scope.row.hosts" :key="item.host_id">
-                {{item.alias}} - {{item.name}}:{{item.port}} <br>
+              <div
+                v-for="item in scope.row.hosts"
+                :key="item.host_id"
+              >
+                {{ item.alias }} - {{ item.name }}:{{ item.port }} <br>
               </div>
             </el-form-item> <br>
-            <el-form-item :label="t('message.commandLabel') + ':'" style="width: 100%">
-              {{scope.row.command}}
+            <el-form-item
+              :label="t('message.commandLabel') + ':'"
+              style="width: 100%"
+            >
+              {{ scope.row.command }}
             </el-form-item> <br>
-            <el-form-item :label="t('message.remarkLabel')" style="width: 100%">
-              {{scope.row.remark}}
+            <el-form-item
+              :label="t('message.remarkLabel')"
+              style="width: 100%"
+            >
+              {{ scope.row.remark }}
             </el-form-item>
           </el-form>
         </template>
       </el-table-column>
       <el-table-column
         prop="id"
-        :label="t('task.id')">
-      </el-table-column>
+        :label="t('task.id')"
+      />
       <el-table-column
         prop="name"
         :label="t('task.name')"
-      width="150">
-      </el-table-column>
+        width="150"
+      />
       <el-table-column
-        :label="t('task.tag')">
+        :label="t('task.tag')"
+      >
         <template #default="scope">
           <template v-if="scope.row.tag">
             <el-tag
               v-for="tag in scope.row.tag.split(',').filter(Boolean)"
               :key="tag"
               size="small"
-              style="margin-right: 4px; margin-bottom: 2px;">
+              style="margin-right: 4px; margin-bottom: 2px;"
+            >
               {{ tag }}
             </el-tag>
           </template>
@@ -151,15 +250,23 @@
       <el-table-column
         :label="t('task.cronExpression')"
         min-width="150"
-        class-name="no-wrap-header">
+        class-name="no-wrap-header"
+      >
         <template #default="scope">
           <span>{{ parseCronSpec(scope.row.spec).expr }}</span>
-          <div v-if="parseCronSpec(scope.row.spec).tz" style="color: #909399; font-size: 12px; line-height: 1.4;">
+          <div
+            v-if="parseCronSpec(scope.row.spec).tz"
+            style="color: #909399; font-size: 12px; line-height: 1.4;"
+          >
             {{ parseCronSpec(scope.row.spec).tz }}
           </div>
         </template>
       </el-table-column>
-      <el-table-column :label="t('task.nextRunTime')" width="180" class-name="no-wrap-header">
+      <el-table-column
+        :label="t('task.nextRunTime')"
+        width="180"
+        class-name="no-wrap-header"
+      >
         <template #default="scope">
           {{ $filters.formatTime(scope.row.next_run_time) }}
         </template>
@@ -169,23 +276,28 @@
         :formatter="formatProtocol"
         :label="t('task.protocol')"
         width="140"
-        class-name="no-wrap-header">
+        class-name="no-wrap-header"
+      />
+      <el-table-column
+        v-if="isAdmin"
+        :label="t('common.status')"
+      >
+        <template #default="scope">
+          <el-switch
+            v-if="scope.row.level === 1"
+            v-model="scope.row.status"
+            :active-value="1"
+            :inactive-value="0"
+            active-color="#13ce66"
+            inactive-color="#ff4949"
+            @change="changeStatus(scope.row)"
+          />
+        </template>
       </el-table-column>
       <el-table-column
-        :label="t('common.status')" v-if="isAdmin">
-          <template #default="scope">
-            <el-switch
-              v-if="scope.row.level === 1"
-              v-model="scope.row.status"
-              :active-value="1"
-              :inactive-value="0"
-              active-color="#13ce66"
-              @change="changeStatus(scope.row)"
-              inactive-color="#ff4949">
-            </el-switch>
-          </template>
-      </el-table-column>
-      <el-table-column :label="t('common.status')" v-else>
+        v-else
+        :label="t('common.status')"
+      >
         <template #default="scope">
           <el-switch
             v-if="scope.row.level === 1"
@@ -194,20 +306,52 @@
             :inactive-value="0"
             active-color="#13ce66"
             :disabled="true"
-            inactive-color="#ff4949">
-          </el-switch>
+            inactive-color="#ff4949"
+          />
         </template>
       </el-table-column>
-      <el-table-column :label="t('common.operation')" :width="locale === 'zh-CN' ? 240 : 280" v-if="isAdmin">
+      <el-table-column
+        v-if="isAdmin"
+        :label="t('common.operation')"
+        :width="locale === 'zh-CN' ? 240 : 280"
+      >
         <template #default="scope">
           <div style="display: flex; flex-direction: column; gap: 4px;">
             <div style="display: flex; gap: 4px;">
-              <el-button type="primary" size="small" @click="toEdit(scope.row)" style="flex: 1;">{{ t('common.edit') }}</el-button>
-              <el-button type="success" size="small" @click="runTask(scope.row)" style="flex: 1;">{{ t('task.manualRun') }}</el-button>
+              <el-button
+                type="primary"
+                size="small"
+                style="flex: 1;"
+                @click="toEdit(scope.row)"
+              >
+                {{ t('common.edit') }}
+              </el-button>
+              <el-button
+                type="success"
+                size="small"
+                style="flex: 1;"
+                @click="runTask(scope.row)"
+              >
+                {{ t('task.manualRun') }}
+              </el-button>
             </div>
             <div style="display: flex; gap: 4px;">
-              <el-button type="info" size="small" @click="jumpToLog(scope.row)" style="flex: 1;">{{ t('task.viewLog') }}</el-button>
-              <el-button type="danger" size="small" @click="remove(scope.row)" style="flex: 1;">{{ t('common.delete') }}</el-button>
+              <el-button
+                type="info"
+                size="small"
+                style="flex: 1;"
+                @click="jumpToLog(scope.row)"
+              >
+                {{ t('task.viewLog') }}
+              </el-button>
+              <el-button
+                type="danger"
+                size="small"
+                style="flex: 1;"
+                @click="remove(scope.row)"
+              >
+                {{ t('common.delete') }}
+              </el-button>
             </div>
           </div>
         </template>
@@ -223,7 +367,7 @@ import { useUserStore } from '../../stores/user'
 import { ElMessageBox } from 'element-plus'
 
 export default {
-  name: 'task-list',
+  name: 'TaskList',
   setup() {
     const { t, locale } = useI18n()
     return { t, locale }

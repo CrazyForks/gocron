@@ -13,14 +13,15 @@
           type="info"
           :description="t('twoFactor.alertDescription')"
           :closable="false"
-          show-icon>
-        </el-alert>
+          show-icon
+        />
         
         <el-button 
           type="primary" 
-          @click="setup2FA" 
-          style="margin-top: 20px;"
-          :loading="loading">
+          style="margin-top: 20px;" 
+          :loading="loading"
+          @click="setup2FA"
+        >
           {{ t('twoFactor.enable') }}
         </el-button>
       </div>
@@ -31,72 +32,92 @@
           type="success"
           :description="t('twoFactor.enabledAlertDescription')"
           :closable="false"
-          show-icon>
-        </el-alert>
+          show-icon
+        />
         
         <el-button 
           type="danger" 
-          @click="showDisableDialog" 
-          style="margin-top: 20px;">
+          style="margin-top: 20px;" 
+          @click="showDisableDialog"
+        >
           {{ t('twoFactor.disable') }}
         </el-button>
       </div>
     </el-card>
 
     <el-dialog
-      :title="t('twoFactor.setup')"
       v-model="setupDialogVisible"
+      :title="t('twoFactor.setup')"
       width="500px"
-      :close-on-click-modal="false">
-      
+      :close-on-click-modal="false"
+    >
       <div v-if="qrCode">
         <p>{{ t('twoFactor.scanQR') }}</p>
         <div style="text-align: center; margin: 20px 0;">
-          <img :src="qrCode" alt="QR Code" style="width: 200px; height: 200px;">
+          <img
+            :src="qrCode"
+            alt="QR Code"
+            style="width: 200px; height: 200px;"
+          >
         </div>
         
         <p>{{ t('twoFactor.manualEntry') }}</p>
-        <el-input v-model="secret" readonly>
+        <el-input
+          v-model="secret"
+          readonly
+        >
           <template #append>
-            <el-button @click="copySecret">{{ t('twoFactor.copySecret') }}</el-button>
+            <el-button @click="copySecret">
+              {{ t('twoFactor.copySecret') }}
+            </el-button>
           </template>
         </el-input>
         
-        <p style="margin-top: 20px;">{{ t('twoFactor.verifyCodeStep') }}</p>
+        <p style="margin-top: 20px;">
+          {{ t('twoFactor.verifyCodeStep') }}
+        </p>
         <el-input 
           v-model="verifyCode" 
           :placeholder="t('twoFactor.verifyCodePlaceholder')"
           maxlength="6"
-          @keyup.enter="enable2FA">
-        </el-input>
+          @keyup.enter="enable2FA"
+        />
       </div>
 
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="setupDialogVisible = false">{{ t('common.cancel') }}</el-button>
-          <el-button type="primary" @click="enable2FA" :loading="loading">{{ t('twoFactor.confirm') }}</el-button>
+          <el-button
+            type="primary"
+            :loading="loading"
+            @click="enable2FA"
+          >{{ t('twoFactor.confirm') }}</el-button>
         </span>
       </template>
     </el-dialog>
 
     <el-dialog
-      :title="t('twoFactor.disableDialogTitle')"
       v-model="disableDialogVisible"
+      :title="t('twoFactor.disableDialogTitle')"
       width="400px"
-      :close-on-click-modal="false">
-      
+      :close-on-click-modal="false"
+    >
       <p>{{ t('twoFactor.disableDialogDescription') }}</p>
       <el-input 
         v-model="disableCode" 
         :placeholder="t('twoFactor.verifyCodePlaceholder')"
         maxlength="6"
-        @keyup.enter="disable2FA">
-      </el-input>
+        @keyup.enter="disable2FA"
+      />
 
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="disableDialogVisible = false">{{ t('common.cancel') }}</el-button>
-          <el-button type="danger" @click="disable2FA" :loading="loading">{{ t('twoFactor.confirmDisable') }}</el-button>
+          <el-button
+            type="danger"
+            :loading="loading"
+            @click="disable2FA"
+          >{{ t('twoFactor.confirmDisable') }}</el-button>
         </span>
       </template>
     </el-dialog>

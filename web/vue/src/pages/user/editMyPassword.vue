@@ -1,20 +1,54 @@
 <template>
   <el-main>
     <div class="form-container">
-      <el-form ref="form" :model="form" :rules="formRules" label-width="180px" label-position="left" class="password-form">
-        <el-form-item :label="t('user.oldPassword')" prop="old_password">
-          <el-input v-model="form.old_password" type="password"></el-input>
+      <el-form
+        ref="form"
+        :model="form"
+        :rules="formRules"
+        label-width="180px"
+        label-position="left"
+        class="password-form"
+      >
+        <el-form-item
+          :label="t('user.oldPassword')"
+          prop="old_password"
+        >
+          <el-input
+            v-model="form.old_password"
+            type="password"
+          />
         </el-form-item>
-        <el-form-item :label="t('user.newPassword')" prop="new_password">
-          <el-input v-model="form.new_password" type="password" :placeholder="t('user.passwordPlaceholder')"></el-input>
+        <el-form-item
+          :label="t('user.newPassword')"
+          prop="new_password"
+        >
+          <el-input
+            v-model="form.new_password"
+            type="password"
+            :placeholder="t('user.passwordPlaceholder')"
+          />
         </el-form-item>
-        <el-form-item :label="t('user.confirmNewPassword')" prop="confirm_new_password">
-          <el-input v-model="form.confirm_new_password" type="password" :placeholder="t('user.passwordPlaceholder')"></el-input>
+        <el-form-item
+          :label="t('user.confirmNewPassword')"
+          prop="confirm_new_password"
+        >
+          <el-input
+            v-model="form.confirm_new_password"
+            type="password"
+            :placeholder="t('user.passwordPlaceholder')"
+          />
         </el-form-item>
         <el-form-item>
           <div class="button-group">
-            <el-button type="primary" @click="submit()">{{ t('common.save') }}</el-button>
-            <el-button @click="cancel">{{ t('common.cancel') }}</el-button>
+            <el-button
+              type="primary"
+              @click="submit()"
+            >
+              {{ t('common.save') }}
+            </el-button>
+            <el-button @click="cancel">
+              {{ t('common.cancel') }}
+            </el-button>
           </div>
         </el-form-item>
       </el-form>
@@ -26,7 +60,7 @@
 import { useI18n } from 'vue-i18n'
 import userService from '../../api/user'
 export default {
-  name: 'user-edit-my-password',
+  name: 'UserEditMyPassword',
   setup() {
     const { t } = useI18n()
     return { t }

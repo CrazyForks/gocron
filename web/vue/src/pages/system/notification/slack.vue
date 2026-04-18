@@ -1,46 +1,77 @@
 <template>
   <el-main>
-    <notification-tab></notification-tab>
-      <el-form ref="form" :model="form" :rules="formRules" label-width="auto" style="width: 700px;">
-        <el-form-item :label="t('system.slackUrl')" prop="url">
-          <el-input v-model="form.url"></el-input>
-        </el-form-item>
-        <el-form-item :label="t('system.template')" prop="template">
+    <notification-tab />
+    <el-form
+      ref="form"
+      :model="form"
+      :rules="formRules"
+      label-width="auto"
+      style="width: 700px;"
+    >
+      <el-form-item
+        :label="t('system.slackUrl')"
+        prop="url"
+      >
+        <el-input v-model="form.url" />
+      </el-form-item>
+      <el-form-item
+        :label="t('system.template')"
+        prop="template"
+      >
+        <el-input
+          v-model="form.template"
+          type="textarea"
+          :rows="8"
+          :placeholder="slackPlaceholder"
+        />
+      </el-form-item>
+      <el-form-item>
+        <el-button
+          type="primary"
+          @click="submit"
+        >
+          {{ t('common.save') }}
+        </el-button>
+      </el-form-item>
+      <h3>{{ t('system.channels') }}</h3>
+      <el-button
+        type="primary"
+        @click="createChannel"
+      >
+        {{ t('system.addChannel') }}
+      </el-button> <br><br>
+      <el-tag
+        v-for="item in channels"
+        :key="item.id"
+        closable
+        @close="deleteChannel(item)"
+      >
+        {{ item.name }}
+      </el-tag>
+    </el-form>
+    <el-dialog
+      v-model="dialogVisible"
+      :title="t('system.addChannel')"
+      width="30%"
+    >
+      <el-form :model="form">
+        <el-form-item :label="t('system.channelName')">
           <el-input
-            type="textarea"
-            :rows="8"
-            :placeholder="slackPlaceholder"
-            v-model="form.template">
-          </el-input>
+            v-model.trim="channel"
+            v-focus
+          />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="submit">{{ t('common.save') }}</el-button>
+          <el-button
+            type="primary"
+            @click="saveChannel"
+          >
+            {{ t('common.confirm') }}
+          </el-button>
         </el-form-item>
-        <h3>{{ t('system.channels') }}</h3>
-        <el-button type="primary" @click="createChannel">{{ t('system.addChannel') }}</el-button> <br><br>
-        <el-tag
-          v-for="item in channels"
-          :key="item.id"
-          closable
-          @close="deleteChannel(item)"
-        >
-          {{item.name}}
-        </el-tag>
       </el-form>
-      <el-dialog
-        :title="t('system.addChannel')"
-        v-model="dialogVisible"
-        width="30%">
-        <el-form :model="form">
-          <el-form-item :label="t('system.channelName')" >
-            <el-input v-model.trim="channel" v-focus></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="saveChannel">{{ t('common.confirm') }}</el-button>
-          </el-form-item>
-        </el-form>
-      </el-dialog>
-    </el-main>
+    </el-dialog>
+  </el-main>
 </template>
 
 <script>
@@ -48,7 +79,8 @@ import { useI18n } from 'vue-i18n'
 import notificationTab from './tab.vue'
 import notificationService from '../../../api/notification'
 export default {
-  name: 'notification-slack',
+  name: 'NotificationSlack',
+  components: {notificationTab},
   setup() {
     const { t, locale } = useI18n()
     return { t, locale }
@@ -92,7 +124,6 @@ ${this.t('task.remark')}: {{.Remark}}`
       immediate: true
     }
   },
-  components: {notificationTab},
   created () {
     this.init()
   },

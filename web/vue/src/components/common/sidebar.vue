@@ -1,7 +1,12 @@
 <template>
-  <el-aside width="200px" class="global-sidebar">
+  <el-aside
+    width="200px"
+    class="global-sidebar"
+  >
     <div class="sidebar-header">
-      <h2 class="app-title">gocron</h2>
+      <h2 class="app-title">
+        gocron
+      </h2>
     </div>
     
     <el-menu
@@ -11,8 +16,8 @@
       text-color="#bfcbd9"
       active-text-color="#409EFF"
       :unique-opened="true"
-      router>
-      
+      router
+    >
       <!-- 任务管理 -->
       <el-sub-menu index="task">
         <template #title>
@@ -40,13 +45,19 @@
       </el-menu-item>
       
       <!-- 用户管理 -->
-      <el-menu-item v-if="userStore.isAdmin" index="/user">
+      <el-menu-item
+        v-if="userStore.isAdmin"
+        index="/user"
+      >
         <el-icon><User /></el-icon>
         <span>{{ t('nav.userManage') }}</span>
       </el-menu-item>
       
       <!-- 系统管理 -->
-      <el-sub-menu v-if="userStore.isAdmin" index="system">
+      <el-sub-menu
+        v-if="userStore.isAdmin"
+        index="system"
+      >
         <template #title>
           <el-icon><Setting /></el-icon>
           <span>{{ t('nav.systemManage') }}</span>

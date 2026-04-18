@@ -2,29 +2,41 @@
   <el-main>
     <el-form :inline="true">
       <el-form-item :label="t('audit.module')">
-        <el-select v-model.trim="searchParams.module" style="width: 150px">
-          <el-option :label="t('message.all')" value=""></el-option>
+        <el-select
+          v-model.trim="searchParams.module"
+          style="width: 150px"
+        >
+          <el-option
+            :label="t('message.all')"
+            value=""
+          />
           <el-option
             v-for="item in moduleList"
             :key="item.value"
             :label="item.label"
             :value="item.value"
-          ></el-option>
+          />
         </el-select>
       </el-form-item>
       <el-form-item :label="t('audit.action')">
-        <el-select v-model.trim="searchParams.action" style="width: 160px">
-          <el-option :label="t('message.all')" value=""></el-option>
+        <el-select
+          v-model.trim="searchParams.action"
+          style="width: 160px"
+        >
+          <el-option
+            :label="t('message.all')"
+            value=""
+          />
           <el-option
             v-for="item in actionList"
             :key="item.value"
             :label="item.label"
             :value="item.value"
-          ></el-option>
+          />
         </el-select>
       </el-form-item>
       <el-form-item :label="t('user.username')">
-        <el-input v-model.trim="searchParams.username"></el-input>
+        <el-input v-model.trim="searchParams.username" />
       </el-form-item>
       <el-form-item :label="t('common.date')">
         <el-date-picker
@@ -35,67 +47,138 @@
           :start-placeholder="t('common.date')"
           :end-placeholder="t('common.date')"
           style="width: 240px"
-        ></el-date-picker>
+        />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="search()">{{ t('common.search') }}</el-button>
+        <el-button
+          type="primary"
+          @click="search()"
+        >
+          {{ t('common.search') }}
+        </el-button>
       </el-form-item>
     </el-form>
     <el-pagination
+      v-model:current-page="searchParams.page"
+      v-model:page-size="searchParams.page_size"
       background
       layout="prev, pager, next, sizes, total"
       :total="logTotal"
-      v-model:current-page="searchParams.page"
-      v-model:page-size="searchParams.page_size"
       @size-change="changePageSize"
       @current-change="changePage"
-    ></el-pagination>
-    <el-table :data="logs" border ref="table" style="width: 100%">
-      <el-table-column :label="t('system.loginTime')" width="180" align="center">
+    />
+    <el-table
+      ref="table"
+      :data="logs"
+      border
+      style="width: 100%"
+    >
+      <el-table-column
+        :label="t('system.loginTime')"
+        width="180"
+        align="center"
+      >
         <template #default="scope">
           {{ $filters.formatTime(scope.row.created) }}
         </template>
       </el-table-column>
-      <el-table-column prop="username" :label="t('user.username')" align="center"></el-table-column>
-      <el-table-column :label="t('audit.module')" width="100" align="center">
+      <el-table-column
+        prop="username"
+        :label="t('user.username')"
+        align="center"
+      />
+      <el-table-column
+        :label="t('audit.module')"
+        width="100"
+        align="center"
+      >
         <template #default="scope">
-          <el-tag :type="moduleTagType(scope.row.module)" size="small">
+          <el-tag
+            :type="moduleTagType(scope.row.module)"
+            size="small"
+          >
             {{ moduleLabel(scope.row.module) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column :label="t('audit.action')" width="120" align="center">
+      <el-table-column
+        :label="t('audit.action')"
+        width="120"
+        align="center"
+      >
         <template #default="scope">
-          <el-tag :type="actionTagType(scope.row.action)" size="small">
+          <el-tag
+            :type="actionTagType(scope.row.action)"
+            size="small"
+          >
             {{ actionLabel(scope.row.action) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column :label="t('audit.target')" align="center">
+      <el-table-column
+        :label="t('audit.target')"
+        align="center"
+      >
         <template #default="scope">
           {{ scope.row.target_name || scope.row.target_id }}
         </template>
       </el-table-column>
-      <el-table-column prop="ip" :label="t('system.loginIp')" align="center"></el-table-column>
-      <el-table-column :label="t('audit.detail')" width="120" align="center">
+      <el-table-column
+        prop="ip"
+        :label="t('system.loginIp')"
+        align="center"
+      />
+      <el-table-column
+        :label="t('audit.detail')"
+        width="120"
+        align="center"
+      >
         <template #default="scope">
           <el-button
             v-if="scope.row.detail"
             type="info"
             size="small"
             @click="showDetail(scope.row)"
-          >{{ t('taskLog.viewOutput') }}</el-button>
+          >
+            {{ t('taskLog.viewOutput') }}
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
-    <el-dialog :title="t('audit.detail')" v-model="dialogVisible" width="600px" align-center>
-      <el-table :data="detailRows" border size="small" :show-header="true">
-        <el-table-column prop="field" label="Field" width="160" />
-        <el-table-column prop="old" label="Before" />
-        <el-table-column label="" width="40" align="center">
-          <template #default>&rarr;</template>
+    <el-dialog
+      v-model="dialogVisible"
+      :title="t('audit.detail')"
+      width="600px"
+      align-center
+    >
+      <el-table
+        :data="detailRows"
+        border
+        size="small"
+        :show-header="true"
+      >
+        <el-table-column
+          prop="field"
+          label="Field"
+          width="160"
+        />
+        <el-table-column
+          prop="old"
+          label="Before"
+        />
+        <el-table-column
+          label=""
+          width="40"
+          align="center"
+        >
+          <template #default>
+            &rarr;
+          </template>
         </el-table-column>
-        <el-table-column prop="new" label="After" />
+        <el-table-column
+          prop="new"
+          label="After"
+        />
       </el-table>
     </el-dialog>
   </el-main>
@@ -106,7 +189,7 @@ import { useI18n } from 'vue-i18n'
 import auditService from '../../api/audit'
 
 export default {
-  name: 'audit-log',
+  name: 'AuditLog',
   setup() {
     const { t } = useI18n()
     return { t }

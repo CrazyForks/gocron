@@ -1,12 +1,18 @@
 <template>
   <el-container style="height: 100vh">
-    <app-sidebar v-if="userStore.isLogin"></app-sidebar>
+    <app-sidebar v-if="userStore.isLogin" />
     <el-container style="flex-direction: column">
-      <el-header v-if="userStore.isLogin" height="60px">
-        <app-header></app-header>
+      <el-header
+        v-if="userStore.isLogin"
+        height="60px"
+      >
+        <app-header />
       </el-header>
       <el-main style="padding: 0; overflow-y: auto">
-        <div id="main-container" v-cloak>
+        <div
+          v-cloak
+          id="main-container"
+        >
           <el-config-provider :locale="activeLang">
             <router-view v-slot="{ Component }">
               <keep-alive>

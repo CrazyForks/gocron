@@ -6,11 +6,20 @@
       background-color="#545c64"
       text-color="#fff"
       active-text-color="#ffd04b"
-      router>
-      <el-menu-item index="/system">{{ t('system.notification') }}</el-menu-item>
-      <el-menu-item index="/system/login-log">{{ t('system.loginLog') }}</el-menu-item>
-      <el-menu-item index="/system/audit-log">{{ t('audit.log') }}</el-menu-item>
-      <el-menu-item index="/system/log-retention">{{ t('system.logCleanup') }}</el-menu-item>
+      router
+    >
+      <el-menu-item index="/system">
+        {{ t('system.notification') }}
+      </el-menu-item>
+      <el-menu-item index="/system/login-log">
+        {{ t('system.loginLog') }}
+      </el-menu-item>
+      <el-menu-item index="/system/audit-log">
+        {{ t('audit.log') }}
+      </el-menu-item>
+      <el-menu-item index="/system/log-retention">
+        {{ t('system.logCleanup') }}
+      </el-menu-item>
     </el-menu>
   </el-aside>
 </template>
@@ -18,7 +27,7 @@
 <script>
 import { useI18n } from 'vue-i18n'
 export default {
-  name: 'system-sidebar',
+  name: 'SystemSidebar',
   setup() {
     const { t } = useI18n()
     return { t }

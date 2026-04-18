@@ -1,52 +1,78 @@
 <template>
   <el-main>
-    <notification-tab></notification-tab>
-      <el-form ref="form" :model="form" :rules="formRules" label-width="auto" style="width: 800px;">
-        <h3>{{ t('system.webhook') }}</h3>
-        <el-alert
-          :title="t('system.webhookTip')"
-          type="info"
-          :closable="false"
-          style="margin-bottom: 15px;">
-        </el-alert>
-        <el-form-item :label="t('system.template')" prop="template">
-          <el-input
-            type="textarea"
-            :rows="8"
-            :placeholder="webhookPlaceholder"
-            v-model.trim="form.template">
-          </el-input>
+    <notification-tab />
+    <el-form
+      ref="form"
+      :model="form"
+      :rules="formRules"
+      label-width="auto"
+      style="width: 800px;"
+    >
+      <h3>{{ t('system.webhook') }}</h3>
+      <el-alert
+        :title="t('system.webhookTip')"
+        type="info"
+        :closable="false"
+        style="margin-bottom: 15px;"
+      />
+      <el-form-item
+        :label="t('system.template')"
+        prop="template"
+      >
+        <el-input
+          v-model.trim="form.template"
+          type="textarea"
+          :rows="8"
+          :placeholder="webhookPlaceholder"
+        />
+      </el-form-item>
+      <el-form-item>
+        <el-button
+          type="primary"
+          @click="submit()"
+        >
+          {{ t('common.save') }}
+        </el-button>
+      </el-form-item>
+      <el-button
+        type="primary"
+        @click="createUrl"
+      >
+        {{ t('system.addWebhookUrl') }}
+      </el-button> <br><br>
+      <h3>{{ t('system.webhookUrls') }}</h3>
+      <el-tag
+        v-for="item in webhookUrls"
+        :key="item.id"
+        closable
+        @close="deleteUrl(item)"
+      >
+        {{ item.name }} - {{ item.url }}
+      </el-tag>
+    </el-form>
+    <el-dialog
+      v-model="dialogVisible"
+      :title="t('system.addWebhookUrl')"
+      width="30%"
+    >
+      <el-form :model="form">
+        <el-form-item :label="t('system.webhookName')">
+          <el-input v-model.trim="name" />
+        </el-form-item>
+        <el-form-item label="URL">
+          <el-input v-model.trim="url" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="submit()">{{ t('common.save') }}</el-button>
+          <el-button
+            type="primary"
+            @click="saveUrl"
+          >
+            {{ t('common.confirm') }}
+          </el-button>
         </el-form-item>
-        <el-button type="primary" @click="createUrl">{{ t('system.addWebhookUrl') }}</el-button> <br><br>
-        <h3>{{ t('system.webhookUrls') }}</h3>
-        <el-tag
-          v-for="item in webhookUrls"
-          :key="item.id"
-          closable
-          @close="deleteUrl(item)">
-          {{item.name}} - {{item.url}}
-        </el-tag>
       </el-form>
-      <el-dialog
-        :title="t('system.addWebhookUrl')"
-        v-model="dialogVisible"
-        width="30%">
-        <el-form :model="form">
-          <el-form-item :label="t('system.webhookName')" >
-            <el-input v-model.trim="name"></el-input>
-          </el-form-item>
-          <el-form-item label="URL" >
-            <el-input v-model.trim="url"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="saveUrl">{{ t('common.confirm') }}</el-button>
-          </el-form-item>
-        </el-form>
-      </el-dialog>
-    </el-main>
+    </el-dialog>
+  </el-main>
 </template>
 
 <script>
@@ -54,7 +80,8 @@ import { useI18n } from 'vue-i18n'
 import notificationTab from './tab.vue'
 import notificationService from '../../../api/notification'
 export default {
-  name: 'notification-webhook',
+  name: 'NotificationWebhook',
+  components: {notificationTab},
   setup() {
     const { t, locale } = useI18n()
     return { t, locale }
@@ -91,7 +118,6 @@ export default {
       immediate: true
     }
   },
-  components: {notificationTab},
   created () {
     this.init()
   },

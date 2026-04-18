@@ -4,7 +4,9 @@
       <div class="language-switcher">
         <LanguageSwitcher />
       </div>
-      <h2 class="login-title">{{ t('login.title') }}</h2>
+      <h2 class="login-title">
+        {{ t('login.title') }}
+      </h2>
       <el-alert
         v-if="errorMessage"
         :title="errorMessage"
@@ -12,18 +14,57 @@
         :closable="false"
         style="margin-bottom: 20px;"
       />
-      <el-form ref="formRef" :model="form" label-width="100px" :rules="formRules">
-        <el-form-item :label="t('login.username')" prop="username">
-          <el-input v-model.trim="form.username" :placeholder="t('login.usernamePlaceholder')" size="large" />
+      <el-form
+        ref="formRef"
+        :model="form"
+        label-width="100px"
+        :rules="formRules"
+      >
+        <el-form-item
+          :label="t('login.username')"
+          prop="username"
+        >
+          <el-input
+            v-model.trim="form.username"
+            :placeholder="t('login.usernamePlaceholder')"
+            size="large"
+          />
         </el-form-item>
-        <el-form-item :label="t('login.password')" prop="password">
-          <el-input v-model.trim="form.password" type="password" :placeholder="t('login.passwordPlaceholder')" @keyup.enter="submit" size="large" />
+        <el-form-item
+          :label="t('login.password')"
+          prop="password"
+        >
+          <el-input
+            v-model.trim="form.password"
+            type="password"
+            :placeholder="t('login.passwordPlaceholder')"
+            size="large"
+            @keyup.enter="submit"
+          />
         </el-form-item>
-        <el-form-item :label="t('login.verifyCode')" prop="twoFactorCode" v-if="require2FA">
-          <el-input v-model.trim="form.twoFactorCode" :placeholder="t('login.verifyCodePlaceholder')" maxlength="6" @keyup.enter="submit" size="large" />
+        <el-form-item
+          v-if="require2FA"
+          :label="t('login.verifyCode')"
+          prop="twoFactorCode"
+        >
+          <el-input
+            v-model.trim="form.twoFactorCode"
+            :placeholder="t('login.verifyCodePlaceholder')"
+            maxlength="6"
+            size="large"
+            @keyup.enter="submit"
+          />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="submit" :loading="loading" class="login-button" size="large">{{ t('login.login') }}</el-button>
+          <el-button
+            type="primary"
+            :loading="loading"
+            class="login-button"
+            size="large"
+            @click="submit"
+          >
+            {{ t('login.login') }}
+          </el-button>
         </el-form-item>
       </el-form>
     </div>

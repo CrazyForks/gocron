@@ -1,70 +1,111 @@
 <template>
   <el-main>
-    <notification-tab></notification-tab>
-      <el-form ref="form" :model="form" :rules="formRules" label-width="auto" style="width: 800px;">
-        <h3>{{ t('system.emailServerConfig') }}</h3>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item :label="t('system.smtpHost')" prop="host">
-              <el-input v-model="form.host"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="10">
-            <el-form-item :label="t('host.port')" prop="port">
-              <el-input v-model.number="form.port"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item :label="t('user.username')" prop="user">
-              <el-input v-model="form.user"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item :label="t('user.password')" prop="password">
-              <el-input v-model="form.password" type="password"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item :label="t('system.template')" prop="template">
-          <el-input
-            type="textarea"
-            :rows="6"
-            :placeholder="emailPlaceholder"
-            v-model="form.template">
-          </el-input>
+    <notification-tab />
+    <el-form
+      ref="form"
+      :model="form"
+      :rules="formRules"
+      label-width="auto"
+      style="width: 800px;"
+    >
+      <h3>{{ t('system.emailServerConfig') }}</h3>
+      <el-row>
+        <el-col :span="12">
+          <el-form-item
+            :label="t('system.smtpHost')"
+            prop="host"
+          >
+            <el-input v-model="form.host" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="10">
+          <el-form-item
+            :label="t('host.port')"
+            prop="port"
+          >
+            <el-input v-model.number="form.port" />
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row>
+        <el-col :span="12">
+          <el-form-item
+            :label="t('user.username')"
+            prop="user"
+          >
+            <el-input v-model="form.user" />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item
+            :label="t('user.password')"
+            prop="password"
+          >
+            <el-input
+              v-model="form.password"
+              type="password"
+            />
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-form-item
+        :label="t('system.template')"
+        prop="template"
+      >
+        <el-input
+          v-model="form.template"
+          type="textarea"
+          :rows="6"
+          :placeholder="emailPlaceholder"
+        />
+      </el-form-item>
+      <el-form-item>
+        <el-button
+          type="primary"
+          @click="submit()"
+        >
+          {{ t('common.save') }}
+        </el-button>
+      </el-form-item>
+      <el-button
+        type="primary"
+        @click="createUser"
+      >
+        {{ t('system.addUser') }}
+      </el-button> <br><br>
+      <h3>{{ t('system.notificationUsers') }}</h3>
+      <el-tag
+        v-for="item in receivers"
+        :key="item.email"
+        closable
+        @close="deleteUser(item)"
+      >
+        {{ item.username }} - {{ item.email }}
+      </el-tag>
+    </el-form>
+    <el-dialog
+      v-model="dialogVisible"
+      :title="t('system.addUser')"
+      width="30%"
+    >
+      <el-form :model="form">
+        <el-form-item :label="t('user.username')">
+          <el-input v-model.trim="username" />
+        </el-form-item>
+        <el-form-item :label="t('system.emailAddress')">
+          <el-input v-model.trim="email" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="submit()">{{ t('common.save') }}</el-button>
+          <el-button
+            type="primary"
+            @click="saveUser"
+          >
+            {{ t('common.confirm') }}
+          </el-button>
         </el-form-item>
-        <el-button type="primary" @click="createUser">{{ t('system.addUser') }}</el-button> <br><br>
-        <h3>{{ t('system.notificationUsers') }}</h3>
-        <el-tag
-          v-for="item in receivers"
-          :key="item.email"
-          closable
-          @close="deleteUser(item)">
-          {{item.username}} - {{item.email}}
-        </el-tag>
       </el-form>
-      <el-dialog
-        :title="t('system.addUser')"
-        v-model="dialogVisible"
-        width="30%">
-        <el-form :model="form">
-          <el-form-item :label="t('user.username')" >
-            <el-input v-model.trim="username"></el-input>
-          </el-form-item>
-          <el-form-item :label="t('system.emailAddress')" >
-            <el-input v-model.trim="email"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="saveUser">{{ t('common.confirm') }}</el-button>
-          </el-form-item>
-        </el-form>
-      </el-dialog>
-    </el-main>
+    </el-dialog>
+  </el-main>
 </template>
 
 <script>
@@ -72,7 +113,8 @@ import { useI18n } from 'vue-i18n'
 import notificationTab from './tab.vue'
 import notificationService from '../../../api/notification'
 export default {
-  name: 'notification-email',
+  name: 'NotificationEmail',
+  components: {notificationTab},
   setup() {
     const { t, locale } = useI18n()
     return { t, locale }
@@ -129,7 +171,6 @@ ${this.t('task.remark')}: {{.Remark}}`
       immediate: true
     }
   },
-  components: {notificationTab},
   created () {
     this.init()
   },

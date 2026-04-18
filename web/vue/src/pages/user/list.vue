@@ -1,29 +1,58 @@
 <template>
   <el-main>
-    <el-row type="flex" justify="end">
+    <el-row
+      type="flex"
+      justify="end"
+    >
       <el-col :span="2">
-        <el-button type="primary" @click="toEdit(null)">{{ t('common.add') }}</el-button>
+        <el-button
+          type="primary"
+          @click="toEdit(null)"
+        >
+          {{ t('common.add') }}
+        </el-button>
       </el-col>
       <el-col :span="2">
-        <el-button type="info" @click="refresh">{{ t('common.refresh') }}</el-button>
+        <el-button
+          type="info"
+          @click="refresh"
+        >
+          {{ t('common.refresh') }}
+        </el-button>
       </el-col>
     </el-row>
     <el-pagination
+      v-model:current-page="searchParams.page"
+      v-model:page-size="searchParams.page_size"
       background
       layout="prev, pager, next, sizes, total"
       :total="userTotal"
-      v-model:current-page="searchParams.page"
-      v-model:page-size="searchParams.page_size"
       @size-change="changePageSize"
       @current-change="changePage"
+    />
+    <el-table
+      :data="users"
+      tooltip-effect="dark"
+      border
+      style="width: 100%"
     >
-    </el-pagination>
-    <el-table :data="users" tooltip-effect="dark" border style="width: 100%">
-      <el-table-column prop="id" label="ID"> </el-table-column>
-      <el-table-column prop="name" :label="t('user.username')"> </el-table-column>
-      <el-table-column prop="email" :label="t('user.email')"> </el-table-column>
-      <el-table-column prop="is_admin" :formatter="formatRole" :label="t('user.role')">
-      </el-table-column>
+      <el-table-column
+        prop="id"
+        label="ID"
+      />
+      <el-table-column
+        prop="name"
+        :label="t('user.username')"
+      />
+      <el-table-column
+        prop="email"
+        :label="t('user.email')"
+      />
+      <el-table-column
+        prop="is_admin"
+        :formatter="formatRole"
+        :label="t('user.role')"
+      />
       <el-table-column :label="t('common.status')">
         <template #default="scope">
           <el-switch
@@ -31,27 +60,44 @@
             :active-value="1"
             :inactive-value="0"
             active-color="#13ce66"
-            @change="changeStatus(scope.row)"
             inactive-color="#ff4949"
-          >
-          </el-switch>
+            @change="changeStatus(scope.row)"
+          />
         </template>
       </el-table-column>
       <el-table-column
+        v-if="isAdmin"
         :label="t('common.operation')"
         :width="locale === availableLanguages.zhCN.value ? 280 : 340"
-        v-if="isAdmin"
       >
         <template #default="scope">
-          <el-button type="primary" size="small" @click="toEdit(scope.row)">{{
-            t('common.edit')
-          }}</el-button>
-          <el-button type="success" size="small" @click="editPassword(scope.row)">{{
-            t('user.changePassword')
-          }}</el-button>
-          <el-button type="danger" size="small" @click="remove(scope.row)">{{
-            t('common.delete')
-          }}</el-button>
+          <el-button
+            type="primary"
+            size="small"
+            @click="toEdit(scope.row)"
+          >
+            {{
+              t('common.edit')
+            }}
+          </el-button>
+          <el-button
+            type="success"
+            size="small"
+            @click="editPassword(scope.row)"
+          >
+            {{
+              t('user.changePassword')
+            }}
+          </el-button>
+          <el-button
+            type="danger"
+            size="small"
+            @click="remove(scope.row)"
+          >
+            {{
+              t('common.delete')
+            }}
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -66,7 +112,7 @@ import { useUserStore } from '../../stores/user'
 import { availableLanguages } from '@/const/lang'
 
 export default {
-  name: 'user-list',
+  name: 'UserList',
   setup() {
     const { t, locale } = useI18n()
     return { t, locale, availableLanguages }

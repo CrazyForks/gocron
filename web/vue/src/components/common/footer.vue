@@ -1,7 +1,11 @@
 <template>
   <div class="footer-bar">
     © {{ currentYear }} 
-    <a href="https://github.com/gocronx-team/gocron" target="_blank" rel="noopener noreferrer">
+    <a
+      href="https://github.com/gocronx-team/gocron"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       gocronx-team/gocron
     </a>
   </div>
@@ -11,7 +15,7 @@
 import { computed } from 'vue'
 
 export default {
-  name: 'app-footer',
+  name: 'AppFooter',
   setup() {
     const currentYear = computed(() => new Date().getFullYear())
     return {

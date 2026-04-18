@@ -1,15 +1,25 @@
 <template>
-  <el-aside width="150px" class="sidebar-container">
+  <el-aside
+    width="150px"
+    class="sidebar-container"
+  >
     <el-menu
       :default-active="currentRoute"
       mode="vertical"
       background-color="#545c64"
       text-color="#fff"
       active-text-color="#ffd04b"
-      router>
-      <el-menu-item index="/task">{{ t('task.list') }}</el-menu-item>
-      <el-menu-item index="/task/log">{{ t('task.log') }}</el-menu-item>
-      <el-menu-item index="/statistics">{{ t('nav.statistics') }}</el-menu-item>
+      router
+    >
+      <el-menu-item index="/task">
+        {{ t('task.list') }}
+      </el-menu-item>
+      <el-menu-item index="/task/log">
+        {{ t('task.log') }}
+      </el-menu-item>
+      <el-menu-item index="/statistics">
+        {{ t('nav.statistics') }}
+      </el-menu-item>
     </el-menu>
     <div class="sidebar-language-switcher">
       <LanguageSwitcher />
@@ -22,7 +32,7 @@ import { useI18n } from 'vue-i18n'
 import LanguageSwitcher from '../../components/common/LanguageSwitcher.vue'
 
 export default {
-  name: 'task-sidebar',
+  name: 'TaskSidebar',
   components: { LanguageSwitcher },
   setup() {
     const { t } = useI18n()
