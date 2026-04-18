@@ -93,7 +93,7 @@ export default {
     verifyCode: '2FA Code',
     login: 'Login',
     usernamePlaceholder: 'Please enter username or email',
-    passwordPlaceholder: 'At least 8 characters, letters and digits',
+    passwordPlaceholder: 'Please enter password',
     verifyCodePlaceholder: 'Please enter 6-digit code',
     usernameRequired: 'Please enter username',
     passwordRequired: 'Please enter password',
