@@ -53,6 +53,13 @@
           </el-form-item>
         </el-col>
       </el-row>
+      <el-row>
+        <el-col :span="24">
+          <el-form-item label=" ">
+            <CronPreview :spec="form.spec" :timezone="form.timezone" />
+          </el-form-item>
+        </el-col>
+      </el-row>
 
       <!-- 执行配置 -->
       <el-row>
@@ -185,10 +192,11 @@ import { useI18n } from 'vue-i18n'
 import templateService from '../../api/template'
 import MonacoEditor from '../../components/common/MonacoEditor.vue'
 import CronInput from '../../components/common/CronInput.vue'
+import CronPreview from '../../components/common/CronPreview.vue'
 
 export default {
   name: 'template-edit',
-  components: { MonacoEditor, CronInput },
+  components: { MonacoEditor, CronInput, CronPreview },
   setup() {
     const { t } = useI18n()
     return { t }
