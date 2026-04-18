@@ -26,7 +26,7 @@ import (
 )
 
 var (
-	AppVersion           = "1.5.9"
+	AppVersion           = "1.6.0"
 	BuildDate, GitCommit string
 
 	// leaderElection 全局选举实例，用于 graceful shutdown 时释放锁
@@ -344,5 +344,13 @@ func ensureTables() {
 		} else {
 			logger.Info("audit_log table created successfully")
 		}
+	}
+
+	// 始终 AutoMigrate 新表，确保字段同步（AutoMigrate 幂等，只加列不删列）
+	if err := models.Db.AutoMigrate(&models.TaskScriptVersion{}); err != nil {
+		logger.Error("Failed to migrate task_script_version table", err)
+	}
+	if err := models.Db.AutoMigrate(&models.TaskTemplate{}); err != nil {
+		logger.Error("Failed to migrate task_template table", err)
 	}
 }

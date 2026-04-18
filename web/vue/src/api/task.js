@@ -57,5 +57,17 @@ export default {
    */
   cronPreview(params, callback) {
     httpClient.postJson('/task/cron-preview', params, callback)
+  },
+
+  versions(taskId, params, callback) {
+    httpClient.get(`/task/versions/${taskId}`, params, callback)
+  },
+
+  versionDetail(taskId, versionId, callback) {
+    httpClient.get(`/task/versions/${taskId}/${versionId}`, {}, callback)
+  },
+
+  versionRollback(taskId, versionId, callback) {
+    httpClient.post(`/task/versions/${taskId}/${versionId}/rollback`, {}, callback)
   }
 }

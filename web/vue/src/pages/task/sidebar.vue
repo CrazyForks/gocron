@@ -14,6 +14,9 @@
       <el-menu-item index="/task">
         {{ t('task.list') }}
       </el-menu-item>
+      <el-menu-item index="/template">
+        {{ t('template.list') }}
+      </el-menu-item>
       <el-menu-item index="/task/log">
         {{ t('task.log') }}
       </el-menu-item>
@@ -48,6 +51,9 @@ export default {
       }
       if (this.$route.path === '/statistics') {
         return '/statistics'
+      }
+      if (this.$route.path.startsWith('/template')) {
+        return '/template'
       }
       return '/task'
     }
