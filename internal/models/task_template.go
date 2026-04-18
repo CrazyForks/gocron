@@ -9,33 +9,33 @@ import (
 )
 
 type TaskTemplate struct {
-	Id          int       `json:"id" gorm:"primaryKey;autoIncrement"`
-	Name        string    `json:"name" gorm:"type:varchar(64);not null"`
-	Description string    `json:"description" gorm:"type:varchar(500);not null;default:''"`
-	Category    string    `json:"category" gorm:"type:varchar(32);not null;default:'custom';index"`
-	Protocol    int8      `json:"protocol" gorm:"type:tinyint;not null;default:2"`
-	Command     string    `json:"command" gorm:"type:text;not null"`
-	HttpMethod  int8      `json:"http_method" gorm:"type:tinyint;not null;default:1"`
-	HttpBody    string    `json:"http_body" gorm:"type:text"`
-	HttpHeaders    string `json:"http_headers" gorm:"type:text"`
-	SuccessPattern string `json:"success_pattern" gorm:"type:varchar(512);not null;default:''"`
-	Tag            string `json:"tag" gorm:"type:varchar(255);not null;default:''"`
-	Spec           string `json:"spec" gorm:"type:varchar(64);not null;default:''"`
-	Timeout        int    `json:"timeout" gorm:"type:int;not null;default:0"`
-	Multi          int8   `json:"multi" gorm:"type:tinyint;not null;default:1"`
-	RetryTimes       int8   `json:"retry_times" gorm:"type:tinyint;not null;default:0"`
-	RetryInterval    int16  `json:"retry_interval" gorm:"type:smallint;not null;default:0"`
-	Timezone         string `json:"timezone" gorm:"type:varchar(64);not null;default:''"`
-	NotifyStatus     int8   `json:"notify_status" gorm:"type:tinyint;not null;default:0"`
-	NotifyType       int8   `json:"notify_type" gorm:"type:tinyint;not null;default:0"`
-	NotifyKeyword    string `json:"notify_keyword" gorm:"type:varchar(128);not null;default:''"`
-	LogRetentionDays int    `json:"log_retention_days" gorm:"type:smallint;not null;default:0"`
-	IsBuiltin        int8   `json:"is_builtin" gorm:"type:tinyint;not null;default:0"`
-	UsageCount  int       `json:"usage_count" gorm:"type:int;not null;default:0"`
-	CreatedBy   string    `json:"created_by" gorm:"type:varchar(64);not null;default:''"`
-	CreatedAt   time.Time `json:"created_at" gorm:"column:created_at;autoCreateTime"`
-	UpdatedAt   time.Time `json:"updated_at" gorm:"column:updated_at;autoUpdateTime"`
-	BaseModel   `json:"-" gorm:"-"`
+	Id               int       `json:"id" gorm:"primaryKey;autoIncrement"`
+	Name             string    `json:"name" gorm:"type:varchar(64);not null"`
+	Description      string    `json:"description" gorm:"type:varchar(500);not null;default:''"`
+	Category         string    `json:"category" gorm:"type:varchar(32);not null;default:'custom';index"`
+	Protocol         int8      `json:"protocol" gorm:"type:tinyint;not null;default:2"`
+	Command          string    `json:"command" gorm:"type:text;not null"`
+	HttpMethod       int8      `json:"http_method" gorm:"type:tinyint;not null;default:1"`
+	HttpBody         string    `json:"http_body" gorm:"type:text"`
+	HttpHeaders      string    `json:"http_headers" gorm:"type:text"`
+	SuccessPattern   string    `json:"success_pattern" gorm:"type:varchar(512);not null;default:''"`
+	Tag              string    `json:"tag" gorm:"type:varchar(255);not null;default:''"`
+	Spec             string    `json:"spec" gorm:"type:varchar(64);not null;default:''"`
+	Timeout          int       `json:"timeout" gorm:"type:int;not null;default:0"`
+	Multi            int8      `json:"multi" gorm:"type:tinyint;not null;default:1"`
+	RetryTimes       int8      `json:"retry_times" gorm:"type:tinyint;not null;default:0"`
+	RetryInterval    int16     `json:"retry_interval" gorm:"type:smallint;not null;default:0"`
+	Timezone         string    `json:"timezone" gorm:"type:varchar(64);not null;default:''"`
+	NotifyStatus     int8      `json:"notify_status" gorm:"type:tinyint;not null;default:0"`
+	NotifyType       int8      `json:"notify_type" gorm:"type:tinyint;not null;default:0"`
+	NotifyKeyword    string    `json:"notify_keyword" gorm:"type:varchar(128);not null;default:''"`
+	LogRetentionDays int       `json:"log_retention_days" gorm:"type:smallint;not null;default:0"`
+	IsBuiltin        int8      `json:"is_builtin" gorm:"type:tinyint;not null;default:0"`
+	UsageCount       int       `json:"usage_count" gorm:"type:int;not null;default:0"`
+	CreatedBy        string    `json:"created_by" gorm:"type:varchar(64);not null;default:''"`
+	CreatedAt        time.Time `json:"created_at" gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt        time.Time `json:"updated_at" gorm:"column:updated_at;autoUpdateTime"`
+	BaseModel        `json:"-" gorm:"-"`
 }
 
 func (t *TaskTemplate) Create() (int, error) {
@@ -190,17 +190,17 @@ func seedBuiltinTemplates(tx *gorm.DB) {
 			IsBuiltin:   1,
 		},
 		{
-			Name:        "HTTP Health Check",
-			Description: "Check if HTTP endpoint is healthy",
-			Category:    "monitor",
-			Protocol:    2,
-			Command:     `curl -sf -o /dev/null -w "%{http_code}" {{check_url}} || exit 1`,
-			Tag:         "monitor,health",
-			Spec:        "0 */5 * * * *",
-			Timeout:     30,
-			RetryTimes:  3,
+			Name:          "HTTP Health Check",
+			Description:   "Check if HTTP endpoint is healthy",
+			Category:      "monitor",
+			Protocol:      2,
+			Command:       `curl -sf -o /dev/null -w "%{http_code}" {{check_url}} || exit 1`,
+			Tag:           "monitor,health",
+			Spec:          "0 */5 * * * *",
+			Timeout:       30,
+			RetryTimes:    3,
 			RetryInterval: 30,
-			IsBuiltin:   1,
+			IsBuiltin:     1,
 		},
 		{
 			Name:        "Disk Usage Alert",
@@ -225,32 +225,32 @@ func seedBuiltinTemplates(tx *gorm.DB) {
 			IsBuiltin:   1,
 		},
 		{
-			Name:        "HTTP API Call (GET)",
-			Description: "Call an HTTP GET API endpoint",
-			Category:    "api",
-			Protocol:    1,
-			Command:     `{{api_url}}`,
-			HttpMethod:  1,
-			Tag:         "api,http",
-			Timeout:     30,
-			RetryTimes:  2,
+			Name:          "HTTP API Call (GET)",
+			Description:   "Call an HTTP GET API endpoint",
+			Category:      "api",
+			Protocol:      1,
+			Command:       `{{api_url}}`,
+			HttpMethod:    1,
+			Tag:           "api,http",
+			Timeout:       30,
+			RetryTimes:    2,
 			RetryInterval: 10,
-			IsBuiltin:   1,
+			IsBuiltin:     1,
 		},
 		{
-			Name:        "HTTP API Call (POST)",
-			Description: "Call an HTTP POST API with JSON body",
-			Category:    "api",
-			Protocol:    1,
-			Command:     `{{api_url}}`,
-			HttpMethod:  2,
-			HttpBody:    `{{json_body}}`,
-			HttpHeaders: `{"Content-Type": "application/json"}`,
-			Tag:         "api,http",
-			Timeout:     30,
-			RetryTimes:  2,
+			Name:          "HTTP API Call (POST)",
+			Description:   "Call an HTTP POST API with JSON body",
+			Category:      "api",
+			Protocol:      1,
+			Command:       `{{api_url}}`,
+			HttpMethod:    2,
+			HttpBody:      `{{json_body}}`,
+			HttpHeaders:   `{"Content-Type": "application/json"}`,
+			Tag:           "api,http",
+			Timeout:       30,
+			RetryTimes:    2,
 			RetryInterval: 10,
-			IsBuiltin:   1,
+			IsBuiltin:     1,
 		},
 	}
 

@@ -14,7 +14,7 @@ func TestPreviewCron_ValidStandardExpressions(t *testing.T) {
 		name       string
 		spec       string
 		timezone   string
-		wantNextN  int    // 预期返回的 next_runs 条数
+		wantNextN  int // 预期返回的 next_runs 条数
 		firstRunOK func(time.Time) bool
 	}{
 		{

@@ -6,13 +6,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gocronx-team/gocron/internal/models"
-	"gorm.io/gorm"
 	"github.com/gocronx-team/gocron/internal/modules/i18n"
 	"github.com/gocronx-team/gocron/internal/modules/logger"
 	"github.com/gocronx-team/gocron/internal/modules/utils"
 	"github.com/gocronx-team/gocron/internal/routers/base"
 	"github.com/gocronx-team/gocron/internal/routers/user"
 	"github.com/gocronx-team/gocron/internal/service"
+	"gorm.io/gorm"
 )
 
 // VersionList 获取任务脚本版本列表

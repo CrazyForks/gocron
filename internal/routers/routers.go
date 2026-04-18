@@ -25,8 +25,8 @@ import (
 	"github.com/gocronx-team/gocron/internal/routers/manage"
 	"github.com/gocronx-team/gocron/internal/routers/statistics"
 	"github.com/gocronx-team/gocron/internal/routers/task"
-	"github.com/gocronx-team/gocron/internal/routers/template"
 	"github.com/gocronx-team/gocron/internal/routers/tasklog"
+	"github.com/gocronx-team/gocron/internal/routers/template"
 	"github.com/gocronx-team/gocron/internal/routers/user"
 )
 

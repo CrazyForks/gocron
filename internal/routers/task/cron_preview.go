@@ -3,9 +3,9 @@ package task
 import (
 	"github.com/gin-gonic/gin"
 
+	"github.com/gocronx-team/gocron/internal/modules/utils"
 	"github.com/gocronx-team/gocron/internal/routers/base"
 	"github.com/gocronx-team/gocron/internal/service"
-	"github.com/gocronx-team/gocron/internal/modules/utils"
 )
 
 type cronPreviewRequest struct {
