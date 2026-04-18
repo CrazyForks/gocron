@@ -45,3 +45,4 @@ build-errors.log
 .gstack/
 .design-review/
 /.claude/
+.claude/worktrees/
