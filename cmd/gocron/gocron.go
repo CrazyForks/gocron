@@ -104,6 +104,9 @@ func runWeb(ctx *cli.Context) error {
 		logger.Warn("SECURITY: agent gRPC TLS is disabled (enable_tls=false); agent port is reachable without authentication")
 	}
 
+	// 屏蔽 Gin 启动时打印完整路由表（保留 debug 模式的其他提示）
+	gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {}
+
 	r := gin.Default()
 	// Register middleware
 	routers.RegisterMiddleware(r)
