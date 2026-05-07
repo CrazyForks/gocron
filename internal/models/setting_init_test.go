@@ -184,6 +184,57 @@ func TestNoMySQLOnlyTypesInGormTags(t *testing.T) {
 	}
 }
 
+// TestNoMySQLOnlyDDLSyntaxInRawSQL 静态回归守卫：禁止在 raw SQL 字符串里写
+// `MODIFY COLUMN`（MySQL 专属 DDL 语法），PG/SQLite 不识别会让升级路径
+// silently 跳过该步骤（issue #161 复盘时发现 migration.go:542 因此而 broken）。
+//
+// 跨方言改列类型的正确做法是 `tx.Migrator().AlterColumn(&Model{}, "FieldName")`，
+// 让 GORM 按 dialector 生成正确语法（MySQL→MODIFY、PG→ALTER COLUMN TYPE、SQLite→重建表）。
+//
+// 注意：此测试只检查 `MODIFY COLUMN`（GORM 已用语义 API 替代）。其他 MySQL-only
+// 类型字面量（tinyint/mediumint/AUTO_INCREMENT 等）在 `fixSQLiteAutoIncrement` 里
+// 是有意为之（SQLite 动态类型容忍这些字符串），不在此守卫范围内。
+func TestNoMySQLOnlyDDLSyntaxInRawSQL(t *testing.T) {
+	files, err := filepath.Glob("*.go")
+	if err != nil {
+		t.Fatalf("glob: %v", err)
+	}
+
+	fset := token.NewFileSet()
+	violations := 0
+
+	for _, fname := range files {
+		if strings.HasSuffix(fname, "_test.go") {
+			continue
+		}
+		f, err := parser.ParseFile(fset, fname, nil, 0)
+		if err != nil {
+			t.Fatalf("parse %s: %v", fname, err)
+		}
+
+		ast.Inspect(f, func(n ast.Node) bool {
+			lit, ok := n.(*ast.BasicLit)
+			if !ok || lit.Kind != token.STRING {
+				return true
+			}
+			// 大小写不敏感匹配 MODIFY COLUMN
+			if !strings.Contains(strings.ToUpper(lit.Value), "MODIFY COLUMN") {
+				return true
+			}
+			pos := fset.Position(lit.Pos())
+			t.Errorf("%s:%d raw SQL 含 `MODIFY COLUMN` (MySQL-only 语法，PG/SQLite 会 silently 失败): %s\n"+
+				"  → 改用 tx.Migrator().AlterColumn(&Model{}, \"FieldName\") 跨方言",
+				pos.Filename, pos.Line, lit.Value)
+			violations++
+			return true
+		})
+	}
+
+	if violations > 0 {
+		t.Logf("发现 %d 处 MySQL-only DDL。背景：issue #161 复盘 (migration.go:542)", violations)
+	}
+}
+
 // TestNoBacktickedIdentifiersInQuotedStrings 是 issue #158 的静态回归守卫。
 //
 // 反引号 (`) 是 MySQL 专属的标识符转义符，PostgreSQL 用双引号 (")，

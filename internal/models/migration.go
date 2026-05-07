@@ -538,11 +538,12 @@ func (m *Migration) upgradeFor156(tx *gorm.DB) error {
 func (m *Migration) upgradeFor157(tx *gorm.DB) error {
 	logger.Info("开始升级到v1.5.7 - 扩展命令字段长度")
 
-	// 扩展 command 字段从 varchar 到 text
-	if err := tx.Exec(`ALTER TABLE ` + TablePrefix + `task MODIFY COLUMN command text NOT NULL`).Error; err != nil {
+	// 用 GORM Migrator 跨方言生成 ALTER（raw `MODIFY COLUMN` 是 MySQL-only，
+	// PG/SQLite 不识别会让升级 silently 跳过此步）
+	if err := tx.Migrator().AlterColumn(&Task{}, "Command"); err != nil {
 		logger.Warn("扩展 command 字段类型失败", err)
 	} else {
-		logger.Info("✓ command 字段已扩展为 TEXT 类型（最多 65535 字符）")
+		logger.Info("✓ command 字段已扩展为 TEXT 类型")
 	}
 
 	logger.Info("已升级到v1.5.7\n")
