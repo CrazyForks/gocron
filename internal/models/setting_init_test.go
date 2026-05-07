@@ -121,6 +121,69 @@ func TestRepairSettings(t *testing.T) {
 	})
 }
 
+// TestNoMySQLOnlyTypesInGormTags 是 issue #161 的静态回归守卫。
+//
+// MySQL 专属类型（tinyint、mediumint、mediumtext 等）在 PostgreSQL 上不存在，
+// 在 GORM tag 里写 `type:tinyint` 会让 PG 在 AutoMigrate 时直接抛
+// SQLSTATE 42704 ("type does not exist")。
+//
+// 修复方式：去掉 MySQL-only 的 `type:` 声明，让 GORM 按方言自动推断
+// （MySQL→tinyint, PG→smallint, SQLite→integer），对各方言都正确，
+// 且对 MySQL 老用户的现有表无 schema 漂移。
+//
+// 此测试 AST 解析当前包所有非测试文件，扫描 struct field tag，
+// 任何 `gorm:"...type:<MySQL-only>..."` 一律 fail。
+func TestNoMySQLOnlyTypesInGormTags(t *testing.T) {
+	files, err := filepath.Glob("*.go")
+	if err != nil {
+		t.Fatalf("glob: %v", err)
+	}
+
+	mysqlOnly := []string{
+		"tinyint", "mediumint",
+		"tinytext", "mediumtext", "longtext",
+		"tinyblob", "mediumblob", "longblob",
+	}
+
+	fset := token.NewFileSet()
+	violations := 0
+
+	for _, fname := range files {
+		if strings.HasSuffix(fname, "_test.go") {
+			continue
+		}
+		f, err := parser.ParseFile(fset, fname, nil, 0)
+		if err != nil {
+			t.Fatalf("parse %s: %v", fname, err)
+		}
+
+		ast.Inspect(f, func(n ast.Node) bool {
+			field, ok := n.(*ast.Field)
+			if !ok || field.Tag == nil {
+				return true
+			}
+			tag := field.Tag.Value
+			if !strings.Contains(tag, "gorm:") {
+				return true
+			}
+			for _, ty := range mysqlOnly {
+				if strings.Contains(tag, "type:"+ty) {
+					pos := fset.Position(field.Pos())
+					t.Errorf("%s:%d MySQL 专属类型 %q 出现在 GORM tag 中 (PG/SQLite 不支持): %s\n"+
+						"  → 移除 `type:%s` 部分让 GORM 按方言自动推断",
+						pos.Filename, pos.Line, ty, tag, ty)
+					violations++
+				}
+			}
+			return true
+		})
+	}
+
+	if violations > 0 {
+		t.Logf("发现 %d 处 MySQL-only 类型。背景：issue #161 (V1.6.0 PG 启动 task_template 迁移崩溃)", violations)
+	}
+}
+
 // TestNoBacktickedIdentifiersInQuotedStrings 是 issue #158 的静态回归守卫。
 //
 // 反引号 (`) 是 MySQL 专属的标识符转义符，PostgreSQL 用双引号 (")，
