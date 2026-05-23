@@ -49,9 +49,14 @@ import { loadingService } from '@/utils/ui'
 import { useCommon } from '@/hooks/core/useCommon'
 import { useWorktabStore } from '@/store/modules/worktab'
 import { fetchGetUserInfo } from '@/api/auth'
+import { fetchInstallStatus } from '@/api/install'
 import { ApiStatus } from '@/utils/http/status'
 import { isHttpError } from '@/utils/http/error'
 import { RouteRegistry, MenuProcessor, IframeRouteManager, RoutePermissionValidator } from '../core'
+
+// 安装状态缓存：未安装 -> 已安装 是单向迁移，缓存一次即可
+let installStatusChecked = false
+let isInstalled = true // 默认放行，避免接口失败时锁死路由
 
 // 路由注册器实例
 let routeRegistry: RouteRegistry | null = null
@@ -151,6 +156,11 @@ async function handleRouteGuard(
     NProgress.start()
   }
 
+  // 0. 检查系统是否已安装；未安装时强制走 /install
+  if (!(await handleInstallStatus(to, next))) {
+    return
+  }
+
   // 1. 检查登录状态
   if (!handleLoginStatus(to, userStore, next)) {
     return
@@ -195,6 +205,39 @@ async function handleRouteGuard(
 
   // 6. 未匹配到路由，跳转到 404
   next({ name: 'Exception404' })
+}
+
+/**
+ * 检查系统安装状态，未安装时强制跳转到 /install。
+ * 首次调用拉取一次状态，已安装后不再请求。
+ * @returns true 表示可以继续，false 表示已处理跳转
+ */
+async function handleInstallStatus(
+  to: RouteLocationNormalized,
+  next: NavigationGuardNext
+): Promise<boolean> {
+  // 已确认安装后不再请求；未安装时每次导航重新探测，安装完成后能立刻放行
+  if (!installStatusChecked || !isInstalled) {
+    try {
+      const res = await fetchInstallStatus()
+      // request 拦截器解一层 code 后，data 直接是 boolean
+      isInstalled = Boolean((res as unknown as boolean) ?? true)
+      installStatusChecked = true
+    } catch (err) {
+      // 状态接口失败时按已安装放行，避免在网络故障时锁死路由
+      console.warn('[RouteGuard] install/status 接口失败，按已安装处理:', err)
+      isInstalled = true
+      installStatusChecked = true
+    }
+  }
+  if (isInstalled) {
+    return true
+  }
+  if (to.path === RoutesAlias.Install) {
+    return true
+  }
+  next({ path: RoutesAlias.Install, replace: true })
+  return false
 }
 
 /**
