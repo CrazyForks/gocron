@@ -7,6 +7,9 @@ import { AppRouteRecord } from '@/types/router'
  * 子项用绝对路径（以 / 开头），Vue Router 会按根路径解析 URL，但仍然挂在本
  * 父级的 Layout 组件下。这样既保留了原有的 /dashboard/console、/task/list、
  * /template/list 等 URL（书签不失效），又能在侧边栏里归到一个组里。
+ *
+ * 每个子项都标记 meta.allowAbsolutePath，向路由校验器声明这是有意为之，
+ * 而不是错误用法。
  */
 export const taskRoutes: AppRouteRecord = {
   path: '/task',
@@ -26,7 +29,8 @@ export const taskRoutes: AppRouteRecord = {
         title: 'menus.dashboard.console',
         icon: 'ri:pie-chart-line',
         keepAlive: false,
-        fixedTab: true
+        fixedTab: true,
+        allowAbsolutePath: true
       }
     },
     {
@@ -36,7 +40,8 @@ export const taskRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.task.list',
         icon: 'ri:list-check-2',
-        keepAlive: true
+        keepAlive: true,
+        allowAbsolutePath: true
       }
     },
     {
@@ -46,7 +51,8 @@ export const taskRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.task.log',
         icon: 'ri:file-list-3-line',
-        keepAlive: false
+        keepAlive: false,
+        allowAbsolutePath: true
       }
     },
     {
@@ -56,7 +62,8 @@ export const taskRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.template.list',
         icon: 'ri:file-copy-line',
-        keepAlive: true
+        keepAlive: true,
+        allowAbsolutePath: true
       }
     },
     // ── hidden child routes for create/edit flows ────────────────────────────
@@ -67,7 +74,8 @@ export const taskRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.task.create',
         isHide: true,
-        keepAlive: false
+        keepAlive: false,
+        allowAbsolutePath: true
       }
     },
     {
@@ -77,7 +85,8 @@ export const taskRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.task.edit',
         isHide: true,
-        keepAlive: false
+        keepAlive: false,
+        allowAbsolutePath: true
       }
     },
     {
@@ -87,7 +96,8 @@ export const taskRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.template.create',
         isHide: true,
-        keepAlive: false
+        keepAlive: false,
+        allowAbsolutePath: true
       }
     },
     {
@@ -97,7 +107,8 @@ export const taskRoutes: AppRouteRecord = {
       meta: {
         title: 'menus.template.edit',
         isHide: true,
-        keepAlive: false
+        keepAlive: false,
+        allowAbsolutePath: true
       }
     }
   ]

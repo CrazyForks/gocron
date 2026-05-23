@@ -167,6 +167,10 @@ export class MenuProcessor {
         // 跳过合法的绝对路径：外部链接和 iframe 路由
         if (this.isValidAbsolutePath(childPath)) return
 
+        // 子路由显式声明 meta.allowAbsolutePath 时，跳过校验
+        // 用于 gocron 任务管理那种"父级仅作分组、子项保留扁平 URL"的场景
+        if (child.meta?.allowAbsolutePath) return
+
         // 检测非法的绝对路径
         if (childPath.startsWith('/')) {
           this.logPathError(child, childPath, parentName, level)

@@ -66,6 +66,9 @@ export interface RouteMeta extends Record<string | number | symbol, unknown> {
   authMark?: string
   /** 父级路径 */
   parentPath?: string
+  /** 允许子路由使用以 / 开头的绝对路径（不触发校验告警）。
+   *  用于父级仅作分组、子项需要保持扁平 URL 的场景。 */
+  allowAbsolutePath?: boolean
 }
 
 /**
