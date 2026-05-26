@@ -24,6 +24,12 @@ const (
 	RetryInterval = 5 * time.Second
 )
 
+// epochSentinel is a DATETIME-safe "never held" marker.
+// MySQL DATETIME range is 1000-01-01 .. 9999-12-31; Go's time.Time{}
+// zero value (0001-01-01) is rejected by MySQL strict mode
+// (NO_ZERO_DATE + STRICT_TRANS_TABLES, default in MySQL 5.7+).
+var epochSentinel = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
+
 // Election 基于数据库行锁的领导者选举
 type Election struct {
 	db         *gorm.DB
@@ -75,8 +81,22 @@ func (e *Election) InstanceID() string {
 func (e *Election) run() {
 	defer close(e.stoppedCh)
 
-	// 确保锁表和初始记录存在
-	e.ensureLockRecord()
+	// Ensure the lock row exists. If the DB rejects the initial insert
+	// (e.g. MySQL strict mode + transient driver issue), retry with
+	// backoff rather than exiting — this matches the rest of the loop's
+	// self-healing semantics.
+	for {
+		if err := e.ensureLockRecord(); err != nil {
+			logger.Warnf("Failed to ensure scheduler_lock row, retrying in %s: %v", RetryInterval, err)
+			select {
+			case <-e.stopCh:
+				return
+			case <-time.After(RetryInterval):
+				continue
+			}
+		}
+		break
+	}
 
 	for {
 		select {
@@ -87,7 +107,6 @@ func (e *Election) run() {
 		}
 
 		if e.isLeader.Load() {
-			// 已经是 leader，续约
 			if !e.renewLock() {
 				logger.Warn("Leader lease renewal failed, stepping down")
 				e.isLeader.Store(false)
@@ -96,22 +115,22 @@ func (e *Election) run() {
 				}
 			}
 		} else {
-			// 尝试竞选
-			if e.tryAcquireLock() {
+			acquired, err := e.tryAcquireLock()
+			if acquired {
 				logger.Infof("This node elected as leader: %s", e.instanceID)
 				e.isLeader.Store(true)
 				if e.onElected != nil {
 					e.onElected()
 				}
+			} else if err != nil {
+				logger.Warnf("Leader election attempt failed: %v", err)
 			}
 		}
 
-		// 等待下一次循环
 		interval := RetryInterval
 		if e.isLeader.Load() {
 			interval = RenewInterval
 		}
-
 		select {
 		case <-e.stopCh:
 			e.releaseLock()
@@ -121,48 +140,70 @@ func (e *Election) run() {
 	}
 }
 
-// ensureLockRecord 确保锁记录存在
-func (e *Election) ensureLockRecord() {
+// ensureLockRecord ensures the lock row exists. Safe to call repeatedly.
+// Returns an error if the row cannot be created or read; the caller is
+// expected to retry rather than treat this as fatal, because the DB may
+// be transiently unreachable at startup.
+func (e *Election) ensureLockRecord() error {
 	lock := models.SchedulerLock{
 		LockName: LockName,
 		LockedBy: "",
-		LockedAt: time.Time{},
-		ExpireAt: time.Time{},
+		LockedAt: epochSentinel,
+		ExpireAt: epochSentinel,
 	}
-	// 如果记录不存在则创建
-	e.db.Where("lock_name = ?", LockName).FirstOrCreate(&lock)
+	if err := e.db.Where("lock_name = ?", LockName).
+		Attrs(models.SchedulerLock{
+			LockedBy: "",
+			LockedAt: epochSentinel,
+			ExpireAt: epochSentinel,
+		}).
+		FirstOrCreate(&lock).Error; err != nil {
+		return fmt.Errorf("ensure scheduler_lock row: %w", err)
+	}
+	return nil
 }
 
-// tryAcquireLock 尝试获取锁（FOR UPDATE + 检查过期）
-func (e *Election) tryAcquireLock() bool {
+// tryAcquireLock attempts to grab the lock via SELECT ... FOR UPDATE.
+// Returns (true, nil) on success, (false, nil) when the lock is legitimately
+// held by another live instance, and (false, err) when an unexpected error
+// occurred (DB connectivity, missing row, etc.). Callers should log/observe
+// the error case; the held-by-other-instance case is normal and quiet.
+func (e *Election) tryAcquireLock() (bool, error) {
 	now := time.Now()
-	result := e.db.Transaction(func(tx *gorm.DB) error {
+	var heldByOther bool
+
+	err := e.db.Transaction(func(tx *gorm.DB) error {
 		var lock models.SchedulerLock
 
-		// SELECT ... FOR UPDATE 行锁
-		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 			Where("lock_name = ?", LockName).
-			First(&lock).Error
-		if err != nil {
+			First(&lock).Error; err != nil {
 			return err
 		}
 
-		// 锁被其他实例持有且未过期
+		// Order of conjuncts matters: LockedBy=="" must short-circuit before
+		// ExpireAt is evaluated, so a freshly-inserted row with the sentinel
+		// epoch never reaches the time comparison.
 		if lock.LockedBy != "" && lock.LockedBy != e.instanceID && lock.ExpireAt.After(now) {
+			heldByOther = true
 			return fmt.Errorf("lock held by %s until %s", lock.LockedBy, lock.ExpireAt)
 		}
 
-		// 锁空闲或已过期，获取锁
-		err = tx.Model(&lock).Updates(map[string]interface{}{
+		return tx.Model(&lock).Updates(map[string]interface{}{
 			"locked_by": e.instanceID,
 			"locked_at": now,
 			"expire_at": now.Add(LeaseDuration),
 			"version":   lock.Version + 1,
 		}).Error
-		return err
 	})
 
-	return result == nil
+	if err != nil {
+		if heldByOther {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 // renewLock 续约（只有当前持有者才能续约）
@@ -189,12 +230,17 @@ func (e *Election) releaseLock() {
 	}
 
 	logger.Infof("Releasing leader lock: %s", e.instanceID)
-	e.db.Model(&models.SchedulerLock{}).
+	// Use epochSentinel rather than time.Time{} — MySQL strict mode rejects
+	// 0001-01-01 and would silently fail this UPDATE, leaving the lock held
+	// by the stopped instance for the full LeaseDuration (slowing failover).
+	if err := e.db.Model(&models.SchedulerLock{}).
 		Where("lock_name = ? AND locked_by = ?", LockName, e.instanceID).
 		Updates(map[string]interface{}{
 			"locked_by": "",
-			"expire_at": time.Time{},
-		})
+			"expire_at": epochSentinel,
+		}).Error; err != nil {
+		logger.Errorf("Failed to release leader lock: %v", err)
+	}
 
 	e.isLeader.Store(false)
 	if e.onEvicted != nil {
