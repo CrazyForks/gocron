@@ -1,0 +1,103 @@
+name: 🐛 Bug Report / 报告缺陷
+description: Report a reproducible bug or unexpected behavior. / 报告一个可复现的缺陷或非预期行为。
+title: "[Bug]: "
+labels: ["bug", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report! Please fill out the fields below so we can reproduce and fix the issue efficiently.
+        感谢你花时间反馈缺陷！请认真填写以下内容，以便我们复现并修复问题。
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites / 前置确认
+      description: Please confirm the following before submitting. / 提交前请确认以下事项。
+      options:
+        - label: I have searched existing [issues](https://github.com/gocronx-team/gocron/issues) and this is not a duplicate. / 我已搜索过现有 issue，确认没有重复。
+          required: true
+        - label: I have read the [documentation](https://gocron-docs.pages.dev/en/) and this is not a usage question. / 我已阅读文档，确认这不是使用咨询类问题。
+          required: true
+        - label: I am using a supported / latest version, or have confirmed the bug exists on the latest release. / 我使用的是受支持的/最新版本，或已确认该缺陷在最新版本中仍存在。
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug / 缺陷描述
+      description: A clear and concise description of what the bug is. / 清晰、简洁地描述这个缺陷。
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce / 复现步骤
+      description: Provide the exact steps to reproduce the behavior. / 提供能稳定复现该问题的完整步骤。
+      placeholder: |
+        1. Go to '...' / 进入 '...'
+        2. Click on '...' / 点击 '...'
+        3. Configure task with '...' / 配置任务 '...'
+        4. See error / 出现错误
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior / 期望行为
+      description: What did you expect to happen? / 你期望发生什么？
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior / 实际行为
+      description: What actually happened? Include error messages if any. / 实际发生了什么？如有错误信息请一并提供。
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: gocron Version / 版本
+      description: Output of `gocron -v` or the release tag you are running. / `gocron -v` 的输出，或你使用的发布版本号。
+      placeholder: "e.g. v1.6.1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: database
+    attributes:
+      label: Database / 数据库
+      options:
+        - MySQL
+        - PostgreSQL
+        - SQLite
+        - Other / 其他
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS & Deployment / 操作系统与部署方式
+      description: Operating system, architecture, and how you deploy (binary / Docker / Helm). / 操作系统、架构、以及部署方式（二进制 / Docker / Helm）。
+      placeholder: "e.g. Ubuntu 22.04 amd64, Docker"
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs / 相关日志
+      description: Paste any relevant log output. This will be automatically formatted as code. / 粘贴相关日志，将自动以代码块格式呈现。
+      render: shell
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context / 补充信息
+      description: Screenshots, config snippets, or anything else that helps. / 截图、配置片段或其他有助于排查的信息。
