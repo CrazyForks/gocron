@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
-  - name: 💬 Questions & Discussions / 提问与讨论
+  - name: 💬 Questions & Discussions
     url: https://github.com/gocronx-team/gocron/discussions
-    about: For usage questions, ideas, or general help, please use Discussions instead of opening an issue. / 使用咨询、想法或求助请使用 Discussions，不要提 issue。
-  - name: 📖 Documentation / 文档
+    about: For usage questions, ideas, or general help, please use Discussions.
+  - name: 📖 Documentation
     url: https://gocron-docs.pages.dev/en/
-    about: Most setup and configuration questions are answered in the docs. / 大部分安装与配置问题文档中已有解答。
-  - name: 🔒 Report a Security Vulnerability / 报告安全漏洞
+    about: Most setup and configuration questions are answered in the docs.
+  - name: 🔒 Report a Security Vulnerability
     url: https://github.com/gocronx-team/gocron/security/advisories/new
-    about: Please report security issues privately, NOT in public issues. / 安全漏洞请私密上报，切勿公开提 issue。
+    about: Please report security issues privately, NOT in public issues.
