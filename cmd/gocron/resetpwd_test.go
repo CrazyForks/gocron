@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/gocronx-team/gocron/internal/models"
@@ -35,7 +36,7 @@ func seedUser(t *testing.T, db *gorm.DB, name, password string, twoFactorOn bool
 	if err != nil {
 		t.Fatalf("hash: %v", err)
 	}
-	u := models.User{Name: name, Password: hashed, Status: models.Enabled}
+	u := models.User{Name: name, Email: name + "@example.com", Password: hashed, Status: models.Enabled}
 	if twoFactorOn {
 		u.TwoFactorKey = "SOMEKEY"
 		u.TwoFactorOn = 1
@@ -78,6 +79,23 @@ func TestResetUserPassword_UserNotFound(t *testing.T) {
 	}
 }
 
+func TestFindUserByName(t *testing.T) {
+	db := newTestDB(t)
+	seedUser(t, db, "admin", "oldpass", false)
+
+	user, err := findUserByName(db, "admin")
+	if err != nil {
+		t.Fatalf("findUserByName(admin) returned error: %v", err)
+	}
+	if user.Name != "admin" {
+		t.Errorf("expected admin, got %q", user.Name)
+	}
+
+	if _, err := findUserByName(db, "ghost"); err == nil {
+		t.Fatalf("expected error for missing user, got nil")
+	}
+}
+
 func TestResetUserPassword_DisableTwoFactor(t *testing.T) {
 	db := newTestDB(t)
 	seedUser(t, db, "admin", "oldpass", true)
@@ -112,6 +130,58 @@ func TestResetUserPassword_KeepsTwoFactorWhenNotRequested(t *testing.T) {
 	}
 	if got.TwoFactorOn != 1 {
 		t.Errorf("expected two_factor_on untouched (1), got %d", got.TwoFactorOn)
+	}
+}
+
+func TestListUsernames(t *testing.T) {
+	db := newTestDB(t)
+	seedUser(t, db, "admin", "p", false)
+	seedUser(t, db, "alice", "p", false)
+
+	names, err := listUsernames(db)
+	if err != nil {
+		t.Fatalf("listUsernames returned error: %v", err)
+	}
+	if len(names) != 2 {
+		t.Fatalf("expected 2 usernames, got %d (%v)", len(names), names)
+	}
+	got := strings.Join(names, ",")
+	if got != "admin,alice" {
+		t.Errorf("expected ordered \"admin,alice\", got %q", got)
+	}
+}
+
+func TestListUsernames_Empty(t *testing.T) {
+	db := newTestDB(t)
+	names, err := listUsernames(db)
+	if err != nil {
+		t.Fatalf("listUsernames returned error: %v", err)
+	}
+	if len(names) != 0 {
+		t.Errorf("expected no usernames, got %v", names)
+	}
+}
+
+func TestResolveSQLitePath(t *testing.T) {
+	base := "/opt/gocron"
+	cases := []struct {
+		name     string
+		engine   string
+		database string
+		want     string
+	}{
+		{"relative sqlite anchored to base", "sqlite", "data/gocron.db", "/opt/gocron/data/gocron.db"},
+		{"engine case-insensitive", "SQLite", "data/gocron.db", "/opt/gocron/data/gocron.db"},
+		{"absolute sqlite left as-is", "sqlite", "/var/lib/gocron.db", "/var/lib/gocron.db"},
+		{"mysql database name untouched", "mysql", "gocron", "gocron"},
+		{"empty left as-is", "sqlite", "", ""},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := resolveSQLitePath(c.engine, c.database, base); got != c.want {
+				t.Errorf("resolveSQLitePath(%q,%q,%q) = %q, want %q", c.engine, c.database, base, got, c.want)
+			}
+		})
 	}
 }
 
