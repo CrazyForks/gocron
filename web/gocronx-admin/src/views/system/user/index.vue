@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-  import { h } from 'vue'
+  import { h, onActivated } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
   import { ElTag, ElButton, ElSwitch, ElMessageBox } from 'element-plus'
@@ -85,10 +85,8 @@
           width: 110,
           align: 'center',
           formatter: (row: UserListItem) =>
-            h(
-              ElTag,
-              { type: row.is_admin === 1 ? 'danger' : 'info', size: 'small' },
-              () => (row.is_admin === 1 ? t('user.admin') : t('user.normalUser'))
+            h(ElTag, { type: row.is_admin === 1 ? 'danger' : 'info', size: 'small' }, () =>
+              row.is_admin === 1 ? t('user.admin') : t('user.normalUser')
             )
         },
         {
@@ -161,6 +159,19 @@
         }
       ]
     }
+  })
+
+  // This list route has meta.keepAlive, so the component stays cached and
+  // onMounted (useTable's immediate fetch) does NOT re-run when returning from
+  // the create/edit page. Refetch on re-activation so changes show without a
+  // manual refresh. Skip the first activation — the initial mount already fetched.
+  let isFirstActivation = true
+  onActivated(() => {
+    if (isFirstActivation) {
+      isFirstActivation = false
+      return
+    }
+    refreshData()
   })
 
   // ── Navigation ────────────────────────────────────────────────────────────

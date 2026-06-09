@@ -51,7 +51,7 @@
           <ElTabPane label="Linux / macOS" name="unix">
             <div class="install-label">{{ t('host.bashCommand') }}</div>
             <pre class="install-pre">{{ agentTokenData.install_cmd }}</pre>
-            <div style="text-align: right; margin-top: 8px">
+            <div style="margin-top: 8px; text-align: right">
               <ElButton type="primary" size="small" @click="copyInstallCmd">
                 {{ t('host.copy') }}
               </ElButton>
@@ -68,18 +68,9 @@
               style="margin-bottom: 14px"
             />
             <ElSteps direction="vertical" :active="3">
-              <ElStep
-                :title="t('host.windowsStep1')"
-                :description="t('host.windowsStep1Desc')"
-              />
-              <ElStep
-                :title="t('host.windowsStep2')"
-                :description="t('host.windowsStep2Desc')"
-              />
-              <ElStep
-                :title="t('host.windowsStep3')"
-                :description="t('host.windowsStep3Desc')"
-              />
+              <ElStep :title="t('host.windowsStep1')" :description="t('host.windowsStep1Desc')" />
+              <ElStep :title="t('host.windowsStep2')" :description="t('host.windowsStep2Desc')" />
+              <ElStep :title="t('host.windowsStep3')" :description="t('host.windowsStep3Desc')" />
             </ElSteps>
           </ElTabPane>
         </ElTabs>
@@ -88,7 +79,9 @@
 
         <ElDescriptions :column="1" border size="small">
           <ElDescriptionsItem :label="t('host.tokenExpires')">
-            <ElTag type="warning" effect="plain">{{ formatDateTime(agentTokenData.expires_at) }}</ElTag>
+            <ElTag type="warning" effect="plain">{{
+              formatDateTime(agentTokenData.expires_at)
+            }}</ElTag>
           </ElDescriptionsItem>
           <ElDescriptionsItem :label="t('host.tokenUsage')">
             <span style="color: var(--el-color-success)">{{ t('host.tokenReusable') }}</span>
@@ -96,18 +89,20 @@
         </ElDescriptions>
       </div>
 
-      <div v-else style="text-align: center; padding: 32px 0">
+      <div v-else style="padding: 32px 0; text-align: center">
         <ElIcon class="is-loading" :size="28">
           <Loading />
         </ElIcon>
-        <p style="margin-top: 12px; color: var(--el-text-color-secondary)">{{ t('host.loading') }}</p>
+        <p style="margin-top: 12px; color: var(--el-text-color-secondary)">{{
+          t('host.loading')
+        }}</p>
       </div>
     </ElDialog>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, h } from 'vue'
+  import { ref, computed, h, onActivated } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
   import { ElButton, ElMessage, ElMessageBox, ElTag, ElIcon } from 'element-plus'
@@ -259,6 +254,20 @@
     }
   })
 
+  // This list route has meta.keepAlive, so the component stays cached and
+  // onMounted (useTable's immediate fetch) does NOT re-run when returning from
+  // the create/edit page. Refetch on re-activation so newly added/edited nodes
+  // show without a manual refresh. Skip the first activation — the initial mount
+  // already fetched.
+  let isFirstActivation = true
+  onActivated(() => {
+    if (isFirstActivation) {
+      isFirstActivation = false
+      return
+    }
+    refreshData()
+  })
+
   // ── Actions ───────────────────────────────────────────────────────────────────
   function handleSearch() {
     Object.assign(searchParams, {
@@ -351,21 +360,21 @@
   }
 
   .install-label {
+    margin-bottom: 6px;
     font-size: 13px;
     color: var(--el-text-color-secondary);
-    margin-bottom: 6px;
   }
 
   .install-pre {
-    white-space: pre-wrap;
-    word-break: break-all;
+    max-height: 160px;
+    padding: 12px;
+    margin: 0;
+    overflow-y: auto;
     font-family: monospace;
     font-size: 13px;
+    word-break: break-all;
+    white-space: pre-wrap;
     background: var(--el-fill-color-light);
-    padding: 12px;
     border-radius: 4px;
-    margin: 0;
-    max-height: 160px;
-    overflow-y: auto;
   }
 </style>

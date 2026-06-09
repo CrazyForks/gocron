@@ -1,7 +1,12 @@
 <template>
   <div class="task-list-page art-full-height">
     <!-- Filter card -->
-    <ArtSearchBar v-model="filterForm" :items="filterItems" @search="handleSearch" @reset="handleReset" />
+    <ArtSearchBar
+      v-model="filterForm"
+      :items="filterItems"
+      @search="handleSearch"
+      @reset="handleReset"
+    />
 
     <!-- Table card -->
     <ElCard class="art-table-card" shadow="never">
@@ -40,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, h, onMounted } from 'vue'
+  import { ref, computed, h, onMounted, onActivated } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
   import { ElButton, ElMessage, ElMessageBox, ElSwitch, ElTag } from 'element-plus'
@@ -80,7 +85,7 @@
     try {
       const res = await fetchHostList({ page: 1, page_size: 999 })
       const list = (res as any)?.data ?? res
-      hostOptions.value = Array.isArray(list) ? list : list?.data ?? []
+      hostOptions.value = Array.isArray(list) ? list : (list?.data ?? [])
     } catch {
       // ignore
     }
@@ -260,11 +265,7 @@
               'div',
               {},
               hosts.map((h_) =>
-                h(
-                  'div',
-                  { key: h_.host_id },
-                  `${h_.alias} - ${h_.name}:${h_.port}`
-                )
+                h('div', { key: h_.host_id }, `${h_.alias} - ${h_.name}:${h_.port}`)
               )
             )
           }
@@ -280,7 +281,8 @@
               modelValue: row.status === 1,
               activeValue: true,
               inactiveValue: false,
-              'onUpdate:modelValue': (val: string | number | boolean) => handleStatusToggle(row, val)
+              'onUpdate:modelValue': (val: string | number | boolean) =>
+                handleStatusToggle(row, val)
             })
           }
         },
@@ -304,8 +306,7 @@
           label: t('task.nextRunTime'),
           width: 170,
           align: 'center',
-          formatter: (row: TaskListItem) =>
-            h('span', {}, formatDateTime(row.next_run_time) || '-')
+          formatter: (row: TaskListItem) => h('span', {}, formatDateTime(row.next_run_time) || '-')
         },
         {
           prop: 'action',
@@ -366,6 +367,20 @@
         }
       ]
     }
+  })
+
+  // This list route has meta.keepAlive, so the component stays cached and
+  // onMounted (useTable's immediate fetch) does NOT re-run when returning from
+  // the create/edit page. Refetch on re-activation so newly added/edited tasks
+  // show without a manual refresh. Skip the first activation — the initial mount
+  // already fetched.
+  let isFirstActivation = true
+  onActivated(() => {
+    if (isFirstActivation) {
+      isFirstActivation = false
+      return
+    }
+    refreshData()
   })
 
   // ── Search / Reset ────────────────────────────────────────────────────────────
@@ -544,8 +559,8 @@
 
   .header-btn-group {
     display: inline-flex;
-    gap: 8px;
     flex-wrap: wrap;
+    gap: 8px;
   }
 
   .header-btn-group :deep(.el-button) {
