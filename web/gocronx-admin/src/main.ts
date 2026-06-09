@@ -3,6 +3,7 @@ import { createApp } from 'vue'
 import { initStore } from './store'                 // Store
 import { initRouter } from './router'               // Router
 import language from './locales'                    // 国际化
+import './utils/ui/iconify-loader'                  // 离线注册 Iconify 图标集（避免运行时拉 CDN）
 import '@styles/core/tailwind.css'                  // tailwind
 import '@styles/index.scss'                         // 样式
 import { setupGlobDirectives } from './directives'
