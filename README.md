@@ -79,17 +79,6 @@ See the [High Availability Guide](https://gocron-docs.pages.dev/en/guide/high-av
   </tr>
 </table>
 
-<table>
-  <tr>
-    <td width="50%" align="center"><b>Statistics</b></td>
-    <td width="50%" align="center"><b>Notifications</b></td>
-  </tr>
-  <tr>
-    <td><img src="assets/screenshot/statistic_en.png" alt="Statistics" width="100%"></td>
-    <td><img src="assets/screenshot/notification_en.png" alt="Notifications" width="100%"></td>
-  </tr>
-</table>
-
 ## 🤝 Contributing
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.

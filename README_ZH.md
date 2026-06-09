@@ -79,17 +79,6 @@ docker-compose up -d
   </tr>
 </table>
 
-<table>
-  <tr>
-    <td width="50%" align="center"><b>数据统计</b></td>
-    <td width="50%" align="center"><b>消息通知</b></td>
-  </tr>
-  <tr>
-    <td><img src="assets/screenshot/statistic.png" alt="数据统计" width="100%"></td>
-    <td><img src="assets/screenshot/notification.png" alt="消息通知" width="100%"></td>
-  </tr>
-</table>
-
 ## 🤝 贡献
 
 欢迎社区贡献！完整指南见 [CONTRIBUTING.md](CONTRIBUTING.md)。
