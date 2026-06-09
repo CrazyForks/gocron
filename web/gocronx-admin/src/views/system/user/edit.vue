@@ -70,7 +70,10 @@
                   <div class="pw-strength-bar">
                     <div
                       class="pw-strength-fill"
-                      :style="{ width: passwordStrength.pct + '%', background: passwordStrength.color }"
+                      :style="{
+                        width: passwordStrength.pct + '%',
+                        background: passwordStrength.color
+                      }"
                     />
                   </div>
                   <span class="pw-strength-label" :style="{ color: passwordStrength.color }">
@@ -247,13 +250,24 @@
       digit: '0123456789',
       symbol: '!@#$%^&*-_=+'
     }
-    const pick = (s: string) => s[Math.floor(Math.random() * s.length)]
+    // Cryptographically secure random integer in [0, max)
+    const secureRandomInt = (max: number) => {
+      const buf = new Uint32Array(1)
+      crypto.getRandomValues(buf)
+      return buf[0] % max
+    }
+    const pick = (s: string) => s[secureRandomInt(s.length)]
     // Guarantee at least one from each class, then fill to 14 chars total
     const out = [pick(chars.lower), pick(chars.upper), pick(chars.digit), pick(chars.symbol)]
     const pool = chars.lower + chars.upper + chars.digit + chars.symbol
     while (out.length < 14) out.push(pick(pool))
-    // Shuffle so the forced chars aren't always at the start
-    const pwd = out.sort(() => Math.random() - 0.5).join('')
+    // Shuffle (Fisher-Yates with secure randomness) so the forced chars
+    // aren't always at the start
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = secureRandomInt(i + 1)
+      ;[out[i], out[j]] = [out[j], out[i]]
+    }
+    const pwd = out.join('')
 
     form.password = pwd
     form.confirm_password = pwd
@@ -353,16 +367,16 @@
   }
 
   .role-hint {
-    font-size: 12px;
-    color: var(--el-text-color-secondary);
-    line-height: 1.5;
     margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--el-text-color-secondary);
   }
 
   .pw-strength {
     display: flex;
-    align-items: center;
     gap: 8px;
+    align-items: center;
     margin-top: 6px;
   }
 
@@ -370,15 +384,17 @@
     flex: 1;
     max-width: 200px;
     height: 6px;
+    overflow: hidden;
     background: var(--el-fill-color);
     border-radius: 3px;
-    overflow: hidden;
   }
 
   .pw-strength-fill {
     height: 100%;
     border-radius: 3px;
-    transition: width 0.2s, background 0.2s;
+    transition:
+      width 0.2s,
+      background 0.2s;
   }
 
   .pw-strength-label {
