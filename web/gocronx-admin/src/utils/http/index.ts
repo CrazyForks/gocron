@@ -53,7 +53,7 @@ const axiosInstance = axios.create({
       // but the body is still JSON. So we try JSON.parse on any string body
       // that starts with { or [ regardless of Content-Type.
       if (typeof data !== 'string') return data
-      const contentType = headers['content-type'] || ''
+      const contentType = String(headers['content-type'] ?? '')
       const looksJson = data.trimStart().startsWith('{') || data.trimStart().startsWith('[')
       if (contentType.includes('application/json') || looksJson) {
         try {
@@ -99,7 +99,7 @@ axiosInstance.interceptors.response.use(
     // gocron success code is 0; template default was 200 — accept both
     if (code === 0 || code === ApiStatus.success) return response
 
-    if (code === ApiStatus.unauthorized) handleUnauthorizedError(msg)
+    if (code === ApiStatus.unauthorized) handleUnauthorizedError()
     throw createHttpError(msg || $t('httpMsg.requestFailed'), code)
   },
   (error) => {
@@ -121,7 +121,7 @@ function createHttpError(message: string, code: number) {
  * it as unfriendly. Also suppresses the toast if the user is already
  * on the login page (avoids a noisy message on fresh page load).
  */
-function handleUnauthorizedError(_message?: string): never {
+function handleUnauthorizedError(): never {
   const error = createHttpError($t('httpMsg.unauthorized'), ApiStatus.unauthorized)
 
   if (!isUnauthorizedErrorShown) {
