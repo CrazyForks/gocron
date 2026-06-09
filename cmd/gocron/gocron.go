@@ -85,7 +85,7 @@ func getCommands() []*cli.Command {
 		},
 	}
 
-	return []*cli.Command{command}
+	return []*cli.Command{command, resetPasswordCommand()}
 }
 
 func runWeb(ctx *cli.Context) error {
