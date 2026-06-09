@@ -47,3 +47,4 @@ build-errors.log
 /.claude/
 .claude/worktrees/
 docs/superpowers/
+docs/GOCRONX_ADMIN_MIGRATION.md
