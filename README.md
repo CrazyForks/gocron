@@ -92,64 +92,16 @@ See the [High Availability Guide](https://gocron-docs.pages.dev/en/guide/high-av
 
 ## 🤝 Contributing
 
-We warmly welcome community contributions!
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
-### How to Contribute
-
-1. **Fork the repository**
-2. **Clone your fork**
-
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/gocron.git
-   cd gocron
-   ```
-
-3. **Install dependencies**
-
-   ```bash
-   pnpm install
-   pnpm run prepare
-   ```
-
-4. **Create a feature branch**
-
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-5. **Make your changes and commit**
-
-   ```bash
-   git add .
-   pnpm run commit  # Use interactive commit tool
-   ```
-
-6. **Push and create a Pull Request**
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-### Commit Message Guidelines
-
-This project uses [commitizen](https://github.com/commitizen/cz-cli) and [cz-git](https://cz-git.qbb.sh/) for standardized commit messages.
-
-Instead of `git commit`, use:
+One thing to note: commit messages are validated by a git hook
+([commitlint](https://github.com/conventional-changelog/commitlint)), so use the
+interactive commit tool instead of `git commit`:
 
 ```bash
-pnpm run commit
+pnpm install      # first-time setup (installs git hooks)
+pnpm run commit   # create a properly formatted commit
 ```
-
-This will guide you through an interactive prompt to create properly formatted commit messages like:
-
-- `feat(task): add task dependency configuration`
-- `fix(api): fix task status update issue`
-- `docs: update API documentation`
-
-### Other Ways to Contribute
-
-- 🐛 **Report Bugs**: Please submit via GitHub Issues
-- 💡 **Feature Requests**: Share your ideas through Issues
-- 📝 **Documentation**: Help improve our documentation
 
 ## 📄 License
 

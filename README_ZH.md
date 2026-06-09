@@ -92,64 +92,15 @@ docker-compose up -d
 
 ## 🤝 贡献
 
-我们非常欢迎社区的贡献！
+欢迎社区贡献！完整指南见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
-### 如何贡献
-
-1. **Fork 仓库**
-2. **克隆你的 fork**
-
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/gocron.git
-   cd gocron
-   ```
-
-3. **安装依赖**
-
-   ```bash
-   pnpm install
-   pnpm run prepare
-   ```
-
-4. **创建功能分支**
-
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-5. **修改代码并提交**
-
-   ```bash
-   git add .
-   pnpm run commit  # 使用交互式提交工具
-   ```
-
-6. **推送并创建 Pull Request**
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-### 提交信息规范
-
-本项目使用 [commitizen](https://github.com/commitizen/cz-cli) 和 [cz-git](https://cz-git.qbb.sh/) 来规范化提交信息。
-
-请使用以下命令代替 `git commit`：
+需要注意：提交信息由 git 钩子（[commitlint](https://github.com/conventional-changelog/commitlint)）
+强制校验，请用交互式提交工具代替 `git commit`：
 
 ```bash
-pnpm run commit
+pnpm install      # 首次准备（会装好 git 钩子）
+pnpm run commit   # 生成规范的提交信息
 ```
-
-这将引导你通过交互式提示创建格式正确的提交信息，例如：
-
-- `feat(task): 添加任务依赖配置`
-- `fix(api): 修复任务状态更新问题`
-- `docs: 更新 API 文档`
-
-### 其他贡献方式
-
-- 🐛 **提交 Bug**：请在 GitHub Issues 中提交
-- 💡 **功能建议**：通过 Issues 分享你的想法
-- 📝 **文档改进**：帮助我们完善文档
 
 ## 📄 许可证
 
