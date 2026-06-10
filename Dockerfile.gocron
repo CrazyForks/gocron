@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Frontend build stage
 FROM node:20-alpine AS frontend
 
@@ -5,10 +6,14 @@ RUN corepack enable && corepack prepare pnpm@10 --activate
 
 WORKDIR /app/web/gocronx-admin
 COPY web/gocronx-admin/package.json web/gocronx-admin/pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# Cache the pnpm store across builds so unchanged deps aren't re-downloaded
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
 
 COPY web/gocronx-admin ./
-RUN pnpm build
+# build-only skips the vue-tsc type-check (CI already runs the full type-check
+# via `pnpm build` on every PR); the image just needs the built artifacts.
+RUN pnpm build-only
 
 # Backend build stage
 FROM golang:1.26-alpine AS builder
@@ -17,7 +22,9 @@ RUN apk add --no-cache git
 
 WORKDIR /app
 COPY go.mod go.sum ./
-RUN go mod download
+# Cache the Go module cache across builds
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 
 # Copy frontend build files first
 COPY --from=frontend /app/web/gocronx-admin/dist ./web/gocronx-admin/dist
@@ -25,14 +32,24 @@ COPY --from=frontend /app/web/gocronx-admin/dist ./web/gocronx-admin/dist
 # Then copy the rest of the project
 COPY . .
 
-# Build with pure Go SQLite (no CGO required)
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -o gocron ./cmd/gocron
+# Build with pure Go SQLite (no CGO required).
+# Cache module + build caches so incremental rebuilds are fast.
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -o gocron ./cmd/gocron
 
 FROM alpine:latest
 
 RUN apk add --no-cache ca-certificates tzdata
 
 COPY --from=builder /app/gocron /gocron
+
+# Run from the persisted app dir so a relative SQLite path (default
+# ./data/gocron.db) lands under /.gocron (the mounted volume) instead of the
+# container's ephemeral layer — otherwise an image rebuild loses the database
+# while install.lock/app.ini persist, leaving a broken "installed" state.
+# AppDir is derived from the binary location (/.gocron), so this is unaffected.
+WORKDIR /.gocron
 
 EXPOSE 5920
 
