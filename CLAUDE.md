@@ -46,7 +46,6 @@ web/gocronx-admin/   - Vue 3 + TypeScript frontend (art-design-pro based)
   src/locales/langs/ - i18n (zh.json, en.json)
   src/router/        - Vue Router config
   src/store/         - Pinia stores
-web/vue/             - Legacy frontend (deprecated, no longer built/embedded)
 ```
 
 ## Conventions

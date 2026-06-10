@@ -2,7 +2,6 @@ import { AppRouteRecord } from '@/types/router'
 
 /**
  * 任务管理：将 Dashboard、任务列表、任务日志、模板合并到同一个侧边栏父级下。
- * 这和 legacy web/vue 的导航结构一致（任务管理 → 子菜单）。
  *
  * 子项用绝对路径（以 / 开头），Vue Router 会按根路径解析 URL，但仍然挂在本
  * 父级的 Layout 组件下。这样既保留了原有的 /dashboard/console、/task/list、

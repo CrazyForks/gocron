@@ -13,7 +13,6 @@ export interface DayStats {
 
 /**
  * Overview response shape from GET /api/statistics/overview.
- * Mirrors the old frontend's stats.value mapping in web/vue/src/pages/statistics/index.vue.
  */
 export interface StatisticsOverview {
   /** Total registered tasks */

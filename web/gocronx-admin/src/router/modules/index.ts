@@ -7,7 +7,7 @@ import { userRoutes } from './user'
 /**
  * 导出所有模块化路由。
  *
- * 顶级组（对应 legacy web/vue 顶部导航）：
+ * 顶级组：
  * 1. 任务管理 — Dashboard / 任务列表 / 任务日志 / 模板
  * 2. 节点管理 — Host List
  * 3. 用户管理 — User List（个人中心 / 2FA / edit 等为 hidden 子路由）

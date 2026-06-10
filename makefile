@@ -90,7 +90,7 @@ package-all: build-web
 	bash ./package.sh -p "linux,darwin" -a "amd64,arm64"
 	bash ./package.sh -p "windows" -a "amd64"
 
-# 前端构建（gocronx-admin 为当前前端；web/vue 已弃用）
+# 前端构建（gocronx-admin）
 WEB_DIR := web/gocronx-admin
 
 .PHONY: build-admin
@@ -234,7 +234,6 @@ clean:
 clean-web:
 	@echo "Cleaning web build artifacts..."
 	-rm -rf web/gocronx-admin/dist
-	-rm -rf web/vue/dist
 	-rm -rf web/public/static
 	-rm -f web/public/index.html
 
