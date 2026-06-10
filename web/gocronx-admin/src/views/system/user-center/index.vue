@@ -31,12 +31,7 @@
             <ElDivider />
 
             <div class="quick-actions">
-              <ElButton
-                type="primary"
-                plain
-                @click="goTwoFactor"
-                v-ripple
-              >
+              <ElButton type="primary" plain @click="goTwoFactor" v-ripple>
                 <ArtSvgIcon icon="ri:shield-keyhole-line" />
                 <span class="ml-1">{{ t('menus.system.twoFactor') }}</span>
               </ElButton>
@@ -216,9 +211,9 @@
   }
 
   .username {
+    margin: 0 0 8px;
     font-size: 20px;
     font-weight: 500;
-    margin: 0 0 8px;
   }
 
   .role-tag {
@@ -236,8 +231,8 @@
 
   .info-row {
     display: flex;
-    align-items: center;
     gap: 8px;
+    align-items: center;
     font-size: 14px;
     color: var(--el-text-color-regular);
   }
@@ -248,8 +243,8 @@
 
   .quick-actions {
     display: flex;
-    justify-content: center;
     gap: 10px;
+    justify-content: center;
   }
 
   .card-title {
@@ -266,9 +261,9 @@
   }
 
   .form-actions {
-    width: 100%;
     display: flex;
     justify-content: center;
+    width: 100%;
   }
 
   .submit-btn {

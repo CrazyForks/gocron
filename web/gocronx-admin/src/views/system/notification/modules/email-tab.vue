@@ -70,12 +70,7 @@
         </ElButton>
       </div>
       <div class="tag-list">
-        <ElTag
-          v-for="item in mailUsers"
-          :key="item.id"
-          closable
-          @close="handleRemoveUser(item.id)"
-        >
+        <ElTag v-for="item in mailUsers" :key="item.id" closable @close="handleRemoveUser(item.id)">
           {{ item.username }} - {{ item.email }}
         </ElTag>
         <span v-if="mailUsers.length === 0" class="empty-hint">—</span>
@@ -146,7 +141,12 @@
   const rules = computed<FormRules>(() => ({
     host: [{ required: true, message: t('notification.pleaseEnterEmailServer'), trigger: 'blur' }],
     port: [
-      { required: true, type: 'number', message: t('notification.pleaseEnterValidPort'), trigger: 'blur' }
+      {
+        required: true,
+        type: 'number',
+        message: t('notification.pleaseEnterValidPort'),
+        trigger: 'blur'
+      }
     ],
     user: [{ required: true, message: t('notification.pleaseEnterUserEmail'), trigger: 'blur' }],
     password: [{ required: true, message: t('notification.pleaseEnterPassword'), trigger: 'blur' }],
@@ -233,8 +233,8 @@
 
   .section-header {
     display: flex;
-    align-items: center;
     gap: 12px;
+    align-items: center;
     margin-bottom: 12px;
   }
 
@@ -245,7 +245,7 @@
   }
 
   .empty-hint {
-    color: var(--el-text-color-placeholder);
     font-size: 13px;
+    color: var(--el-text-color-placeholder);
   }
 </style>

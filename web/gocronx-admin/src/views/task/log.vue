@@ -1,7 +1,12 @@
 <template>
   <div class="task-log-page art-full-height">
     <!-- Filter card -->
-    <ArtSearchBar v-model="filterForm" :items="filterItems" @search="handleSearch" @reset="handleReset" />
+    <ArtSearchBar
+      v-model="filterForm"
+      :items="filterItems"
+      @search="handleSearch"
+      @reset="handleReset"
+    />
 
     <!-- Table card -->
     <ElCard class="art-table-card" shadow="never">
@@ -44,7 +49,9 @@
         </div>
         <div>
           <strong>{{ t('task.log.colOutput') }}:</strong>
-          <pre class="log-pre">{{ currentLog.output || currentLog.result || t('task.log.noOutput') }}</pre>
+          <pre class="log-pre">{{
+            currentLog.output || currentLog.result || t('task.log.noOutput')
+          }}</pre>
         </div>
       </div>
     </ElDialog>
@@ -57,7 +64,12 @@
   import { useRoute, useRouter } from 'vue-router'
   import { ElButton, ElMessage, ElMessageBox, ElTag } from 'element-plus'
   import { useTable } from '@/hooks/core/useTable'
-  import { fetchTaskLogList, fetchTaskLogClear, fetchTaskLogStop, type TaskLogListItem } from '@/api/task-log'
+  import {
+    fetchTaskLogList,
+    fetchTaskLogClear,
+    fetchTaskLogStop,
+    type TaskLogListItem
+  } from '@/api/task-log'
   import { fetchTaskList } from '@/api/task'
   import { fetchHostList } from '@/api/host'
   import { formatDateTime } from '@/utils/date'
@@ -187,7 +199,10 @@
   // For the table cell, split on <br>, drop empties, join with ", ".
   function formatHostList(raw: string): string {
     if (!raw) return '-'
-    const parts = raw.split(/<br\s*\/?>/i).map((s) => s.trim()).filter(Boolean)
+    const parts = raw
+      .split(/<br\s*\/?>/i)
+      .map((s) => s.trim())
+      .filter(Boolean)
     return parts.length > 0 ? parts.join(', ') : '-'
   }
 
@@ -223,7 +238,9 @@
     return 'Shell (RPC)'
   }
 
-  function protocolTagType(protocol: number): 'primary' | 'success' | 'warning' | 'danger' | 'info' {
+  function protocolTagType(
+    protocol: number
+  ): 'primary' | 'success' | 'warning' | 'danger' | 'info' {
     return protocol === 1 ? 'primary' : 'success'
   }
 
@@ -292,10 +309,8 @@
           width: 120,
           align: 'center',
           formatter: (row: TaskLogListItem) =>
-            h(
-              ElTag,
-              { type: protocolTagType(row.protocol), size: 'small' },
-              () => protocolLabel(row.protocol)
+            h(ElTag, { type: protocolTagType(row.protocol), size: 'small' }, () =>
+              protocolLabel(row.protocol)
             )
         },
         {
@@ -304,10 +319,8 @@
           width: 110,
           align: 'center',
           formatter: (row: TaskLogListItem) =>
-            h(
-              ElTag,
-              { type: statusTagType(row.status), size: 'small' },
-              () => statusLabel(row.status)
+            h(ElTag, { type: statusTagType(row.status), size: 'small' }, () =>
+              statusLabel(row.status)
             )
         },
         {
@@ -364,7 +377,11 @@
               )
             }
 
-            return h('span', { style: 'display:inline-flex;gap:4px;flex-wrap:wrap;justify-content:center;' }, btns)
+            return h(
+              'span',
+              { style: 'display:inline-flex;gap:4px;flex-wrap:wrap;justify-content:center;' },
+              btns
+            )
           }
         }
       ]
@@ -458,16 +475,16 @@
   }
 
   .log-pre {
-    white-space: pre-wrap;
-    word-break: break-all;
+    max-height: 300px;
+    padding: 12px;
+    margin: 6px 0 0;
+    overflow-y: auto;
     font-family: monospace;
     font-size: 13px;
-    background: #2d2d2d;
     color: #f0f0f0;
-    padding: 12px;
+    word-break: break-all;
+    white-space: pre-wrap;
+    background: #2d2d2d;
     border-radius: 4px;
-    margin: 6px 0 0 0;
-    max-height: 300px;
-    overflow-y: auto;
   }
 </style>

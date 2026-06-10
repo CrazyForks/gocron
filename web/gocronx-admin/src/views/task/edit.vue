@@ -8,24 +8,13 @@
           <span class="text-base font-medium">
             {{ isEdit ? t('task.editTitle') : t('task.createTitle') }}
           </span>
-          <ElButton
-            v-if="isEdit"
-            size="small"
-            :icon="Collection"
-            @click="openSaveAsTemplate"
-          >
+          <ElButton v-if="isEdit" size="small" :icon="Collection" @click="openSaveAsTemplate">
             {{ t('template.saveAsTemplate') }}
           </ElButton>
         </div>
       </template>
 
-      <ElForm
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="130px"
-        @submit.prevent
-      >
+      <ElForm ref="formRef" :model="form" :rules="rules" label-width="130px" @submit.prevent>
         <!-- ── Basic Info ──────────────────────────────────────────────── -->
         <ElCard shadow="never" class="section-card mb-4">
           <ElRow :gutter="24">
@@ -54,12 +43,7 @@
                   :placeholder="t('task.tagPlaceholder')"
                   style="width: 100%"
                 >
-                  <ElOption
-                    v-for="tag in tagOptions"
-                    :key="tag"
-                    :label="tag"
-                    :value="tag"
-                  />
+                  <ElOption v-for="tag in tagOptions" :key="tag" :label="tag" :value="tag" />
                 </ElSelect>
               </ElFormItem>
             </ElCol>
@@ -116,21 +100,51 @@
                       <div class="cron-help">
                         <h4>{{ t('template.cronStandard') }}</h4>
                         <ul>
-                          <li><code>0 * * * *</code> <span>{{ t('template.cronEveryMinute') }}</span></li>
-                          <li><code>*/20 * * * *</code> <span>{{ t('template.cronEvery20Sec') }}</span></li>
-                          <li><code>30 21 * * *</code> <span>{{ t('template.cronEveryDay2130') }}</span></li>
-                          <li><code>0 23 * * 6</code> <span>{{ t('template.cronEverySat23') }}</span></li>
+                          <li
+                            ><code>0 * * * *</code>
+                            <span>{{ t('template.cronEveryMinute') }}</span></li
+                          >
+                          <li
+                            ><code>*/20 * * * *</code>
+                            <span>{{ t('template.cronEvery20Sec') }}</span></li
+                          >
+                          <li
+                            ><code>30 21 * * *</code>
+                            <span>{{ t('template.cronEveryDay2130') }}</span></li
+                          >
+                          <li
+                            ><code>0 23 * * 6</code>
+                            <span>{{ t('template.cronEverySat23') }}</span></li
+                          >
                         </ul>
                         <h4>{{ t('template.cronShortcut') }}</h4>
                         <ul>
-                          <li><code>@reboot</code> <span>{{ t('template.cronReboot') }}</span></li>
-                          <li><code>@yearly</code> <span>{{ t('template.cronYearly') }}</span></li>
-                          <li><code>@monthly</code> <span>{{ t('template.cronMonthly') }}</span></li>
-                          <li><code>@weekly</code> <span>{{ t('template.cronWeekly') }}</span></li>
-                          <li><code>@daily</code> <span>{{ t('template.cronDaily') }}</span></li>
-                          <li><code>@hourly</code> <span>{{ t('template.cronHourly') }}</span></li>
-                          <li><code>@every 30s</code> <span>{{ t('template.cronEvery30s') }}</span></li>
-                          <li><code>@every 1m20s</code> <span>{{ t('template.cronEvery1m20s') }}</span></li>
+                          <li
+                            ><code>@reboot</code> <span>{{ t('template.cronReboot') }}</span></li
+                          >
+                          <li
+                            ><code>@yearly</code> <span>{{ t('template.cronYearly') }}</span></li
+                          >
+                          <li
+                            ><code>@monthly</code> <span>{{ t('template.cronMonthly') }}</span></li
+                          >
+                          <li
+                            ><code>@weekly</code> <span>{{ t('template.cronWeekly') }}</span></li
+                          >
+                          <li
+                            ><code>@daily</code> <span>{{ t('template.cronDaily') }}</span></li
+                          >
+                          <li
+                            ><code>@hourly</code> <span>{{ t('template.cronHourly') }}</span></li
+                          >
+                          <li
+                            ><code>@every 30s</code>
+                            <span>{{ t('template.cronEvery30s') }}</span></li
+                          >
+                          <li
+                            ><code>@every 1m20s</code>
+                            <span>{{ t('template.cronEvery1m20s') }}</span></li
+                          >
                         </ul>
                       </div>
                     </ElPopover>
@@ -215,7 +229,11 @@
             <!-- protocol -->
             <ElCol :span="8">
               <ElFormItem :label="t('task.protocol')">
-                <ElSelect v-model="form.protocol" @change="handleProtocolChange" style="width: 100%">
+                <ElSelect
+                  v-model="form.protocol"
+                  @change="handleProtocolChange"
+                  style="width: 100%"
+                >
                   <ElOption :label="t('task.protocolHttp')" :value="1" />
                   <ElOption :label="t('task.protocolRpc')" :value="2" />
                 </ElSelect>
@@ -256,12 +274,17 @@
           <!-- command / URL -->
           <ElRow :gutter="24">
             <ElCol :span="20">
-              <ElFormItem :label="form.protocol === 1 ? t('task.url') : t('task.command')" prop="command">
+              <ElFormItem
+                :label="form.protocol === 1 ? t('task.url') : t('task.command')"
+                prop="command"
+              >
                 <ElInput
                   v-model="form.command"
                   type="textarea"
                   :rows="5"
-                  :placeholder="form.protocol === 1 ? t('task.urlPlaceholder') : t('task.commandPlaceholder')"
+                  :placeholder="
+                    form.protocol === 1 ? t('task.urlPlaceholder') : t('task.commandPlaceholder')
+                  "
                 />
               </ElFormItem>
             </ElCol>
@@ -312,7 +335,9 @@
         <!-- ── Concurrency & Retry ─────────────────────────────────────── -->
         <ElCard shadow="never" class="section-card mb-4">
           <template #header>
-            <span class="section-title">{{ t('task.timeout') }} &amp; {{ t('task.retryCount') }}</span>
+            <span class="section-title"
+              >{{ t('task.timeout') }} &amp; {{ t('task.retryCount') }}</span
+            >
           </template>
 
           <ElRow :gutter="24">
@@ -377,7 +402,11 @@
             <!-- notify status -->
             <ElCol :span="8">
               <ElFormItem :label="t('task.notifyStatus')">
-                <ElSelect v-model="form.notify_status" @change="handleNotifyStatusChange" style="width: 100%">
+                <ElSelect
+                  v-model="form.notify_status"
+                  @change="handleNotifyStatusChange"
+                  style="width: 100%"
+                >
                   <ElOption :label="t('task.notifyStatusNone')" :value="0" />
                   <ElOption :label="t('task.notifyStatusFailed')" :value="1" />
                   <ElOption :label="t('task.notifyStatusAll')" :value="2" />
@@ -400,18 +429,8 @@
             <!-- notify receiver: email -->
             <ElCol :span="8" v-if="form.notify_status !== 0 && form.notify_type === 0">
               <ElFormItem :label="t('task.notifyReceiver')">
-                <ElSelect
-                  v-model="selectedMailIds"
-                  multiple
-                  filterable
-                  style="width: 100%"
-                >
-                  <ElOption
-                    v-for="u in mailUsers"
-                    :key="u.id"
-                    :label="u.username"
-                    :value="u.id"
-                  />
+                <ElSelect v-model="selectedMailIds" multiple filterable style="width: 100%">
+                  <ElOption v-for="u in mailUsers" :key="u.id" :label="u.username" :value="u.id" />
                 </ElSelect>
               </ElFormItem>
             </ElCol>
@@ -419,18 +438,8 @@
             <!-- notify receiver: slack -->
             <ElCol :span="8" v-if="form.notify_status !== 0 && form.notify_type === 1">
               <ElFormItem :label="t('task.notifyReceiver')">
-                <ElSelect
-                  v-model="selectedSlackIds"
-                  multiple
-                  filterable
-                  style="width: 100%"
-                >
-                  <ElOption
-                    v-for="c in slackChannels"
-                    :key="c.id"
-                    :label="c.name"
-                    :value="c.id"
-                  />
+                <ElSelect v-model="selectedSlackIds" multiple filterable style="width: 100%">
+                  <ElOption v-for="c in slackChannels" :key="c.id" :label="c.name" :value="c.id" />
                 </ElSelect>
               </ElFormItem>
             </ElCol>
@@ -438,18 +447,8 @@
             <!-- notify receiver: webhook -->
             <ElCol :span="8" v-if="form.notify_status !== 0 && form.notify_type === 2">
               <ElFormItem :label="t('task.notifyReceiver')">
-                <ElSelect
-                  v-model="selectedWebhookIds"
-                  multiple
-                  filterable
-                  style="width: 100%"
-                >
-                  <ElOption
-                    v-for="w in webhookUrls"
-                    :key="w.id"
-                    :label="w.name"
-                    :value="w.id"
-                  />
+                <ElSelect v-model="selectedWebhookIds" multiple filterable style="width: 100%">
+                  <ElOption v-for="w in webhookUrls" :key="w.id" :label="w.name" :value="w.id" />
                 </ElSelect>
               </ElFormItem>
             </ElCol>
@@ -521,11 +520,7 @@
       />
       <div class="var-hint">{{ t('template.fillVariablesHint') }}</div>
       <ElForm label-width="140px" @submit.prevent>
-        <ElFormItem
-          v-for="v in templateVariables"
-          :key="v"
-          :label="v"
-        >
+        <ElFormItem v-for="v in templateVariables" :key="v" :label="v">
           <ElInput
             v-model="templateVarValues[v]"
             :placeholder="t('template.variableValue')"
@@ -615,11 +610,7 @@
     type CronRun
   } from '@/api/task'
   import { fetchHostList, type HostItem } from '@/api/host'
-  import {
-    fetchTemplateList,
-    fetchTemplateDetail,
-    fetchTemplateSaveFromTask
-  } from '@/api/template'
+  import { fetchTemplateList, fetchTemplateDetail, fetchTemplateSaveFromTask } from '@/api/template'
   import { fetchMail, fetchSlack, fetchWebhook } from '@/api/notification'
   import type { MailUser, SlackChannel, WebhookUrl } from '@/api/notification'
 
@@ -711,9 +702,20 @@
     const r: FormRules = {
       name: [{ required: true, message: t('task.nameRequired'), trigger: 'blur' }],
       command: [{ required: true, message: t('task.commandRequired'), trigger: 'blur' }],
-      timeout: [{ required: true, type: 'number', message: t('task.timeoutRequired'), trigger: 'blur' }],
-      retry_times: [{ required: true, type: 'number', message: t('task.retryCountRequired'), trigger: 'blur' }],
-      retry_interval: [{ required: true, type: 'number', message: t('task.retryIntervalRequired'), trigger: 'blur' }]
+      timeout: [
+        { required: true, type: 'number', message: t('task.timeoutRequired'), trigger: 'blur' }
+      ],
+      retry_times: [
+        { required: true, type: 'number', message: t('task.retryCountRequired'), trigger: 'blur' }
+      ],
+      retry_interval: [
+        {
+          required: true,
+          type: 'number',
+          message: t('task.retryIntervalRequired'),
+          trigger: 'blur'
+        }
+      ]
     }
 
     if (form.level === 1) {
@@ -733,7 +735,9 @@
     }
 
     if (form.notify_status === 3) {
-      r.notify_keyword = [{ required: true, message: t('task.notifyKeywordRequired'), trigger: 'blur' }]
+      r.notify_keyword = [
+        { required: true, message: t('task.notifyKeywordRequired'), trigger: 'blur' }
+      ]
     }
 
     return r
@@ -1245,9 +1249,9 @@
   }
 
   .var-hint {
+    margin-bottom: 12px;
     font-size: 13px;
     color: var(--el-text-color-secondary);
-    margin-bottom: 12px;
   }
 
   /* Cron expression help popover */
@@ -1257,100 +1261,116 @@
     font-weight: 600;
     color: var(--el-text-color-primary);
   }
+
   .cron-help ul {
-    list-style: none;
     padding: 0;
     margin: 0 0 12px;
+    list-style: none;
   }
+
   .cron-help li {
     display: flex;
-    align-items: center;
     gap: 10px;
+    align-items: center;
     padding: 3px 0;
     font-size: 13px;
     color: var(--el-text-color-regular);
   }
+
   .cron-help code {
-    font-family: monospace;
-    background: var(--el-fill-color-light);
-    padding: 2px 8px;
-    border-radius: 4px;
-    color: var(--el-color-primary);
-    min-width: 110px;
     display: inline-block;
+    min-width: 110px;
+    padding: 2px 8px;
+    font-family: monospace;
+    color: var(--el-color-primary);
+    background: var(--el-fill-color-light);
+    border-radius: 4px;
   }
 
   /* Cron preview box */
   .cron-preview {
-    border: 1px solid var(--el-border-color-light);
-    border-radius: 6px;
+    width: 100%;
+    min-height: 60px;
     padding: 12px 16px;
     background: var(--el-fill-color-blank);
-    min-height: 60px;
-    width: 100%;
+    border: 1px solid var(--el-border-color-light);
+    border-radius: 6px;
     transition: border-color 0.2s;
   }
+
   .cron-preview.is-empty {
     background: var(--el-fill-color-lighter);
   }
+
   .cron-preview.is-invalid {
-    border-color: var(--el-color-danger);
     background: var(--el-color-danger-light-9);
+    border-color: var(--el-color-danger);
   }
+
   .preview-state {
     display: flex;
-    align-items: center;
     gap: 6px;
+    align-items: center;
     font-size: 13px;
   }
+
   .preview-state.muted {
     color: var(--el-text-color-secondary);
   }
+
   .preview-state.error {
     color: var(--el-color-danger);
   }
+
   .preview-title {
     display: flex;
-    align-items: center;
     gap: 6px;
+    align-items: center;
+    margin-bottom: 10px;
     font-size: 13px;
     font-weight: 500;
     color: var(--el-text-color-primary);
-    margin-bottom: 10px;
   }
+
   .tz-tag {
     margin-left: 4px;
     font-weight: normal;
   }
+
   .run-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 4px 20px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
   }
+
   .run-list li {
     display: flex;
-    align-items: baseline;
     gap: 8px;
+    align-items: baseline;
     font-size: 13px;
     font-variant-numeric: tabular-nums;
   }
+
   .run-list .idx {
-    color: var(--el-text-color-placeholder);
-    font-size: 11px;
     min-width: 22px;
+    font-size: 11px;
+    color: var(--el-text-color-placeholder);
   }
+
   .run-list .ts {
     color: var(--el-text-color-primary);
   }
+
   .run-list .rel {
     margin-left: auto;
-    color: var(--el-text-color-secondary);
     font-size: 12px;
+    color: var(--el-text-color-secondary);
   }
-  @media (max-width: 768px) {
+
+  @media (width <= 768px) {
     .run-list {
       grid-template-columns: 1fr;
     }

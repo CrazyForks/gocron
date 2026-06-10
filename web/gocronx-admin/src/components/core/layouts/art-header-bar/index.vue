@@ -131,7 +131,6 @@
 
     <!-- 标签页 -->
     <ArtWorkTab />
-
   </div>
 </template>
 
@@ -259,10 +258,10 @@
   // GitHub link wrapper — inherit color so the ArtIconButton renders with
   // the same icon color as sibling header icons.
   .github-link {
-    color: inherit;
-    text-decoration: none;
     display: inline-flex;
     align-items: center;
+    color: inherit;
+    text-decoration: none;
   }
 
   /* Custom animations */

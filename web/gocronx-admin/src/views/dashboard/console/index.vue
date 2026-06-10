@@ -41,13 +41,28 @@
       </div>
       <ElTable :data="tableRows" border size="small" style="width: 100%">
         <ElTableColumn prop="date" :label="t('dashboard.colDate')" min-width="110" align="center" />
-        <ElTableColumn prop="total" :label="t('dashboard.colTotal')" min-width="80" align="center" />
-        <ElTableColumn prop="success" :label="t('dashboard.colSuccess')" min-width="80" align="center">
+        <ElTableColumn
+          prop="total"
+          :label="t('dashboard.colTotal')"
+          min-width="80"
+          align="center"
+        />
+        <ElTableColumn
+          prop="success"
+          :label="t('dashboard.colSuccess')"
+          min-width="80"
+          align="center"
+        >
           <template #default="{ row }">
             <ElTag type="success" size="small">{{ row.success }}</ElTag>
           </template>
         </ElTableColumn>
-        <ElTableColumn prop="failed" :label="t('dashboard.colFailed')" min-width="80" align="center">
+        <ElTableColumn
+          prop="failed"
+          :label="t('dashboard.colFailed')"
+          min-width="80"
+          align="center"
+        >
           <template #default="{ row }">
             <ElTag type="danger" size="small">{{ row.failed }}</ElTag>
           </template>
@@ -183,10 +198,10 @@
 
 <style scoped>
   .gocron-console {
-    padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    padding: 20px;
   }
 
   /* KPI row */
@@ -196,21 +211,21 @@
 
   .kpi-card {
     display: flex;
-    align-items: center;
     gap: 16px;
+    align-items: center;
+    min-height: 90px;
     padding: 20px;
     margin-bottom: 0;
-    min-height: 90px;
   }
 
   .kpi-icon-wrap {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
     width: 48px;
     height: 48px;
     border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
   }
 
   .kpi-body {
@@ -219,19 +234,19 @@
   }
 
   .kpi-value {
+    display: block;
     font-size: 26px;
     font-weight: 600;
     line-height: 1.2;
-    display: block;
   }
 
   .kpi-label {
     margin-top: 4px;
+    overflow: hidden;
     font-size: 13px;
     color: var(--el-text-color-regular);
-    white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* Shared card section */

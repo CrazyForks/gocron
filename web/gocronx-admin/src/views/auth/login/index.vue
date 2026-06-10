@@ -89,12 +89,7 @@
             </div>
 
             <div class="mt-4">
-              <ElButton
-                class="w-full"
-                @click="cancelTwoFactor"
-                :disabled="loading"
-                link
-              >
+              <ElButton class="w-full" @click="cancelTwoFactor" :disabled="loading" link>
                 {{ $t('common.cancel') }}
               </ElButton>
             </div>
@@ -181,7 +176,7 @@
       }
 
       // fetchLogin returns either LoginResponse or Login2FARequired
-      const result = await fetchLogin(params) as any
+      const result = (await fetchLogin(params)) as any
 
       // Check for 2FA intermediate step:
       // gocron returns { code:0, message:"2fa_code_required", data:{ require_2fa: true } }

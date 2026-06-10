@@ -80,7 +80,12 @@
   import { ref, reactive, computed, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import type { FormInstance, FormRules } from 'element-plus'
-  import { fetchSlack, updateSlack, createSlackChannel, removeSlackChannel } from '@/api/notification'
+  import {
+    fetchSlack,
+    updateSlack,
+    createSlackChannel,
+    removeSlackChannel
+  } from '@/api/notification'
   import type { SlackChannel } from '@/api/notification'
 
   defineOptions({ name: 'SlackTab' })
@@ -111,7 +116,12 @@
 
   const rules = computed<FormRules>(() => ({
     url: [
-      { required: true, type: 'url', message: t('notification.pleaseEnterValidUrl'), trigger: 'blur' }
+      {
+        required: true,
+        type: 'url',
+        message: t('notification.pleaseEnterValidUrl'),
+        trigger: 'blur'
+      }
     ],
     template: [{ required: true, message: t('notification.pleaseEnterTemplate'), trigger: 'blur' }]
   }))
@@ -192,8 +202,8 @@
 
   .section-header {
     display: flex;
-    align-items: center;
     gap: 12px;
+    align-items: center;
     margin-bottom: 12px;
   }
 
@@ -204,7 +214,7 @@
   }
 
   .empty-hint {
-    color: var(--el-text-color-placeholder);
     font-size: 13px;
+    color: var(--el-text-color-placeholder);
   }
 </style>

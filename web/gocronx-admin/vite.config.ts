@@ -9,7 +9,7 @@ import AutoImport from 'unplugin-auto-import/vite'
 import ElementPlus from 'unplugin-element-plus/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import tailwindcss from '@tailwindcss/vite'
-import { visualizer } from 'rollup-plugin-visualizer'
+// import { visualizer } from 'rollup-plugin-visualizer' // 启用打包分析时取消注释（见下方 visualizer 配置）
 
 export default ({ mode }: { mode: string }) => {
   const root = process.cwd()
@@ -65,8 +65,8 @@ export default ({ mode }: { mode: string }) => {
           manualChunks: {
             'vue-vendor': ['vue', 'vue-router', 'pinia'],
             'element-plus': ['element-plus'],
-            'echarts': ['echarts'],
-            'utils': ['axios', 'crypto-js', 'nprogress']
+            echarts: ['echarts'],
+            utils: ['axios', 'crypto-js', 'nprogress']
           },
           // 优化文件名
           chunkFileNames: 'js/[name]-[hash].js',
@@ -112,7 +112,7 @@ export default ({ mode }: { mode: string }) => {
         threshold: 10240, // 只有大小大于该值的资源会被处理 10240B = 10KB
         deleteOriginFile: false // 压缩后是否删除原文件
       }),
-      vueDevTools(),
+      vueDevTools()
       // 打包分析 - 需要时取消注释
       // visualizer({
       //   open: true,

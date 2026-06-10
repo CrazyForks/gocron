@@ -51,11 +51,7 @@
           </ElCol>
           <ElCol :span="8">
             <ElFormItem :label="t('task.tag')">
-              <ElInput
-                v-model.trim="form.tag"
-                :placeholder="t('task.tagPlaceholder')"
-                clearable
-              />
+              <ElInput v-model.trim="form.tag" :placeholder="t('task.tagPlaceholder')" clearable />
             </ElFormItem>
           </ElCol>
         </ElRow>
@@ -95,21 +91,50 @@
                     <div class="cron-help">
                       <h4>{{ t('template.cronStandard') }}</h4>
                       <ul>
-                        <li><code>0 * * * *</code> <span>{{ t('template.cronEveryMinute') }}</span></li>
-                        <li><code>*/20 * * * *</code> <span>{{ t('template.cronEvery20Sec') }}</span></li>
-                        <li><code>30 21 * * *</code> <span>{{ t('template.cronEveryDay2130') }}</span></li>
-                        <li><code>0 23 * * 6</code> <span>{{ t('template.cronEverySat23') }}</span></li>
+                        <li
+                          ><code>0 * * * *</code>
+                          <span>{{ t('template.cronEveryMinute') }}</span></li
+                        >
+                        <li
+                          ><code>*/20 * * * *</code>
+                          <span>{{ t('template.cronEvery20Sec') }}</span></li
+                        >
+                        <li
+                          ><code>30 21 * * *</code>
+                          <span>{{ t('template.cronEveryDay2130') }}</span></li
+                        >
+                        <li
+                          ><code>0 23 * * 6</code>
+                          <span>{{ t('template.cronEverySat23') }}</span></li
+                        >
                       </ul>
                       <h4>{{ t('template.cronShortcut') }}</h4>
                       <ul>
-                        <li><code>@reboot</code> <span>{{ t('template.cronReboot') }}</span></li>
-                        <li><code>@yearly</code> <span>{{ t('template.cronYearly') }}</span></li>
-                        <li><code>@monthly</code> <span>{{ t('template.cronMonthly') }}</span></li>
-                        <li><code>@weekly</code> <span>{{ t('template.cronWeekly') }}</span></li>
-                        <li><code>@daily</code> <span>{{ t('template.cronDaily') }}</span></li>
-                        <li><code>@hourly</code> <span>{{ t('template.cronHourly') }}</span></li>
-                        <li><code>@every 30s</code> <span>{{ t('template.cronEvery30s') }}</span></li>
-                        <li><code>@every 1m20s</code> <span>{{ t('template.cronEvery1m20s') }}</span></li>
+                        <li
+                          ><code>@reboot</code> <span>{{ t('template.cronReboot') }}</span></li
+                        >
+                        <li
+                          ><code>@yearly</code> <span>{{ t('template.cronYearly') }}</span></li
+                        >
+                        <li
+                          ><code>@monthly</code> <span>{{ t('template.cronMonthly') }}</span></li
+                        >
+                        <li
+                          ><code>@weekly</code> <span>{{ t('template.cronWeekly') }}</span></li
+                        >
+                        <li
+                          ><code>@daily</code> <span>{{ t('template.cronDaily') }}</span></li
+                        >
+                        <li
+                          ><code>@hourly</code> <span>{{ t('template.cronHourly') }}</span></li
+                        >
+                        <li
+                          ><code>@every 30s</code> <span>{{ t('template.cronEvery30s') }}</span></li
+                        >
+                        <li
+                          ><code>@every 1m20s</code>
+                          <span>{{ t('template.cronEvery1m20s') }}</span></li
+                        >
                       </ul>
                     </div>
                   </ElPopover>
@@ -132,12 +157,7 @@
                   :key="group.label"
                   :label="group.label"
                 >
-                  <ElOption
-                    v-for="tz in group.zones"
-                    :key="tz"
-                    :label="tz"
-                    :value="tz"
-                  />
+                  <ElOption v-for="tz in group.zones" :key="tz" :label="tz" :value="tz" />
                 </ElOptionGroup>
               </ElSelect>
             </ElFormItem>
@@ -268,12 +288,7 @@
         <ElRow :gutter="24">
           <ElCol :span="6">
             <ElFormItem :label="t('task.timeout')">
-              <ElInputNumber
-                v-model="form.timeout"
-                :min="0"
-                :max="86400"
-                style="width: 100%"
-              />
+              <ElInputNumber v-model="form.timeout" :min="0" :max="86400" style="width: 100%" />
             </ElFormItem>
           </ElCol>
           <ElCol :span="6">
@@ -286,12 +301,7 @@
           </ElCol>
           <ElCol :span="6">
             <ElFormItem :label="t('task.retryCount')">
-              <ElInputNumber
-                v-model="form.retry_times"
-                :min="0"
-                :max="10"
-                style="width: 100%"
-              />
+              <ElInputNumber v-model="form.retry_times" :min="0" :max="10" style="width: 100%" />
             </ElFormItem>
           </ElCol>
           <ElCol :span="6">
@@ -346,16 +356,11 @@
         <ElRow :gutter="24">
           <ElCol :span="12">
             <ElFormItem :label="t('template.logRetentionDays')">
-              <ElInputNumber
-                v-model="form.log_retention_days"
-                :min="0"
-                :max="3650"
-              />
+              <ElInputNumber v-model="form.log_retention_days" :min="0" :max="3650" />
               <span class="form-help inline-help">{{ t('template.logRetentionTip') }}</span>
             </ElFormItem>
           </ElCol>
         </ElRow>
-
       </ElForm>
     </ElCard>
 
@@ -364,12 +369,7 @@
       <ElButton size="large" @click="handleCancel">
         {{ t('template.cancel') }}
       </ElButton>
-      <ElButton
-        type="primary"
-        size="large"
-        :loading="submitting"
-        @click="handleSubmit"
-      >
+      <ElButton type="primary" size="large" :loading="submitting" @click="handleSubmit">
         <ElIcon class="mr-1"><Check /></ElIcon>
         {{ t('template.save') }}
       </ElButton>
@@ -440,14 +440,10 @@
 
   const isEdit = computed(() => routeId.value > 0)
 
-  const commandLabel = computed(() =>
-    form.protocol === 1 ? 'URL' : t('template.command')
-  )
+  const commandLabel = computed(() => (form.protocol === 1 ? 'URL' : t('template.command')))
 
   const commandPlaceholder = computed(() =>
-    form.protocol === 1
-      ? 'https://example.com/api/hook'
-      : t('template.commandPlaceholder')
+    form.protocol === 1 ? 'https://example.com/api/hook' : t('template.commandPlaceholder')
   )
 
   const timezoneGroups = computed(() => {
@@ -653,10 +649,10 @@
   }
 
   .form-help {
-    color: var(--el-text-color-secondary);
+    margin-top: 4px;
     font-size: 12px;
     line-height: 1.6;
-    margin-top: 4px;
+    color: var(--el-text-color-secondary);
   }
 
   .inline-help {
@@ -670,109 +666,125 @@
     font-weight: 600;
     color: var(--el-text-color-primary);
   }
+
   .cron-help ul {
-    list-style: none;
     padding: 0;
     margin: 0 0 12px;
+    list-style: none;
   }
+
   .cron-help li {
     display: flex;
-    align-items: center;
     gap: 10px;
+    align-items: center;
     padding: 3px 0;
     font-size: 13px;
     color: var(--el-text-color-regular);
   }
+
   .cron-help code {
-    font-family: monospace;
-    background: var(--el-fill-color-light);
-    padding: 2px 8px;
-    border-radius: 4px;
-    color: var(--el-color-primary);
-    min-width: 110px;
     display: inline-block;
+    min-width: 110px;
+    padding: 2px 8px;
+    font-family: monospace;
+    color: var(--el-color-primary);
+    background: var(--el-fill-color-light);
+    border-radius: 4px;
   }
 
   /* Cron preview box */
   .cron-preview {
-    border: 1px solid var(--el-border-color-light);
-    border-radius: 6px;
+    width: 100%;
+    min-height: 60px;
     padding: 12px 16px;
     background: var(--el-fill-color-blank);
-    min-height: 60px;
-    width: 100%;
+    border: 1px solid var(--el-border-color-light);
+    border-radius: 6px;
     transition: border-color 0.2s;
   }
+
   .cron-preview.is-empty {
     background: var(--el-fill-color-lighter);
   }
+
   .cron-preview.is-invalid {
-    border-color: var(--el-color-danger);
     background: var(--el-color-danger-light-9);
+    border-color: var(--el-color-danger);
   }
+
   .preview-state {
     display: flex;
-    align-items: center;
     gap: 6px;
+    align-items: center;
     font-size: 13px;
   }
+
   .preview-state.muted {
     color: var(--el-text-color-secondary);
   }
+
   .preview-state.error {
     color: var(--el-color-danger);
   }
+
   .preview-title {
     display: flex;
-    align-items: center;
     gap: 6px;
+    align-items: center;
+    margin-bottom: 10px;
     font-size: 13px;
     font-weight: 500;
     color: var(--el-text-color-primary);
-    margin-bottom: 10px;
   }
+
   .tz-tag {
     margin-left: 4px;
     font-weight: normal;
   }
+
   .run-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 4px 20px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
   }
+
   .run-list li {
     display: flex;
-    align-items: baseline;
     gap: 8px;
+    align-items: baseline;
     font-size: 13px;
     font-variant-numeric: tabular-nums;
   }
+
   .run-list .idx {
-    color: var(--el-text-color-placeholder);
-    font-size: 11px;
     min-width: 22px;
+    font-size: 11px;
+    color: var(--el-text-color-placeholder);
   }
+
   .run-list .ts {
     color: var(--el-text-color-primary);
   }
+
   .run-list .rel {
     margin-left: auto;
-    color: var(--el-text-color-secondary);
     font-size: 12px;
+    color: var(--el-text-color-secondary);
   }
-  @media (max-width: 768px) {
+
+  @media (width <= 768px) {
     .run-list {
       grid-template-columns: 1fr;
     }
 
     /* Sticky action bar: full width, centred buttons on mobile */
     .form-actions-bar {
+      gap: 8px;
       justify-content: center;
       padding: 12px 16px;
-      gap: 8px;
     }
 
     /* Give the form extra bottom clearance for the taller bar */
@@ -785,22 +797,22 @@
   .form-actions-bar {
     position: sticky;
     bottom: 0;
-    margin: 16px -20px -20px;
-    padding: 14px 28px;
-    background: var(--el-bg-color);
-    border-top: 1px solid var(--el-border-color-light);
+    z-index: 10;
     display: flex;
     gap: 12px;
-    justify-content: flex-end;
     align-items: center;
-    z-index: 10;
+    justify-content: flex-end;
+    padding: 14px 28px;
+    margin: 16px -20px -20px;
+    background: var(--el-bg-color);
+    border-top: 1px solid var(--el-border-color-light);
   }
 
   :deep(.el-divider__text) {
+    padding: 0 12px;
     font-size: 13px;
     font-weight: 600;
     color: var(--el-text-color-primary);
     background: var(--el-bg-color);
-    padding: 0 12px;
   }
 </style>

@@ -37,11 +37,7 @@
   import { useRouter } from 'vue-router'
   import { ElButton, ElMessage, ElMessageBox, ElTag } from 'element-plus'
   import { useTable } from '@/hooks/core/useTable'
-  import {
-    fetchTemplateList,
-    fetchTemplateRemove,
-    type TemplateListItem
-  } from '@/api/template'
+  import { fetchTemplateList, fetchTemplateRemove, type TemplateListItem } from '@/api/template'
   import { formatDateTime } from '@/utils/date'
 
   defineOptions({ name: 'TemplateList' })
@@ -112,10 +108,8 @@
           width: 90,
           align: 'center',
           formatter: (row: TemplateListItem) =>
-            h(
-              ElTag,
-              { type: row.protocol === 1 ? 'primary' : 'success', size: 'small' },
-              () => (row.protocol === 1 ? t('template.protocolHttp') : t('template.protocolRpc'))
+            h(ElTag, { type: row.protocol === 1 ? 'primary' : 'success', size: 'small' }, () =>
+              row.protocol === 1 ? t('template.protocolHttp') : t('template.protocolRpc')
             )
         },
         {

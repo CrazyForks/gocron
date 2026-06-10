@@ -20,12 +20,7 @@
           :closable="false"
           show-icon
         />
-        <ElButton
-          type="primary"
-          class="mt-5"
-          :loading="setupLoading"
-          @click="handleSetup"
-        >
+        <ElButton type="primary" class="mt-5" :loading="setupLoading" @click="handleSetup">
           {{ t('twoFactor.enableBtn') }}
         </ElButton>
       </div>
@@ -39,11 +34,7 @@
           :closable="false"
           show-icon
         />
-        <ElButton
-          type="danger"
-          class="mt-5"
-          @click="showDisableDialog"
-        >
+        <ElButton type="danger" class="mt-5" @click="showDisableDialog">
           {{ t('twoFactor.disableBtn') }}
         </ElButton>
       </div>
@@ -82,11 +73,7 @@
 
       <template #footer>
         <ElButton @click="setupDialogVisible = false">{{ t('common.cancel') }}</ElButton>
-        <ElButton
-          type="primary"
-          :loading="enableLoading"
-          @click="handleEnable"
-        >
+        <ElButton type="primary" :loading="enableLoading" @click="handleEnable">
           {{ t('twoFactor.save') }}
         </ElButton>
       </template>
@@ -110,11 +97,7 @@
 
       <template #footer>
         <ElButton @click="disableDialogVisible = false">{{ t('common.cancel') }}</ElButton>
-        <ElButton
-          type="danger"
-          :loading="disableLoading"
-          @click="handleDisable"
-        >
+        <ElButton type="danger" :loading="disableLoading" @click="handleDisable">
           {{ t('twoFactor.disableBtn') }}
         </ElButton>
       </template>
@@ -237,33 +220,33 @@
 </script>
 
 <style scoped>
-.two-factor-page {
-  padding: 20px;
-}
+  .two-factor-page {
+    padding: 20px;
+  }
 
-.status-card {
-  max-width: 620px;
-}
+  .status-card {
+    max-width: 620px;
+  }
 
-.card-title {
-  font-size: 16px;
-  font-weight: 500;
-}
+  .card-title {
+    font-size: 16px;
+    font-weight: 500;
+  }
 
-.setup-content {
-  padding: 4px 0;
-}
+  .setup-content {
+    padding: 4px 0;
+  }
 
-.qr-wrapper {
-  display: flex;
-  justify-content: center;
-  margin: 16px 0;
-}
+  .qr-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 16px 0;
+  }
 
-.qr-img {
-  width: 200px;
-  height: 200px;
-  border: 1px solid var(--el-border-color);
-  border-radius: 8px;
-}
+  .qr-img {
+    width: 200px;
+    height: 200px;
+    border: 1px solid var(--el-border-color);
+    border-radius: 8px;
+  }
 </style>

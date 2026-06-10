@@ -9,7 +9,7 @@
       :title="t('notification.webhookDescription')"
       type="info"
       :closable="false"
-      style="margin-bottom: 16px; max-width: 640px"
+      style="max-width: 640px; margin-bottom: 16px"
     />
 
     <ElForm
@@ -86,7 +86,12 @@
   import { ref, reactive, computed, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import type { FormInstance, FormRules } from 'element-plus'
-  import { fetchWebhook, updateWebhook, createWebhookUrl, removeWebhookUrl } from '@/api/notification'
+  import {
+    fetchWebhook,
+    updateWebhook,
+    createWebhookUrl,
+    removeWebhookUrl
+  } from '@/api/notification'
   import type { WebhookUrl } from '@/api/notification'
 
   defineOptions({ name: 'WebhookTab' })
@@ -194,8 +199,8 @@
 
   .section-header {
     display: flex;
-    align-items: center;
     gap: 12px;
+    align-items: center;
     margin-bottom: 12px;
   }
 
@@ -206,7 +211,7 @@
   }
 
   .empty-hint {
-    color: var(--el-text-color-placeholder);
     font-size: 13px;
+    color: var(--el-text-color-placeholder);
   }
 </style>

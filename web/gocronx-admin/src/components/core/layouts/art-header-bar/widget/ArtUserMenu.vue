@@ -76,8 +76,14 @@
 
   // Deterministic avatar: first letter of username on a color hashed from the name.
   const avatarPalette = [
-    '#409EFF', '#67C23A', '#E6A23C', '#F56C6C',
-    '#9B59B6', '#1ABC9C', '#34495E', '#E67E22'
+    '#409EFF',
+    '#67C23A',
+    '#E6A23C',
+    '#F56C6C',
+    '#9B59B6',
+    '#1ABC9C',
+    '#34495E',
+    '#E67E22'
   ]
   const avatarInitial = computed(() => {
     const n = userInfo.value?.userName || ''
@@ -175,13 +181,13 @@
 
   .user-avatar {
     display: inline-flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    color: #fff;
     font-weight: 600;
     line-height: 1;
+    color: #fff;
     user-select: none;
-    flex-shrink: 0;
   }
 
   .avatar-initial {
