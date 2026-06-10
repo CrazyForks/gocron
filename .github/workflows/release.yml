@@ -23,10 +23,10 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-          cache-dependency-path: web/vue/pnpm-lock.yaml
+          cache-dependency-path: web/gocronx-admin/pnpm-lock.yaml
 
       - name: Install & Build
-        working-directory: web/vue
+        working-directory: web/gocronx-admin
         run: |
           pnpm install --frozen-lockfile
           pnpm build
@@ -34,7 +34,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
-          path: web/vue/dist/
+          path: web/gocronx-admin/dist/
 
   release:
     name: GoReleaser
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: frontend-dist
-          path: web/vue/dist/
+          path: web/gocronx-admin/dist/
 
       - uses: goreleaser/goreleaser-action@v6
         with:

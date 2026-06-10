@@ -1,7 +1,8 @@
 .git
 .github
-web/vue/node_modules
-web/vue/dist
+web/gocronx-admin/node_modules
+web/gocronx-admin/dist
+web/vue
 bin
 gocron-package
 gocron-node-package

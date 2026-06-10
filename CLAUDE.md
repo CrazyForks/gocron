@@ -18,10 +18,10 @@ A lightweight, distributed scheduled task management system written in Go with a
 air
 
 # Frontend dev server
-cd web/vue && pnpm dev
+cd web/gocronx-admin && pnpm dev
 
 # Build frontend
-cd web/vue && pnpm build
+cd web/gocronx-admin && pnpm build
 
 # Run tests
 go test ./...
@@ -39,13 +39,14 @@ internal/
   routers/           - Gin HTTP handlers (grouped by domain)
   service/           - Business logic (scheduler, execution)
   modules/           - Utilities (logger, i18n, notify, RPC)
-web/vue/             - Vue.js frontend
+web/gocronx-admin/   - Vue 3 + TypeScript frontend (art-design-pro based)
   src/api/           - API client services
-  src/pages/         - Page components
+  src/views/         - Page components
   src/components/    - Shared components
-  src/locales/       - i18n (zh-CN, en-US)
+  src/locales/langs/ - i18n (zh.json, en.json)
   src/router/        - Vue Router config
-  src/stores/        - Pinia stores
+  src/store/         - Pinia stores
+web/vue/             - Legacy frontend (deprecated, no longer built/embedded)
 ```
 
 ## Conventions
@@ -53,5 +54,5 @@ web/vue/             - Vue.js frontend
 - Commit messages follow Conventional Commits: `feat:`, `fix:`, `chore:`, `refactor:`, `style:`, `test:`
 - Do not add `Co-Authored-By` lines in commit messages
 - Backend i18n: `internal/modules/i18n/zh_cn.go` and `en_us.go`
-- Frontend i18n: `web/vue/src/locales/zh-CN.js` and `en-US.js`
+- Frontend i18n: `web/gocronx-admin/src/locales/langs/zh.json` and `en.json`
 - Database migrations: `internal/models/migration.go` (sequential version IDs)

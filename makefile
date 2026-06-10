@@ -90,54 +90,62 @@ package-all: build-web
 	bash ./package.sh -p "linux,darwin" -a "amd64,arm64"
 	bash ./package.sh -p "windows" -a "amd64"
 
-# 前端构建
-.PHONY: build-vue
-build-vue:
-	@echo "Installing Vue dependencies..."
-	@if [ -f web/vue/pnpm-lock.yaml ]; then \
+# 前端构建（gocronx-admin 为当前前端；web/vue 已弃用）
+WEB_DIR := web/gocronx-admin
+
+.PHONY: build-admin
+build-admin:
+	@echo "Installing frontend dependencies..."
+	@if [ -f $(WEB_DIR)/pnpm-lock.yaml ]; then \
 		echo "Using pnpm..."; \
-		cd web/vue && pnpm install; \
-	elif [ -f web/vue/yarn.lock ]; then \
+		cd $(WEB_DIR) && pnpm install; \
+	elif [ -f $(WEB_DIR)/yarn.lock ]; then \
 		echo "Using yarn..."; \
-		cd web/vue && yarn install; \
+		cd $(WEB_DIR) && yarn install; \
 	else \
 		echo "Using npm..."; \
-		cd web/vue && npm install; \
+		cd $(WEB_DIR) && npm install; \
 	fi
-	@echo "Building Vue frontend..."
-	@if [ -f web/vue/pnpm-lock.yaml ]; then \
-		cd web/vue && pnpm run build; \
-	elif [ -f web/vue/yarn.lock ]; then \
-		cd web/vue && yarn run build; \
+	@echo "Building frontend..."
+	@if [ -f $(WEB_DIR)/pnpm-lock.yaml ]; then \
+		cd $(WEB_DIR) && pnpm run build; \
+	elif [ -f $(WEB_DIR)/yarn.lock ]; then \
+		cd $(WEB_DIR) && yarn run build; \
 	else \
-		cd web/vue && npm run build; \
+		cd $(WEB_DIR) && npm run build; \
 	fi
-	@echo "✅ Vue build complete! Files will be embedded during Go build."
+	@echo "✅ Frontend build complete! Files will be embedded during Go build."
 
-.PHONY: install-vue
-install-vue:
-	@echo "Installing Vue dependencies..."
-	@if [ -f web/vue/pnpm-lock.yaml ]; then \
-		cd web/vue && pnpm install; \
-	elif [ -f web/vue/yarn.lock ]; then \
-		cd web/vue && yarn install; \
+.PHONY: install-admin
+install-admin:
+	@echo "Installing frontend dependencies..."
+	@if [ -f $(WEB_DIR)/pnpm-lock.yaml ]; then \
+		cd $(WEB_DIR) && pnpm install; \
+	elif [ -f $(WEB_DIR)/yarn.lock ]; then \
+		cd $(WEB_DIR) && yarn install; \
 	else \
-		cd web/vue && npm install; \
+		cd $(WEB_DIR) && npm install; \
 	fi
 
-.PHONY: run-vue
-run-vue:
-	@echo "Starting Vue dev server..."
-	@if [ -f web/vue/pnpm-lock.yaml ]; then \
-		cd web/vue && pnpm run dev; \
-	elif [ -f web/vue/yarn.lock ]; then \
-		cd web/vue && yarn run dev; \
+.PHONY: run-admin
+run-admin:
+	@echo "Starting frontend dev server..."
+	@if [ -f $(WEB_DIR)/pnpm-lock.yaml ]; then \
+		cd $(WEB_DIR) && pnpm run dev; \
+	elif [ -f $(WEB_DIR)/yarn.lock ]; then \
+		cd $(WEB_DIR) && yarn run dev; \
 	else \
-		cd web/vue && npm run dev; \
+		cd $(WEB_DIR) && npm run dev; \
 	fi
+
+# Backward-compatible aliases (old *-vue target names)
+.PHONY: build-vue install-vue run-vue
+build-vue: build-admin
+install-vue: install-admin
+run-vue: run-admin
 
 .PHONY: build-web
-build-web: build-vue
+build-web: build-admin
 	@echo "Web build complete!"
 
 # 代码质量检查
@@ -225,6 +233,7 @@ clean:
 .PHONY: clean-web
 clean-web:
 	@echo "Cleaning web build artifacts..."
+	-rm -rf web/gocronx-admin/dist
 	-rm -rf web/vue/dist
 	-rm -rf web/public/static
 	-rm -f web/public/index.html

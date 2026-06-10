@@ -3,11 +3,11 @@ FROM node:20-alpine AS frontend
 
 RUN corepack enable && corepack prepare pnpm@10 --activate
 
-WORKDIR /app/web/vue
-COPY web/vue/package.json web/vue/pnpm-lock.yaml ./
+WORKDIR /app/web/gocronx-admin
+COPY web/gocronx-admin/package.json web/gocronx-admin/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
-COPY web/vue ./
+COPY web/gocronx-admin ./
 RUN pnpm build
 
 # Backend build stage
@@ -20,7 +20,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy frontend build files first
-COPY --from=frontend /app/web/vue/dist ./web/vue/dist
+COPY --from=frontend /app/web/gocronx-admin/dist ./web/gocronx-admin/dist
 
 # Then copy the rest of the project
 COPY . .

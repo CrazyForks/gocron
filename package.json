@@ -16,12 +16,12 @@
     }
   },
   "lint-staged": {
-    "web/vue/**/*.{js,ts,vue}": [
-      "cd web/vue && pnpm exec eslint --fix",
-      "cd web/vue && pnpm exec prettier --write"
+    "web/gocronx-admin/**/*.{js,ts,vue}": [
+      "cd web/gocronx-admin && pnpm exec eslint --fix",
+      "cd web/gocronx-admin && pnpm exec prettier --write"
     ],
     "*.{json,md,yml,yaml}": [
-      "cd web/vue && pnpm exec prettier --write"
+      "cd web/gocronx-admin && pnpm exec prettier --write"
     ]
   },
   "pnpm": {

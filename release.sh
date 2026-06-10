@@ -103,7 +103,7 @@ echo ""
 
 # 2. 构建前端
 echo "2. Building frontend..."
-cd web/vue
+cd web/gocronx-admin
 
 # 检测使用哪个包管理器
 if [ -f "pnpm-lock.yaml" ]; then
@@ -121,7 +121,7 @@ else
 fi
 
 cd ../..
-echo "✓ Frontend built (output: web/vue/dist/)"
+echo "✓ Frontend built (output: web/gocronx-admin/dist/)"
 echo ""
 
 

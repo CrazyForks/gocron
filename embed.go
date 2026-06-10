@@ -5,9 +5,9 @@ import (
 	"io/fs"
 )
 
-//go:embed all:web/vue/dist
+//go:embed all:web/gocronx-admin/dist
 var files embed.FS
 
 func StaticFS() (fs.FS, error) {
-	return fs.Sub(files, "web/vue/dist")
+	return fs.Sub(files, "web/gocronx-admin/dist")
 }
