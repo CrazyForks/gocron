@@ -20,7 +20,6 @@
         <ElSteps :active="currentStep" finish-status="success" align-center class="install-steps">
           <ElStep :title="$t('install.stepDb')" />
           <ElStep :title="$t('install.stepAdmin')" />
-          <ElStep :title="$t('install.stepEmail')" />
         </ElSteps>
 
         <!-- Step 1: Database -->
@@ -67,7 +66,12 @@
               </ElCol>
               <ElCol :span="12">
                 <ElFormItem :label="$t('install.dbPassword')" prop="db_password">
-                  <ElInput v-model="form.db_password" type="password" show-password autocomplete="off" />
+                  <ElInput
+                    v-model="form.db_password"
+                    type="password"
+                    show-password
+                    autocomplete="off"
+                  />
                 </ElFormItem>
               </ElCol>
             </ElRow>
@@ -81,7 +85,9 @@
               >
                 <ElInput
                   v-model="form.db_name"
-                  :placeholder="form.db_type === 'sqlite' ? $t('install.dbFilePathPlaceholder') : ''"
+                  :placeholder="
+                    form.db_type === 'sqlite' ? $t('install.dbFilePathPlaceholder') : ''
+                  "
                 />
               </ElFormItem>
             </ElCol>
@@ -149,64 +155,6 @@
 
           <ElFormItem>
             <ElButton @click="goPrev">{{ $t('install.prev') }}</ElButton>
-            <ElButton type="primary" @click="goNext(1)" v-ripple>{{ $t('install.next') }}</ElButton>
-          </ElFormItem>
-        </ElForm>
-
-        <!-- Step 3: Email config (optional) -->
-        <ElForm
-          v-show="currentStep === 2"
-          ref="formEmailRef"
-          :model="form"
-          label-width="140px"
-          class="install-form"
-          @submit.prevent
-        >
-          <ElAlert
-            :title="$t('install.emailOptionalTip')"
-            type="info"
-            :closable="false"
-            show-icon
-            style="margin-bottom: 20px"
-          />
-
-          <ElRow :gutter="16">
-            <ElCol :span="14">
-              <ElFormItem :label="$t('install.emailHost')">
-                <ElInput v-model="form.email_host" />
-              </ElFormItem>
-            </ElCol>
-            <ElCol :span="10">
-              <ElFormItem :label="$t('install.emailPort')">
-                <ElInputNumber
-                  v-model="form.email_port"
-                  :min="1"
-                  :max="65535"
-                  controls-position="right"
-                  style="width: 100%"
-                />
-              </ElFormItem>
-            </ElCol>
-          </ElRow>
-
-          <ElRow :gutter="16">
-            <ElCol :span="12">
-              <ElFormItem :label="$t('install.emailUsername')">
-                <ElInput v-model="form.email_username" autocomplete="off" />
-              </ElFormItem>
-            </ElCol>
-            <ElCol :span="12">
-              <ElFormItem :label="$t('install.emailPassword')">
-                <ElInput v-model="form.email_password" type="password" show-password autocomplete="off" />
-              </ElFormItem>
-            </ElCol>
-          </ElRow>
-
-          <ElFormItem>
-            <ElButton @click="goPrev">{{ $t('install.prev') }}</ElButton>
-            <ElButton @click="handleSubmit" :loading="submitting" v-ripple>
-              {{ $t('install.skip') }}
-            </ElButton>
             <ElButton type="primary" @click="handleSubmit" :loading="submitting" v-ripple>
               {{ $t('install.submit') }}
             </ElButton>
@@ -236,7 +184,6 @@
 
   const formDbRef = ref<FormInstance>()
   const formAdminRef = ref<FormInstance>()
-  const formEmailRef = ref<FormInstance>()
 
   const form = reactive({
     // DB
@@ -251,12 +198,7 @@
     admin_username: '',
     admin_password: '',
     confirm_admin_password: '',
-    admin_email: '',
-    // Email (optional)
-    email_host: '',
-    email_port: 465,
-    email_username: '',
-    email_password: ''
+    admin_email: ''
   })
 
   const dbList = [
@@ -337,9 +279,6 @@
     if (step === 0) {
       const valid = await formDbRef.value?.validate().catch(() => false)
       if (!valid) return
-    } else if (step === 1) {
-      const valid = await formAdminRef.value?.validate().catch(() => false)
-      if (!valid) return
     }
     currentStep.value = step + 1
   }
@@ -349,6 +288,8 @@
   }
 
   async function handleSubmit() {
+    const valid = await formAdminRef.value?.validate().catch(() => false)
+    if (!valid) return
     submitting.value = true
     try {
       await fetchInstall({
@@ -376,13 +317,13 @@
 
 <style scoped>
   .install-page {
-    min-height: 100vh;
-    background: var(--el-bg-color-page, #f5f7fa);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    min-height: 100vh;
     padding: 40px 16px;
+    background: var(--el-bg-color-page, #f5f7fa);
   }
 
   .install-lang-bar {
@@ -402,15 +343,15 @@
   }
 
   .install-header {
-    text-align: center;
     margin-bottom: 8px;
+    text-align: center;
   }
 
   .install-title {
+    margin: 0 0 4px;
     font-size: 22px;
     font-weight: 600;
     color: var(--el-text-color-primary);
-    margin: 0 0 4px;
   }
 
   .install-steps {
@@ -421,10 +362,10 @@
     padding: 0 8px;
   }
 
-  @media (max-width: 768px) {
+  @media (width <= 768px) {
     .install-page {
-      padding: 24px 8px;
       justify-content: flex-start;
+      padding: 24px 8px;
     }
 
     .install-card-wrap {
