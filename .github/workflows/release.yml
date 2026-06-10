@@ -29,7 +29,10 @@ jobs:
         working-directory: web/gocronx-admin
         run: |
           pnpm install --frozen-lockfile
-          pnpm build
+          # build-only (vite) generates the gitignored auto-import type
+          # declarations that a full `pnpm build` (vue-tsc) would otherwise
+          # miss on a fresh checkout.
+          pnpm build-only
 
       - uses: actions/upload-artifact@v4
         with:

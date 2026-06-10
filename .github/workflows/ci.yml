@@ -63,7 +63,11 @@ jobs:
         working-directory: web/gocronx-admin
         run: |
           pnpm install --frozen-lockfile
-          pnpm build
+          # build-only (vite) first: it generates the auto-import type
+          # declarations (src/types/import/*.d.ts, gitignored) that vue-tsc
+          # needs. Then type-check against the generated declarations.
+          pnpm build-only
+          pnpm exec vue-tsc --noEmit
 
       - name: Lint
         working-directory: web/gocronx-admin
