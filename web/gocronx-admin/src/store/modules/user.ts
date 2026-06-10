@@ -51,7 +51,7 @@ export const useUserStore = defineStore(
   'userStore',
   () => {
     // 语言设置
-    const language = ref(LanguageEnum.ZH)
+    const language = ref(LanguageEnum.EN)
     // 登录状态
     const isLogin = ref(false)
     // 锁屏状态

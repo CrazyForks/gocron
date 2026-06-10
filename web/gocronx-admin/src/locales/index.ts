@@ -87,8 +87,8 @@ const getDefaultLanguage = (): LanguageEnum => {
   }
 
   // 返回默认语言
-  console.debug('[i18n] 使用默认语言:', LanguageEnum.ZH)
-  return LanguageEnum.ZH
+  console.debug('[i18n] 使用默认语言:', LanguageEnum.EN)
+  return LanguageEnum.EN
 }
 
 /**
@@ -98,7 +98,7 @@ const i18nOptions: I18nOptions = {
   locale: getDefaultLanguage(),
   legacy: false,
   globalInjection: true,
-  fallbackLocale: LanguageEnum.ZH,
+  fallbackLocale: LanguageEnum.EN,
   messages
 }
 
