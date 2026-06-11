@@ -256,9 +256,13 @@ func Store(c *gin.Context) {
 		for i, hostIdStr := range hostIdStrList {
 			hostIds[i], _ = strconv.Atoi(hostIdStr)
 		}
-		_ = taskHostModel.Add(id, hostIds)
+		if err := taskHostModel.Add(id, hostIds); err != nil {
+			logger.Errorf("保存任务主机关联失败#任务ID-%d#%s", id, err)
+		}
 	} else {
-		_ = taskHostModel.Remove(id)
+		if err := taskHostModel.Remove(id); err != nil {
+			logger.Errorf("移除任务主机关联失败#任务ID-%d#%s", id, err)
+		}
 	}
 
 	status, _ := taskModel.GetStatus(id)
@@ -282,7 +286,9 @@ func Remove(c *gin.Context) {
 		base.RespondErrorWithDefaultMsg(c, err)
 	} else {
 		taskHostModel := new(models.TaskHost)
-		_ = taskHostModel.Remove(id)
+		if err := taskHostModel.Remove(id); err != nil {
+			logger.Errorf("移除任务主机关联失败#任务ID-%d#%s", id, err)
+		}
 		service.ServiceTask.Remove(id)
 		base.RespondSuccessWithDefaultMsg(c, nil)
 	}
@@ -375,7 +381,9 @@ func BatchRemove(c *gin.Context) {
 		_, err := taskModel.Delete(id)
 		if err == nil {
 			successCount++
-			_ = taskHostModel.Remove(id)
+			if err := taskHostModel.Remove(id); err != nil {
+				logger.Errorf("移除任务主机关联失败#任务ID-%d#%s", id, err)
+			}
 			service.ServiceTask.Remove(id)
 		}
 	}
