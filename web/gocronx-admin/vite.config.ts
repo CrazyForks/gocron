@@ -66,7 +66,7 @@ export default ({ mode }: { mode: string }) => {
             'vue-vendor': ['vue', 'vue-router', 'pinia'],
             'element-plus': ['element-plus'],
             echarts: ['echarts'],
-            utils: ['axios', 'crypto-js', 'nprogress']
+            utils: ['axios', 'nprogress']
           },
           // 优化文件名
           chunkFileNames: 'js/[name]-[hash].js',
@@ -130,7 +130,6 @@ export default ({ mode }: { mode: string }) => {
         'echarts/renderers',
         'xlsx',
         'xgplayer',
-        'crypto-js',
         'file-saver',
         'vue-img-cutter',
         'element-plus/es',
