@@ -33,6 +33,7 @@ func Store(c *gin.Context) {
 	var form struct {
 		Name string `json:"name"`
 	}
+	// name 可选，绑定失败（空 body / 非法 JSON）时回退到默认名称，无需中断。
 	_ = c.ShouldBindJSON(&form)
 	name := strings.TrimSpace(form.Name)
 	if name == "" {

@@ -1,0 +1,48 @@
+version: "2"
+
+# 实用基线：高信号、低误报的 linter 集合，对当前代码库零告警。
+# 聚焦真实缺陷（errcheck 未检查的错误、staticcheck SA 系列 bug、ineffassign 无效赋值、
+# misspell 拼写）。govet 已由 CI 的 `go vet ./...` 覆盖，这里不重复开启。
+linters:
+  default: none
+  enable:
+    - errcheck
+    - ineffassign
+    - misspell
+    - staticcheck
+  settings:
+    errcheck:
+      # 以下函数返回的 error 在本项目中可安全忽略：best-effort 写入/清理、高熵随机、可选绑定。
+      exclude-functions:
+        - io.Copy
+        - os.Remove
+        - (io.Closer).Close
+        - (io/fs.File).Close
+        - (*os.File).Close
+        - (*database/sql.DB).Close
+        - (*google.golang.org/grpc.ClientConn).Close
+        - crypto/rand.Read
+        - (*github.com/gin-gonic/gin.Context).ShouldBindJSON
+    staticcheck:
+      # golangci-lint 默认排除的命名/文档风格检查，加上本项目额外免除项：
+      # QF1004/QF1008/ST1023 为风格/快速修复（非缺陷）；
+      # SA1019(grpc.DialContext 弃用) 的替代 NewClient 改变连接时机语义，属独立迁移，暂不在此处理。
+      checks:
+        - all
+        - -ST1000
+        - -ST1003
+        - -ST1016
+        - -ST1020
+        - -ST1021
+        - -ST1022
+        - -QF1004
+        - -QF1008
+        - -QF1011
+        - -ST1023
+        - -SA1019
+  exclusions:
+    rules:
+      # 测试代码忽略 Create/AutoMigrate 等返回值是惯例，不视为违规。
+      - path: _test\.go
+        linters:
+          - errcheck
