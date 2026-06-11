@@ -92,19 +92,19 @@
                       <h4>{{ t('template.cronStandard') }}</h4>
                       <ul>
                         <li
-                          ><code>0 * * * *</code>
+                          ><code>0 * * * * *</code>
                           <span>{{ t('template.cronEveryMinute') }}</span></li
                         >
                         <li
-                          ><code>*/20 * * * *</code>
+                          ><code>*/20 * * * * *</code>
                           <span>{{ t('template.cronEvery20Sec') }}</span></li
                         >
                         <li
-                          ><code>30 21 * * *</code>
+                          ><code>0 30 21 * * *</code>
                           <span>{{ t('template.cronEveryDay2130') }}</span></li
                         >
                         <li
-                          ><code>0 23 * * 6</code>
+                          ><code>0 0 23 * * 6</code>
                           <span>{{ t('template.cronEverySat23') }}</span></li
                         >
                       </ul>
