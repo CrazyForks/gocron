@@ -25,6 +25,7 @@ Full documentation is available at: **[document](https://gocron-docs.pages.dev/e
 - **Access Control**: Comprehensive user and permission management
 - **2FA Security**: Two-Factor Authentication support
 - **Agent Auto-Registration**: One-click installation for Linux/macOS
+- **MCP Support**: Remote management by AI clients (Claude Desktop, Cursor, etc.) via the Model Context Protocol, secured with web-managed access tokens
 - **Multi-Database**: MySQL / PostgreSQL / SQLite support
 - **Log Management**: Complete execution logs with auto-cleanup
 - **Notifications**: Email, Slack, Webhook support
