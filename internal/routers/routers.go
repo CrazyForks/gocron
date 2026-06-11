@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	gocronembed "github.com/gocronx-team/gocron"
+	gocronmcp "github.com/gocronx-team/gocron/internal/mcp"
 	"github.com/gocronx-team/gocron/internal/models"
 	"github.com/gocronx-team/gocron/internal/modules/app"
 	"github.com/gocronx-team/gocron/internal/modules/i18n"
@@ -23,6 +24,7 @@ import (
 	"github.com/gocronx-team/gocron/internal/routers/install"
 	"github.com/gocronx-team/gocron/internal/routers/loginlog"
 	"github.com/gocronx-team/gocron/internal/routers/manage"
+	"github.com/gocronx-team/gocron/internal/routers/mcptoken"
 	"github.com/gocronx-team/gocron/internal/routers/statistics"
 	"github.com/gocronx-team/gocron/internal/routers/task"
 	"github.com/gocronx-team/gocron/internal/routers/tasklog"
@@ -172,6 +174,23 @@ func Register(r *gin.Engine) {
 	auditGroup := api.Group("/audit")
 	{
 		auditGroup.GET("", audit.Index)
+	}
+
+	// MCP 访问令牌管理（仅管理员，走全局 JWT 鉴权）
+	mcpTokenGroup := api.Group("/mcp-token")
+	{
+		mcpTokenGroup.GET("", mcptoken.Index)
+		mcpTokenGroup.POST("/store", mcptoken.Store)
+		mcpTokenGroup.POST("/remove/:id", mcptoken.Remove)
+	}
+
+	// MCP Streamable HTTP 端点（远程 AI 客户端接入，Bearer Token 鉴权）
+	// 顶级路径，被 isStaticFileRequest 视为非 API 请求，从而跳过 JWT 的 userAuth/urlAuth，
+	// 改由 gocronmcp.Auth 校验令牌。
+	mcpGroup := r.Group("/mcp")
+	mcpGroup.Use(gocronmcp.Auth)
+	{
+		mcpGroup.Any("", gin.WrapH(gocronmcp.Handler()))
 	}
 
 	// API

@@ -178,7 +178,8 @@
       "userEdit": "编辑用户",
       "userEditPassword": "重置密码",
       "logRetention": "日志保留",
-      "notification": "通知配置"
+      "notification": "通知配置",
+      "mcpToken": "MCP 密钥"
     }
   },
   "audit": {
@@ -742,5 +743,33 @@
     "daysPlaceholder": "天（0 表示不限）",
     "save": "保存",
     "saveSuccess": "日志保留设置已保存"
+  },
+  "mcpToken": {
+    "introTitle": "MCP 远程接入",
+    "introDesc": "创建访问密钥后，AI 客户端（Claude Desktop、Cursor 等）可通过 MCP 协议远程管理你的定时任务。密钥继承创建者的权限。",
+    "endpoint": "接入地址：",
+    "endpointHint": "地址随当前访问面板的域名/端口自动生成，请以你实际对外的访问地址为准。",
+    "tlsWarn": "请务必在 HTTPS / 反向代理之后暴露该端点，切勿明文传输密钥。",
+    "create": "新建密钥",
+    "createdTitle": "密钥已创建",
+    "name": "名称",
+    "namePlaceholder": "便于识别的名称，如：我的 Claude Desktop",
+    "lastUsedAt": "最近使用",
+    "never": "从未使用",
+    "createdAt": "创建时间",
+    "operation": "操作",
+    "revoke": "吊销",
+    "confirmRevoke": "确认吊销密钥「{name}」？使用该密钥的客户端将立即失去访问权限。",
+    "revokeSuccess": "密钥已吊销",
+    "onceWarn": "请立即复制并妥善保存，此密钥明文仅显示这一次，关闭后将无法再次查看。",
+    "configHint": "MCP 客户端配置示例：",
+    "copyConfig": "复制配置",
+    "refresh": "刷新",
+    "copy": "复制",
+    "copySuccess": "已复制到剪贴板",
+    "copyFailed": "复制失败",
+    "confirm": "确定",
+    "cancel": "取消",
+    "done": "完成"
   }
 }

@@ -29,6 +29,7 @@ type Setting struct {
 	ApiKey        string
 	ApiSecret     string
 	ApiSignEnable bool
+	McpEnable     bool
 
 	EnableTLS bool
 	CAFile    string
@@ -65,6 +66,7 @@ func Read(filename string) (*Setting, error) {
 	s.ApiKey = section.Key("api.key").MustString("")
 	s.ApiSecret = section.Key("api.secret").MustString("")
 	s.ApiSignEnable = section.Key("api.sign.enable").MustBool(true)
+	s.McpEnable = section.Key("mcp.enable").MustBool(true)
 	s.ConcurrencyQueue = section.Key("concurrency.queue").MustInt(500)
 	s.AuthSecret = section.Key("auth_secret").MustString("")
 	if s.AuthSecret == "" {

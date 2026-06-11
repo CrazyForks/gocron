@@ -26,6 +26,11 @@ api.key=
 api.secret=
 api.sign.enable=true
 
+# MCP 远程接入（供 AI 客户端通过 MCP 协议管理任务）
+# 端点为 /mcp，使用「系统管理 - MCP 密钥」中创建的 Bearer 令牌鉴权
+# 务必置于 HTTPS / 反向代理之后再对外暴露
+mcp.enable=true
+
 # 允许访问的IP列表，多个IP用逗号分隔，为空表示不限制
 allow_ips=
 

@@ -13,7 +13,7 @@ type Migration struct{}
 func (migration *Migration) Install(dbName string) error {
 	setting := new(Setting)
 	tables := []interface{}{
-		&User{}, &Task{}, &TaskLog{}, &Host{}, setting, &LoginLog{}, &TaskHost{}, &AgentToken{}, &AuditLog{}, &TaskScriptVersion{}, &TaskTemplate{},
+		&User{}, &Task{}, &TaskLog{}, &Host{}, setting, &LoginLog{}, &TaskHost{}, &AgentToken{}, &AuditLog{}, &TaskScriptVersion{}, &TaskTemplate{}, &ApiToken{},
 	}
 
 	for _, table := range tables {
@@ -46,7 +46,7 @@ func (migration *Migration) Upgrade(oldVersionId int) {
 		return
 	}
 
-	versionIds := []int{110, 122, 130, 140, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 1510, 160}
+	versionIds := []int{110, 122, 130, 140, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 1510, 160, 161}
 	upgradeFuncs := []func(*gorm.DB) error{
 		migration.upgradeFor110,
 		migration.upgradeFor122,
@@ -64,6 +64,7 @@ func (migration *Migration) Upgrade(oldVersionId int) {
 		migration.upgradeFor159,
 		migration.upgradeFor1510,
 		migration.upgradeFor160,
+		migration.upgradeFor161,
 	}
 
 	startIndex := -1
@@ -648,6 +649,19 @@ func (m *Migration) upgradeFor160(tx *gorm.DB) error {
 	}
 
 	logger.Info("已升级到v1.6.0\n")
+
+	return nil
+}
+
+func (m *Migration) upgradeFor161(tx *gorm.DB) error {
+	logger.Info("开始升级到v1.6.1 - 添加 MCP/API 访问令牌")
+
+	if err := tx.AutoMigrate(&ApiToken{}); err != nil {
+		return err
+	}
+	logger.Info("✓ 已创建 api_token 表")
+
+	logger.Info("已升级到v1.6.1\n")
 
 	return nil
 }

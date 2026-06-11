@@ -178,7 +178,8 @@
       "userEdit": "Edit User",
       "userEditPassword": "Reset Password",
       "logRetention": "Log Retention",
-      "notification": "Notification"
+      "notification": "Notification",
+      "mcpToken": "MCP Keys"
     }
   },
   "audit": {
@@ -742,5 +743,33 @@
     "daysPlaceholder": "days (0 = unlimited)",
     "save": "Save",
     "saveSuccess": "Log retention settings saved"
+  },
+  "mcpToken": {
+    "introTitle": "MCP Remote Access",
+    "introDesc": "Create an access key, then AI clients (Claude Desktop, Cursor, etc.) can manage your scheduled tasks remotely via the MCP protocol. A key inherits the permissions of the user who created it.",
+    "endpoint": "Endpoint:",
+    "endpointHint": "The address is auto-derived from the domain/port you use to access this panel — use your actual public address.",
+    "tlsWarn": "Always expose this endpoint behind HTTPS / a reverse proxy — never transmit keys in plaintext.",
+    "create": "New Key",
+    "createdTitle": "Key Created",
+    "name": "Name",
+    "namePlaceholder": "A recognizable name, e.g. My Claude Desktop",
+    "lastUsedAt": "Last Used",
+    "never": "Never",
+    "createdAt": "Created",
+    "operation": "Action",
+    "revoke": "Revoke",
+    "confirmRevoke": "Revoke key \"{name}\"? Clients using it will immediately lose access.",
+    "revokeSuccess": "Key revoked",
+    "onceWarn": "Copy and store it now — the plaintext key is shown only once and cannot be retrieved after closing.",
+    "configHint": "Example MCP client config:",
+    "copyConfig": "Copy Config",
+    "refresh": "Refresh",
+    "copy": "Copy",
+    "copySuccess": "Copied to clipboard",
+    "copyFailed": "Copy failed",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "done": "Done"
   }
 }

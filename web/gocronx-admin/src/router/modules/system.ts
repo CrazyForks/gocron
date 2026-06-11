@@ -54,6 +54,17 @@ export const systemRoutes: AppRouteRecord = {
         roles: ['R_SUPER', 'R_ADMIN']
       }
     },
+    {
+      path: 'mcp-token',
+      name: 'McpToken',
+      component: '/system/mcp-token/index',
+      meta: {
+        title: 'menus.system.mcpToken',
+        icon: 'ri:key-2-line',
+        keepAlive: true,
+        roles: ['R_SUPER', 'R_ADMIN']
+      }
+    },
     // ── hidden user-related routes ────────────────────────────────────────────
     // User list is a standalone sidebar entry (router/modules/user.ts), but its
     // support pages — user center, 2FA, edit user, reset password — live here
