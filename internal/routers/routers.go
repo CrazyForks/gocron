@@ -87,6 +87,8 @@ func Register(r *gin.Engine) {
 		taskGroup.POST("/versions/:id/:version_id/rollback", task.VersionRollback)
 		taskGroup.POST("/store", task.Store)
 		taskGroup.POST("/cron-preview", task.CronPreview)
+		taskGroup.POST("/nl-to-cron", task.NlToCron)
+		taskGroup.POST("/log/diagnose/:id", tasklog.Diagnose)
 		taskGroup.GET("/tags", task.GetAllTags)
 		taskGroup.GET("/:id", task.Detail)
 		taskGroup.GET("", task.Index)
@@ -162,6 +164,8 @@ func Register(r *gin.Engine) {
 		systemGroup.GET("/login-log", loginlog.Index)
 		systemGroup.GET("/log-retention", manage.GetLogRetentionDays)
 		systemGroup.POST("/log-retention", manage.UpdateLogRetentionDays)
+		systemGroup.GET("/llm", manage.LLM)
+		systemGroup.POST("/llm/update", manage.UpdateLLM)
 	}
 
 	// 统计

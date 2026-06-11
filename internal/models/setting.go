@@ -60,6 +60,14 @@ const (
 	LogFileSizeLimitKey = "log_file_size_limit"
 )
 
+const (
+	LLMCode       = "llm"
+	LLMEnableKey  = "enable"
+	LLMBaseURLKey = "base_url"
+	LLMApiKeyKey  = "api_key"
+	LLMModelKey   = "model"
+)
+
 // region slack配置
 
 type Slack struct {
@@ -338,6 +346,59 @@ func (setting *Setting) GetLogCleanupTime() string {
 
 func (setting *Setting) UpdateLogCleanupTime(cleanupTime string) error {
 	return setting.updateOrCreateSetting(SystemCode, LogCleanupTimeKey, cleanupTime)
+}
+
+// endregion
+
+// region LLM配置
+
+// LLM OpenAI 兼容的大模型接入配置。
+type LLM struct {
+	Enable  bool   `json:"enable"`
+	BaseURL string `json:"base_url"`
+	ApiKey  string `json:"api_key"`
+	Model   string `json:"model"`
+}
+
+// LLM 读取大模型配置。
+func (setting *Setting) LLM() (LLM, error) {
+	list := make([]Setting, 0)
+	err := Db.Where("code = ?", LLMCode).Find(&list).Error
+	llm := LLM{}
+	if err != nil {
+		return llm, err
+	}
+	for _, v := range list {
+		switch v.Key {
+		case LLMEnableKey:
+			llm.Enable = v.Value == "1"
+		case LLMBaseURLKey:
+			llm.BaseURL = v.Value
+		case LLMApiKeyKey:
+			llm.ApiKey = v.Value
+		case LLMModelKey:
+			llm.Model = v.Value
+		}
+	}
+	return llm, nil
+}
+
+// UpdateLLM 更新大模型配置。
+func (setting *Setting) UpdateLLM(enable bool, baseURL, apiKey, model string) error {
+	enableValue := "0"
+	if enable {
+		enableValue = "1"
+	}
+	if err := setting.updateOrCreateSetting(LLMCode, LLMEnableKey, enableValue); err != nil {
+		return err
+	}
+	if err := setting.updateOrCreateSetting(LLMCode, LLMBaseURLKey, baseURL); err != nil {
+		return err
+	}
+	if err := setting.updateOrCreateSetting(LLMCode, LLMApiKeyKey, apiKey); err != nil {
+		return err
+	}
+	return setting.updateOrCreateSetting(LLMCode, LLMModelKey, model)
 }
 
 func (setting *Setting) GetLogFileSizeLimit() int {

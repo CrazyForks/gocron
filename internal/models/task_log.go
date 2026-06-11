@@ -71,6 +71,11 @@ func (taskLog *TaskLog) Create() (insertId int64, err error) {
 	return insertId, result.Error
 }
 
+// Find 按 ID 查询单条日志。
+func (taskLog *TaskLog) Find(id int64) error {
+	return Db.Where("id = ?", id).First(taskLog).Error
+}
+
 // 更新
 func (taskLog *TaskLog) Update(id int64, data CommonMap) (int64, error) {
 	updateData := make(map[string]interface{})
