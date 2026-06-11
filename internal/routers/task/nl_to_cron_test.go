@@ -67,7 +67,8 @@ func postNlToCron(r *gin.Engine, body string) map[string]any {
 }
 
 func TestNlToCron_Success(t *testing.T) {
-	srv := mockLLMServer(t, "0 9 * * 1-5")
+	// 6 字段、秒在最前：秒 分 时 日 月 周 —— gocron 的实际格式
+	srv := mockLLMServer(t, "0 0 9 * * 1-5")
 	defer srv.Close()
 	r, cleanup := setupNlToCronRouter(t, srv.URL)
 	defer cleanup()
@@ -77,22 +78,22 @@ func TestNlToCron_Success(t *testing.T) {
 		t.Fatalf("expected success code 0, got %v (msg=%v)", env["code"], env["message"])
 	}
 	data, _ := env["data"].(map[string]any)
-	if data["spec"] != "0 9 * * 1-5" {
+	if data["spec"] != "0 0 9 * * 1-5" {
 		t.Fatalf("expected spec, got %v", data["spec"])
 	}
 }
 
 func TestNlToCron_StripsCodeFenceAndExtraLines(t *testing.T) {
 	// 模型多嘴：带反引号和解释行，handler 应只取干净的第一行表达式
-	srv := mockLLMServer(t, "`0 0 * * *`\n这是每天午夜")
+	srv := mockLLMServer(t, "`0 0 0 * * *`\n这是每天午夜")
 	defer srv.Close()
 	r, cleanup := setupNlToCronRouter(t, srv.URL)
 	defer cleanup()
 
 	env := postNlToCron(r, `{"text":"每天午夜"}`)
 	data, _ := env["data"].(map[string]any)
-	if data == nil || data["spec"] != "0 0 * * *" {
-		t.Fatalf("expected sanitized spec '0 0 * * *', got %v", env)
+	if data == nil || data["spec"] != "0 0 0 * * *" {
+		t.Fatalf("expected sanitized spec '0 0 0 * * *', got %v", env)
 	}
 }
 
@@ -103,6 +104,19 @@ func TestNlToCron_NotConfigured(t *testing.T) {
 	env := postNlToCron(r, `{"text":"每天午夜"}`)
 	if code, _ := env["code"].(float64); code == 0 {
 		t.Fatalf("expected failure when LLM not configured, got success")
+	}
+}
+
+func TestNlToCron_RejectsFiveFieldStandardCron(t *testing.T) {
+	// 5 字段标准 cron 语法合法，但会被秒级引擎误读为「秒 分 时 日 月」，必须拒绝
+	srv := mockLLMServer(t, "30 9 * * 1-5")
+	defer srv.Close()
+	r, cleanup := setupNlToCronRouter(t, srv.URL)
+	defer cleanup()
+
+	env := postNlToCron(r, `{"text":"工作日早上9点半"}`)
+	if code, _ := env["code"].(float64); code == 0 {
+		t.Fatalf("expected 5-field standard cron to be rejected, got success: %v", env)
 	}
 }
 
