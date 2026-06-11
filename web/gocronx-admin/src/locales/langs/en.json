@@ -179,7 +179,8 @@
       "userEditPassword": "Reset Password",
       "logRetention": "Log Retention",
       "notification": "Notification",
-      "mcpToken": "MCP Keys"
+      "mcpToken": "MCP Keys",
+      "aiConfig": "AI Config"
     }
   },
   "audit": {
@@ -771,5 +772,31 @@
     "confirm": "Confirm",
     "cancel": "Cancel",
     "done": "Done"
+  },
+  "aiConfig": {
+    "title": "AI Config",
+    "intro": "Configure an OpenAI-compatible model used by features like NL-to-cron and failure-log diagnosis. Works with OpenAI, Claude, and self-hosted/local models (just set the matching baseURL). Keep it on a trusted network; the key is stored only in this system.",
+    "enable": "Enable",
+    "baseUrl": "Endpoint (baseURL)",
+    "baseUrlHint": "OpenAI-compatible URL, usually ending in /v1, e.g. https://api.openai.com/v1",
+    "apiKey": "API Key",
+    "apiKeyPlaceholder": "API key of the model service",
+    "apiKeyConfigured": "Configured (leave blank to keep unchanged)",
+    "model": "Model",
+    "save": "Save",
+    "saveSuccess": "AI config saved"
+  },
+  "ai": {
+    "nlToCron": "AI Generate",
+    "nlDialogTitle": "Generate a cron expression from natural language",
+    "nlPlaceholder": "e.g. every weekday at 9:30am; every 5 minutes; every Monday at 3am",
+    "generate": "Generate",
+    "apply": "Apply",
+    "generatedSpec": "Generated expression",
+    "diagnose": "AI Diagnose",
+    "diagnoseTitle": "Failure Diagnosis",
+    "diagnosing": "Analyzing the log…",
+    "close": "Close",
+    "emptyInput": "Please enter a description first"
   }
 }

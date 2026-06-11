@@ -151,8 +151,40 @@
                   </template>
                 </ElInput>
               </ElFormItem>
+              <ElButton
+                link
+                type="primary"
+                size="small"
+                class="ai-gen-btn"
+                @click="openAiCronDialog"
+              >
+                <ElIcon style="margin-right: 4px"><MagicStick /></ElIcon>
+                {{ t('ai.nlToCron') }}
+              </ElButton>
             </ElCol>
           </ElRow>
+
+          <!-- AI: natural language → cron -->
+          <ElDialog
+            v-model="aiCronVisible"
+            :title="t('ai.nlDialogTitle')"
+            width="520px"
+            align-center
+            destroy-on-close
+          >
+            <ElInput
+              v-model="aiCronText"
+              type="textarea"
+              :rows="3"
+              :placeholder="t('ai.nlPlaceholder')"
+            />
+            <template #footer>
+              <ElButton @click="aiCronVisible = false">{{ t('ai.close') }}</ElButton>
+              <ElButton type="primary" :loading="aiCronLoading" @click="generateCron">
+                {{ t('ai.generate') }}
+              </ElButton>
+            </template>
+          </ElDialog>
 
           <!-- cron preview (rich panel: empty / error / next-runs) -->
           <ElRow v-if="form.level === 1" :gutter="24">
@@ -600,7 +632,8 @@
   import { ref, reactive, computed, watch, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRoute, useRouter } from 'vue-router'
-  import { Clock, Collection, InfoFilled, WarningFilled } from '@element-plus/icons-vue'
+  import { Clock, Collection, InfoFilled, WarningFilled, MagicStick } from '@element-plus/icons-vue'
+  import { nlToCron } from '@/api/ai'
   import type { FormInstance, FormRules } from 'element-plus'
   import {
     fetchTaskDetail,
@@ -869,6 +902,37 @@
   function previewCron() {
     if (cronDebounce) clearTimeout(cronDebounce)
     cronDebounce = setTimeout(runPreview, 300)
+  }
+
+  // ── AI: natural language → cron ───────────────────────────────────────────────
+  const aiCronVisible = ref(false)
+  const aiCronText = ref('')
+  const aiCronLoading = ref(false)
+
+  function openAiCronDialog() {
+    aiCronText.value = ''
+    aiCronVisible.value = true
+  }
+
+  async function generateCron() {
+    const text = aiCronText.value.trim()
+    if (!text) {
+      ElMessage.warning(t('ai.emptyInput'))
+      return
+    }
+    aiCronLoading.value = true
+    try {
+      const res = await nlToCron(text)
+      if (res?.spec) {
+        form.spec = res.spec
+        aiCronVisible.value = false
+        previewCron()
+      }
+    } catch {
+      // error toast handled by http interceptor
+    } finally {
+      aiCronLoading.value = false
+    }
   }
 
   async function runPreview() {

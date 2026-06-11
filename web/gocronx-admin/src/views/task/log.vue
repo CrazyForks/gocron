@@ -53,6 +53,23 @@
             currentLog.output || currentLog.result || t('task.log.noOutput')
           }}</pre>
         </div>
+
+        <!-- AI failure diagnosis -->
+        <div v-if="currentLog.output || currentLog.result" style="margin-top: 16px">
+          <ElButton type="primary" :loading="diagnoseLoading" @click="runDiagnose">
+            <ElIcon style="margin-right: 4px"><MagicStick /></ElIcon>{{ t('ai.diagnose') }}
+          </ElButton>
+        </div>
+        <ElAlert
+          v-if="diagnosis"
+          :title="t('ai.diagnoseTitle')"
+          type="success"
+          :closable="false"
+          show-icon
+          style="margin-top: 12px"
+        >
+          <pre class="log-pre" style="white-space: pre-wrap; margin: 0">{{ diagnosis }}</pre>
+        </ElAlert>
       </div>
     </ElDialog>
   </div>
@@ -62,7 +79,9 @@
   import { ref, computed, h, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRoute, useRouter } from 'vue-router'
-  import { ElButton, ElMessage, ElMessageBox, ElTag } from 'element-plus'
+  import { ElButton, ElMessage, ElMessageBox, ElTag, ElAlert, ElIcon } from 'element-plus'
+  import { MagicStick } from '@element-plus/icons-vue'
+  import { diagnoseLog } from '@/api/ai'
   import { useTable } from '@/hooks/core/useTable'
   import {
     fetchTaskLogList,
@@ -191,7 +210,25 @@
       .replace(/&gt;/g, '>')
       .replace(/&amp;/g, '&')
     currentLog.value = { ...row, command: cmd }
+    diagnosis.value = ''
     outputDialogVisible.value = true
+  }
+
+  // ── AI failure diagnosis ──────────────────────────────────────────────────────
+  const diagnoseLoading = ref(false)
+  const diagnosis = ref('')
+
+  async function runDiagnose() {
+    if (!currentLog.value) return
+    diagnoseLoading.value = true
+    try {
+      const res = await diagnoseLog(currentLog.value.id)
+      diagnosis.value = res?.diagnosis || ''
+    } catch {
+      // error toast handled by http interceptor
+    } finally {
+      diagnoseLoading.value = false
+    }
   }
 
   // ── Format helpers ────────────────────────────────────────────────────────

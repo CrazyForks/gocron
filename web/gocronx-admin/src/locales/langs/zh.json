@@ -179,7 +179,8 @@
       "userEditPassword": "重置密码",
       "logRetention": "日志保留",
       "notification": "通知配置",
-      "mcpToken": "MCP 密钥"
+      "mcpToken": "MCP 密钥",
+      "aiConfig": "AI 配置"
     }
   },
   "audit": {
@@ -771,5 +772,31 @@
     "confirm": "确定",
     "cancel": "取消",
     "done": "完成"
+  },
+  "aiConfig": {
+    "title": "AI 配置",
+    "intro": "配置一个 OpenAI 兼容的大模型，用于「自然语言转 cron」「失败日志诊断」等功能。支持 OpenAI、Claude 及自建/国内模型（填写对应 baseURL 即可）。请置于可信网络，密钥仅存于本系统。",
+    "enable": "启用",
+    "baseUrl": "接口地址 (baseURL)",
+    "baseUrlHint": "OpenAI 兼容地址，通常以 /v1 结尾，例如 https://api.openai.com/v1",
+    "apiKey": "API Key",
+    "apiKeyPlaceholder": "填写模型服务的 API Key",
+    "apiKeyConfigured": "已配置（留空则不修改）",
+    "model": "模型名称",
+    "save": "保存",
+    "saveSuccess": "AI 配置已保存"
+  },
+  "ai": {
+    "nlToCron": "AI 生成",
+    "nlDialogTitle": "用自然语言生成 cron 表达式",
+    "nlPlaceholder": "例如：每个工作日早上 9 点半；每 5 分钟一次；每周一凌晨 3 点",
+    "generate": "生成",
+    "apply": "应用",
+    "generatedSpec": "生成的表达式",
+    "diagnose": "AI 诊断",
+    "diagnoseTitle": "失败诊断",
+    "diagnosing": "正在分析日志…",
+    "close": "关闭",
+    "emptyInput": "请先输入描述"
   }
 }
