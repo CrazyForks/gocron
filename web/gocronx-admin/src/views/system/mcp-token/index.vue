@@ -93,7 +93,9 @@
       <div class="config-label">{{ t('mcpToken.configHint') }}</div>
       <pre class="config-pre">{{ configSnippet }}</pre>
       <div style="text-align: right">
-        <ElButton size="small" @click="copyText(configSnippet)">{{ t('mcpToken.copyConfig') }}</ElButton>
+        <ElButton size="small" @click="copyText(configSnippet)">{{
+          t('mcpToken.copyConfig')
+        }}</ElButton>
       </div>
 
       <template #footer>
@@ -191,12 +193,16 @@
 
   async function handleRevoke(row: McpTokenItem) {
     try {
-      await ElMessageBox.confirm(t('mcpToken.confirmRevoke', { name: row.name }), t('mcpToken.revoke'), {
-        confirmButtonText: t('mcpToken.confirm'),
-        cancelButtonText: t('mcpToken.cancel'),
-        type: 'warning',
-        center: true
-      })
+      await ElMessageBox.confirm(
+        t('mcpToken.confirmRevoke', { name: row.name }),
+        t('mcpToken.revoke'),
+        {
+          confirmButtonText: t('mcpToken.confirm'),
+          cancelButtonText: t('mcpToken.cancel'),
+          type: 'warning',
+          center: true
+        }
+      )
     } catch {
       return
     }
