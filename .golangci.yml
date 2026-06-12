@@ -23,6 +23,10 @@ linters:
         - (*google.golang.org/grpc.ClientConn).Close
         - crypto/rand.Read
         - (*github.com/gin-gonic/gin.Context).ShouldBindJSON
+        # 写入内存缓冲/标准输出的格式化打印，返回错误惯例上可忽略
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - fmt.Fprint
     staticcheck:
       # golangci-lint 默认排除的命名/文档风格检查，加上本项目额外免除项：
       # QF1004/QF1008/ST1023 为风格/快速修复（非缺陷）；
