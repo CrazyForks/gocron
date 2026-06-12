@@ -81,6 +81,11 @@ See the [High Availability Guide](https://gocron-docs.pages.dev/en/guide/high-av
   </tr>
 </table>
 
+<p align="center">
+  <b>AI Failure Diagnosis</b><br>
+  <img src="assets/screenshot/ai_diagnose_en.png" alt="AI Failure Diagnosis" width="100%">
+</p>
+
 ## 🤝 Contributing
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.

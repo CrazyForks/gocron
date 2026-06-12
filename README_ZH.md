@@ -81,6 +81,11 @@ docker-compose up -d
   </tr>
 </table>
 
+<p align="center">
+  <b>AI 失败诊断</b><br>
+  <img src="assets/screenshot/ai_diagnose.png" alt="AI 失败诊断" width="100%">
+</p>
+
 ## 🤝 贡献
 
 欢迎社区贡献！完整指南见 [CONTRIBUTING.md](CONTRIBUTING.md)。
