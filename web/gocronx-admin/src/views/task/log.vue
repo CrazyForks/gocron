@@ -60,16 +60,20 @@
             <ElIcon style="margin-right: 4px"><MagicStick /></ElIcon>{{ t('ai.diagnose') }}
           </ElButton>
         </div>
-        <ElAlert
-          v-if="diagnosis"
-          :title="t('ai.diagnoseTitle')"
-          type="success"
-          :closable="false"
-          show-icon
-          style="margin-top: 12px"
-        >
-          <pre class="log-pre" style="white-space: pre-wrap; margin: 0">{{ diagnosis }}</pre>
-        </ElAlert>
+        <div v-if="diagnosis" class="diag-box">
+          <div class="diag-title">
+            <ElIcon class="diag-title-icon"><MagicStick /></ElIcon>
+            {{ t('ai.diagnoseTitle') }}
+          </div>
+          <p v-if="diagnosis.root_cause" class="diag-cause">{{ diagnosis.root_cause }}</p>
+          <div v-if="diagnosis.suggestions && diagnosis.suggestions.length" class="diag-list">
+            <div v-for="(s, i) in diagnosis.suggestions" :key="i" class="diag-item">
+              <span class="diag-num">{{ i + 1 }}.</span>
+              <span class="diag-text">{{ s }}</span>
+            </div>
+          </div>
+          <p class="diag-disclaimer">{{ t('ai.disclaimer') }}</p>
+        </div>
       </div>
     </ElDialog>
   </div>
@@ -79,9 +83,9 @@
   import { ref, computed, h, onMounted } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRoute, useRouter } from 'vue-router'
-  import { ElButton, ElMessage, ElMessageBox, ElTag, ElAlert, ElIcon } from 'element-plus'
+  import { ElButton, ElMessage, ElMessageBox, ElTag, ElIcon } from 'element-plus'
   import { MagicStick } from '@element-plus/icons-vue'
-  import { diagnoseLog } from '@/api/ai'
+  import { diagnoseLog, type DiagnoseResult } from '@/api/ai'
   import { useTable } from '@/hooks/core/useTable'
   import {
     fetchTaskLogList,
@@ -210,20 +214,20 @@
       .replace(/&gt;/g, '>')
       .replace(/&amp;/g, '&')
     currentLog.value = { ...row, command: cmd }
-    diagnosis.value = ''
+    diagnosis.value = null
     outputDialogVisible.value = true
   }
 
   // ── AI failure diagnosis ──────────────────────────────────────────────────────
   const diagnoseLoading = ref(false)
-  const diagnosis = ref('')
+  const diagnosis = ref<DiagnoseResult | null>(null)
 
   async function runDiagnose() {
     if (!currentLog.value) return
     diagnoseLoading.value = true
     try {
       const res = await diagnoseLog(currentLog.value.id)
-      diagnosis.value = res?.diagnosis || ''
+      diagnosis.value = res || null
     } catch {
       // error toast handled by http interceptor
     } finally {
@@ -523,5 +527,63 @@
     white-space: pre-wrap;
     background: #2d2d2d;
     border-radius: 4px;
+  }
+
+  .diag-box {
+    padding: 14px 16px;
+    margin-top: 12px;
+    background: var(--el-fill-color-light);
+    border: 1px solid var(--el-border-color-lighter);
+    border-left: 3px solid var(--el-color-primary);
+    border-radius: 8px;
+  }
+
+  .diag-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--el-text-color-primary);
+  }
+
+  .diag-title-icon {
+    margin-right: 6px;
+    color: var(--el-color-primary);
+  }
+
+  .diag-cause {
+    margin: 0 0 8px;
+    font-weight: 600;
+    line-height: 1.6;
+    color: var(--el-text-color-primary);
+  }
+
+  .diag-list {
+    margin: 0;
+    line-height: 1.7;
+  }
+
+  .diag-item {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+
+  .diag-num {
+    flex-shrink: 0;
+    font-weight: 600;
+    color: var(--el-color-primary);
+  }
+
+  .diag-text {
+    flex: 1;
+    word-break: break-word;
+  }
+
+  .diag-disclaimer {
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: var(--el-text-color-secondary);
   }
 </style>

@@ -1,4 +1,11 @@
 import request from '@/utils/http'
+import { useUserStore } from '@/store/modules/user'
+
+// 把当前界面语言（zh/en）作为 Accept-Language 传给后端，
+// 让 AI 的输出语言与界面切换保持一致（后端 GetLocale 据此选 prompt 语言）。
+function langHeader() {
+  return { 'Accept-Language': useUserStore().language }
+}
 
 // ── LLM config ──────────────────────────────────────────────────────────────
 
@@ -26,6 +33,9 @@ export function updateLLMConfig(data: LLMConfigUpdate) {
   return request.post<null>({ url: '/api/system/llm/update', data })
 }
 
+// LLM 推理（尤其本地大模型）较慢，这两个接口单独放宽超时，避免前端 15s 默认超时提前断开。
+const AI_TIMEOUT = 120000
+
 // ── NL → cron ─────────────────────────────────────────────────────────────────
 
 export interface NlToCronResult {
@@ -41,17 +51,24 @@ export interface NlToCronResult {
 export function nlToCron(text: string, timezone?: string) {
   return request.post<NlToCronResult>({
     url: '/api/task/nl-to-cron',
-    data: { text, timezone: timezone || '' }
+    data: { text, timezone: timezone || '' },
+    timeout: AI_TIMEOUT,
+    headers: langHeader()
   })
 }
 
 // ── Failure log diagnosis ─────────────────────────────────────────────────────
 
 export interface DiagnoseResult {
-  diagnosis: string
+  root_cause: string
+  suggestions: string[]
 }
 
 /** POST /api/task/log/diagnose/:id */
 export function diagnoseLog(id: number) {
-  return request.post<DiagnoseResult>({ url: `/api/task/log/diagnose/${id}` })
+  return request.post<DiagnoseResult>({
+    url: `/api/task/log/diagnose/${id}`,
+    timeout: AI_TIMEOUT,
+    headers: langHeader()
+  })
 }

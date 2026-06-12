@@ -797,6 +797,7 @@
     "diagnoseTitle": "失败诊断",
     "diagnosing": "正在分析日志…",
     "close": "关闭",
-    "emptyInput": "请先输入描述"
+    "emptyInput": "请先输入描述",
+    "disclaimer": "以上内容由 AI 生成，仅供参考，请结合实际部署环境判断。"
   }
 }

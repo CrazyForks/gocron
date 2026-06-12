@@ -14,7 +14,8 @@ import (
 	"time"
 )
 
-const defaultTimeout = 30 * time.Second
+// 本地大模型（如 MLX 上的 27B/35B）首次推理较慢，给较宽松的超时。
+const defaultTimeout = 120 * time.Second
 
 var (
 	// ErrNotConfigured 表示 LLM 未启用或配置不完整。

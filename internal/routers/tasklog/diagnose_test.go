@@ -74,7 +74,7 @@ func callDiagnose(r *gin.Engine, id int64) map[string]any {
 }
 
 func TestDiagnose_Success(t *testing.T) {
-	srv := mockLLMServer(t, "根本原因：节点未安装 python3。建议：安装 python3。")
+	srv := mockLLMServer(t, `{"root_cause":"节点未安装 python3","suggestions":["安装 python3","使用绝对路径"]}`)
 	defer srv.Close()
 	r, cleanup := setupDiagnoseRouter(t, srv.URL)
 	defer cleanup()
@@ -85,8 +85,42 @@ func TestDiagnose_Success(t *testing.T) {
 		t.Fatalf("expected success, got code=%v msg=%v", env["code"], env["message"])
 	}
 	data, _ := env["data"].(map[string]any)
-	if s, _ := data["diagnosis"].(string); s == "" {
-		t.Fatalf("expected diagnosis text, got %v", data)
+	if rc, _ := data["root_cause"].(string); rc != "节点未安装 python3" {
+		t.Fatalf("expected parsed root_cause, got %v", data["root_cause"])
+	}
+	sug, _ := data["suggestions"].([]any)
+	if len(sug) != 2 {
+		t.Fatalf("expected 2 suggestions, got %v", data["suggestions"])
+	}
+}
+
+func TestDiagnose_FallbackOnNonJSON(t *testing.T) {
+	// 模型没按 JSON 返回时，降级把原文放进 root_cause，前端仍能展示
+	srv := mockLLMServer(t, "就是连不上而已")
+	defer srv.Close()
+	r, cleanup := setupDiagnoseRouter(t, srv.URL)
+	defer cleanup()
+
+	id := seedLog(t, "connection refused")
+	env := callDiagnose(r, id)
+	data, _ := env["data"].(map[string]any)
+	if rc, _ := data["root_cause"].(string); rc != "就是连不上而已" {
+		t.Fatalf("expected raw text fallback in root_cause, got %v", data["root_cause"])
+	}
+}
+
+func TestDiagnose_ParsesJSONWithCodeFence(t *testing.T) {
+	// 模型把 JSON 包在 ```json 代码块里也应能解析
+	srv := mockLLMServer(t, "```json\n{\"root_cause\":\"端口未监听\",\"suggestions\":[\"启动服务\"]}\n```")
+	defer srv.Close()
+	r, cleanup := setupDiagnoseRouter(t, srv.URL)
+	defer cleanup()
+
+	id := seedLog(t, "dial tcp: connection refused")
+	env := callDiagnose(r, id)
+	data, _ := env["data"].(map[string]any)
+	if rc, _ := data["root_cause"].(string); rc != "端口未监听" {
+		t.Fatalf("expected fenced JSON to parse, got %v", data["root_cause"])
 	}
 }
 

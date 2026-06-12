@@ -13,7 +13,7 @@ import (
 	"github.com/gocronx-team/gocron/internal/service"
 )
 
-const nlToCronTimeout = 30 * time.Second
+const nlToCronTimeout = 120 * time.Second
 
 // 注意：gocron 使用秒级 cron，字段顺序为「秒 分 时 日 月 周」，第一个字段永远是秒。
 // 这与标准 5 字段 Unix cron（分 时 日 月 周）不同，必须让模型按本格式输出，否则会在错误时间执行。
