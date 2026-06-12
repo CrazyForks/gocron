@@ -1,0 +1,16 @@
+# pnpm 10.34+/11 不再读取 package.json 的 "pnpm.overrides"，配置统一迁到这里。
+# 这些是安全相关的最低版本约束（pin 掉有漏洞的传递依赖）。
+overrides:
+  yaml: '>=2.8.3'
+  tar: '>=7.5.11'
+  tmp: '>=0.2.6'
+  postcss: '>=8.5.10'
+  js-yaml: '>=4.1.1'
+  lodash: '>=4.17.23'
+  lodash-es: '>=4.17.23'
+  picomatch: '>=4.0.4'
+  minimatch: '>=9.0.7'
+  immutable: '>=5.1.5'
+  flatted: '>=3.4.2'
+  fast-uri: '^3.1.2'
+  defu: '>=6.1.5'

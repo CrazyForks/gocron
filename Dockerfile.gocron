@@ -5,7 +5,9 @@ FROM node:20-alpine AS frontend
 RUN corepack enable && corepack prepare pnpm@10 --activate
 
 WORKDIR /app/web/gocronx-admin
-COPY web/gocronx-admin/package.json web/gocronx-admin/pnpm-lock.yaml ./
+# pnpm-workspace.yaml carries the dependency overrides (pnpm 10.34+ no longer reads
+# them from package.json), so it must be present before the frozen install.
+COPY web/gocronx-admin/package.json web/gocronx-admin/pnpm-lock.yaml web/gocronx-admin/pnpm-workspace.yaml ./
 # Cache the pnpm store across builds so unchanged deps aren't re-downloaded
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile

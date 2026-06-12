@@ -1,6 +1,7 @@
 {
   "name": "@gocronx/gocronx-admin",
   "version": "1.0.0",
+  "packageManager": "pnpm@10.34.3",
   "description": "A modern Vue3 admin template for GoCronX projects",
   "author": "gocronx",
   "license": "MIT",
@@ -24,7 +25,6 @@
     "lint:prettier": "prettier --write \"**/*.{js,cjs,ts,json,tsx,css,less,scss,vue,html,md}\"",
     "lint:stylelint": "stylelint  \"**/*.{css,scss,vue}\" --fix",
     "lint:lint-staged": "lint-staged",
-    "prepare": "husky",
     "commit": "git-cz",
     "clean:dev": "tsx scripts/clean-dev.ts"
   },
@@ -125,22 +125,5 @@
     "vue-demi": "^0.14.9",
     "vue-img-cutter": "^3.0.5",
     "vue-tsc": "~2.1.6"
-  },
-  "pnpm": {
-    "overrides": {
-      "yaml": ">=2.8.3",
-      "tar": ">=7.5.11",
-      "tmp": ">=0.2.6",
-      "postcss": ">=8.5.10",
-      "js-yaml": ">=4.1.1",
-      "lodash": ">=4.17.23",
-      "lodash-es": ">=4.17.23",
-      "picomatch": ">=4.0.4",
-      "minimatch": ">=9.0.7",
-      "immutable": ">=5.1.5",
-      "flatted": ">=3.4.2",
-      "fast-uri": "^3.1.2",
-      "defu": ">=6.1.5"
-    }
   }
 }

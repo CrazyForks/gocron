@@ -1,0 +1,7 @@
+# pnpm 10.34+/11 不再读取 package.json 的 "pnpm.overrides"，配置统一迁到这里。
+# 根项目仅含提交工具链（husky/commitlint 等），这些是安全相关的最低版本约束。
+overrides:
+  lodash: '>=4.18.0'
+  tmp: '>=0.2.6'
+  flatted: '>=3.4.2'
+  fast-uri: '^3.1.2'
