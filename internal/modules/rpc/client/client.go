@@ -17,10 +17,15 @@ import (
 )
 
 var (
-	taskCtxMap     sync.Map // 存储任务执行的 context.CancelFunc
-	errUnavailable = errors.New(i18n.Translate("rpc_unavailable"))
-	ErrManualStop  = errors.New("rpc_manual_stop") // 特殊错误标识，用于判断是否手动停止
+	taskCtxMap    sync.Map                        // 存储任务执行的 context.CancelFunc
+	ErrManualStop = errors.New("rpc_manual_stop") // 特殊错误标识，用于判断是否手动停止
 )
+
+// errRPCUnavailable 在调用时翻译，以遵循启动时配置的服务端默认语言
+// （不能用包级变量，否则会在配置加载前就固化为中文）。
+func errRPCUnavailable() error {
+	return errors.New(i18n.Translate("rpc_unavailable"))
+}
 
 func generateTaskUniqueKey(ip string, port int, id int64) string {
 	return fmt.Sprintf("%s:%d:%d", ip, port, id)
@@ -97,7 +102,7 @@ func Exec(ip string, port int, taskReq *pb.TaskRequest) (string, error) {
 func parseGRPCError(err error) (string, error) {
 	switch status.Code(err) {
 	case codes.Unavailable:
-		return "", errUnavailable
+		return "", errRPCUnavailable()
 	case codes.DeadlineExceeded:
 		return "", errors.New(i18n.Translate("rpc_timeout"))
 	case codes.Canceled:
@@ -110,7 +115,7 @@ func parseGRPCError(err error) (string, error) {
 func parseGRPCErrorOnly(err error) error {
 	switch status.Code(err) {
 	case codes.Unavailable:
-		return errUnavailable
+		return errRPCUnavailable()
 	case codes.DeadlineExceeded:
 		return errors.New(i18n.Translate("rpc_timeout"))
 	case codes.Canceled:

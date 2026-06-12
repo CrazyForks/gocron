@@ -26,6 +26,7 @@ type Setting struct {
 	}
 	AllowIps      string
 	AppName       string
+	Lang          string
 	ApiKey        string
 	ApiSecret     string
 	ApiSignEnable bool
@@ -63,6 +64,8 @@ func Read(filename string) (*Setting, error) {
 
 	s.AllowIps = section.Key("allow_ips").MustString("")
 	s.AppName = section.Key("app.name").MustString("定时任务管理系统")
+	// 服务端默认语言：影响调度器/RPC 等后台场景产生、写入日志的消息语言（zh / en），默认 en。
+	s.Lang = section.Key("app.lang").MustString("en")
 	s.ApiKey = section.Key("api.key").MustString("")
 	s.ApiSecret = section.Key("api.secret").MustString("")
 	s.ApiSignEnable = section.Key("api.sign.enable").MustBool(true)

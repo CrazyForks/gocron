@@ -16,6 +16,7 @@ import (
 
 	"github.com/gocronx-team/gocron/internal/models"
 	"github.com/gocronx-team/gocron/internal/modules/app"
+	"github.com/gocronx-team/gocron/internal/modules/i18n"
 	"github.com/gocronx-team/gocron/internal/modules/leader"
 	"github.com/gocronx-team/gocron/internal/modules/logger"
 	"github.com/gocronx-team/gocron/internal/modules/setting"
@@ -147,6 +148,9 @@ func initModule() {
 		logger.Fatal("Failed to read application config", err)
 	}
 	app.Setting = config
+
+	// 设置服务端默认语言（影响调度器/RPC 等无请求上下文场景的消息语言）
+	i18n.SetDefaultLocale(i18n.ParseLocale(config.Lang))
 
 	// Initialize DB
 	models.Db = models.CreateDb()
