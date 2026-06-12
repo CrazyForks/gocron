@@ -26,6 +26,7 @@ Full documentation is available at: **[document](https://gocron-docs.pages.dev/e
 - **2FA Security**: Two-Factor Authentication support
 - **Agent Auto-Registration**: One-click installation for Linux/macOS
 - **MCP Support**: Remote management by AI clients (Claude Desktop, Cursor, etc.) via the Model Context Protocol, secured with web-managed access tokens
+- **AI Assist**: Natural-language to cron expression and AI-powered failure-log diagnosis, backed by any OpenAI-compatible model (configurable endpoint, also works with self-hosted/local models)
 - **Multi-Database**: MySQL / PostgreSQL / SQLite support
 - **Log Management**: Complete execution logs with auto-cleanup
 - **Notifications**: Email, Slack, Webhook support

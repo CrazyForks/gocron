@@ -26,6 +26,7 @@
 - **双因素认证**：支持 2FA，提升系统安全性
 - **Agent 自动注册**：支持 Linux/macOS 一键安装注册
 - **MCP 支持**：AI 客户端（Claude Desktop、Cursor 等）可通过 Model Context Protocol 远程管理任务，使用 Web 端管理的访问令牌鉴权
+- **AI 辅助**：自然语言转 cron 表达式、失败日志 AI 诊断，对接任意 OpenAI 兼容模型（接入地址可配置，亦支持自建/本地模型）
 - **多数据库支持**：MySQL / PostgreSQL / SQLite
 - **日志管理**：完整的任务执行日志，支持自动清理
 - **消息通知**：支持邮件、Slack、Webhook 等多种通知方式
